@@ -1,0 +1,1941 @@
+[
+  
+  {
+    "model": "preferences.preferencesarea",
+    "pk": 1,
+    "fields": {
+      "preferences_are": "Recursos Digitales Visuales"
+    }
+  },
+  {
+    "model": "preferences.preferencesarea",
+    "pk": 2,
+    "fields": {
+      "preferences_are": "Recursos Digitales Auditivos"
+    }
+  },
+  {
+    "model": "preferences.preferencesarea",
+    "pk": 3,
+    "fields": {
+      "preferences_are": "Recursos Digitales Textuales"
+    }
+  },
+  {
+    "model": "preferences.preferencesarea",
+    "pk": 4,
+    "fields": {
+      "preferences_are": "Nivel De Interactividad"
+    }
+  },
+  {
+    "model": "preferences.preferences",
+    "pk": 1,
+    "fields": {
+      "description": "Información mayoritariamente visual",
+      "priority": 1,
+      "preferences_area": 1
+    }
+  },
+  {
+    "model": "preferences.preferences",
+    "pk": 2,
+    "fields": {
+      "description": "Evitar recursos con dependencia de color",
+      "priority": 1,
+      "preferences_area": 1
+    }
+  },
+  {
+    "model": "preferences.preferences",
+    "pk": 3,
+    "fields": {
+      "description": "Descripción de texto para imágenes",
+      "priority": 5,
+      "preferences_area": 1
+    }
+  },
+  {
+    "model": "preferences.preferences",
+    "pk": 4,
+    "fields": {
+      "description": "Subtítulos para audio y video",
+      "priority": 5,
+      "preferences_area": 2
+    }
+  },
+  {
+    "model": "preferences.preferences",
+    "pk": 5,
+    "fields": {
+      "description": "Descripción de audio para video",
+      "priority": 4,
+      "preferences_area": 2
+    }
+  },
+  {
+    "model": "preferences.preferences",
+    "pk": 6,
+    "fields": {
+      "description": "Transcripción para audio y video",
+      "priority": 4,
+      "preferences_area": 2
+    }
+  },
+  {
+    "model": "preferences.preferences",
+    "pk": 7,
+    "fields": {
+      "description": "Evitar sonido de fondo sin control",
+      "priority": 1,
+      "preferences_area": 2
+    }
+  },
+  {
+    "model": "preferences.preferences",
+    "pk": 8,
+    "fields": {
+      "description": "información mayoritariamente auditivo",
+      "priority": 1,
+      "preferences_area": 2
+    }
+  },
+  {
+    "model": "preferences.preferences",
+    "pk": 9,
+    "fields": {
+      "description": "Información mayoritariamente textual",
+      "priority": 3,
+      "preferences_area": 3
+    }
+  },
+  {
+    "model": "preferences.preferences",
+    "pk": 10,
+    "fields": {
+      "description": "Evitar luces parpadeantes",
+      "priority": 1,
+      "preferences_area": 4
+    }
+  },
+  {
+    "model": "preferences.preferences",
+    "pk": 11,
+    "fields": {
+      "description": "Evitar simulación/movimiento",
+      "priority": 1,
+      "preferences_area": 4
+    }
+  },
+  {
+    "model": "preferences.preferences",
+    "pk": 12,
+    "fields": {
+      "description": "Manejo total con teclado",
+      "priority": 5,
+      "preferences_area": 4
+    }
+  },
+  {
+    "model": "preferences.preferences",
+    "pk": 13,
+    "fields": {
+      "description": "Manejo total con mouse",
+      "priority": 3,
+      "preferences_area": 4
+    }
+  },
+  {
+    "model": "preferences.preferencesfilterarea",
+    "pk": 1,
+    "fields": {
+      "filters_area": "accesibility_control"
+    }
+  },
+  {
+    "model": "preferences.preferencesfilterarea",
+    "pk": 2,
+    "fields": {
+      "filters_area": "accesibility_features"
+    }
+  },
+  {
+    "model": "preferences.preferencesfilterarea",
+    "pk": 3,
+    "fields": {
+      "filters_area": "annotation_modeaccess"
+    }
+  },
+  {
+    "model": "preferences.preferencesfilterarea",
+    "pk": 4,
+    "fields": {
+      "filters_area": "accesibility_hazard"
+    }
+  },
+  {
+    "model": "preferences.preferencesfilter",
+    "pk": 1,
+    "fields": {
+      "search_value": "fullMouseControl",
+      "preferences": "Manejo total con mouse",
+      "preferences_filter_area": 1
+    }
+  },
+  {
+    "model": "preferences.preferencesfilter",
+    "pk": 2,
+    "fields": {
+      "search_value": "fullkeyboardcontrol",
+      "preferences": "Manejo total con teclado",
+      "preferences_filter_area": 1
+    }
+  },
+  {
+    "model": "preferences.preferencesfilter",
+    "pk": 3,
+    "fields": {
+      "search_value": "Visual",
+      "preferences": "Información mayoritariamente visual",
+      "preferences_filter_area": 3
+    }
+  },
+  {
+    "model": "preferences.preferencesfilter",
+    "pk": 4,
+    "fields": {
+      "search_value": "Auditory",
+      "preferences": "Información mayoritariamente auditivo",
+      "preferences_filter_area": 3
+    }
+  },
+  {
+    "model": "preferences.preferencesfilter",
+    "pk": 5,
+    "fields": {
+      "search_value": "Text",
+      "preferences": "Información mayoritariamente textual",
+      "preferences_filter_area": 3
+    }
+  },
+  {
+    "model": "preferences.preferencesfilter",
+    "pk": 6,
+    "fields": {
+      "search_value": "colorDepend",
+      "preferences": "Evitar recursos con dependencia de color",
+      "preferences_filter_area": 3
+    }
+  },
+  {
+    "model": "preferences.preferencesfilter",
+    "pk": 7,
+    "fields": {
+      "search_value": "captions",
+      "preferences": "Subtítulos para audio y video",
+      "preferences_filter_area": 2
+    }
+  },
+  {
+    "model": "preferences.preferencesfilter",
+    "pk": 8,
+    "fields": {
+      "search_value": "ttsMarkup",
+      "preferences": "Transcripción para audio y video",
+      "preferences_filter_area": 2
+    }
+  },
+  {
+    "model": "preferences.preferencesfilter",
+    "pk": 9,
+    "fields": {
+      "search_value": "audioDescription",
+      "preferences": "Descripción de audio para video",
+      "preferences_filter_area": 2
+    }
+  },
+  {
+    "model": "preferences.preferencesfilter",
+    "pk": 10,
+    "fields": {
+      "search_value": "alternativeText",
+      "preferences": "Descripción de texto para imágenes",
+      "preferences_filter_area": 2
+    }
+  },
+  {
+    "model": "preferences.preferencesfilter",
+    "pk": 11,
+    "fields": {
+      "search_value": "noFlashingHazard",
+      "preferences": "Evitar luces parpadeantes",
+      "preferences_filter_area": 4
+    }
+  },
+  {
+    "model": "preferences.preferencesfilter",
+    "pk": 12,
+    "fields": {
+      "search_value": "nomotionsimulationHazard",
+      "preferences": "Evitar simulación/movimiento",
+      "preferences_filter_area": 4
+    }
+  },
+  {
+    "model": "preferences.preferencesfilter",
+    "pk": 13,
+    "fields": {
+      "search_value": "FlashingHazard",
+      "preferences": "Evitar sonido de fondo sin control",
+      "preferences_filter_area": 4
+    }
+  },
+  {
+    "model": "evaluation_student.principle",
+    "pk": 1,
+    "fields": {
+      "principle": "Representación"
+    }
+  },
+  {
+    "model": "evaluation_student.principle",
+    "pk": 2,
+    "fields": {
+      "principle": "Expresión"
+    }
+  },
+  {
+    "model": "evaluation_student.principle",
+    "pk": 3,
+    "fields": {
+      "principle": "Motivación"
+    }
+  },
+  {
+    "model": "evaluation_student.guideline",
+    "pk": 1,
+    "fields": {
+      "guideline": "Presenta la información en diferentes formatos (percepción)",
+      "principle": 1
+    }
+  },
+  {
+    "model": "evaluation_student.guideline",
+    "pk": 2,
+    "fields": {
+      "guideline": "Utiliza elementos de apoyo para decodificar la información",
+      "principle": 1
+    }
+  },
+  {
+    "model": "evaluation_student.guideline",
+    "pk": 3,
+    "fields": {
+      "guideline": "Proporciona opciones para la comprensión",
+      "principle": 1
+    }
+  },
+  {
+    "model": "evaluation_student.guideline",
+    "pk": 4,
+    "fields": {
+      "guideline": "Permite múltiples medios para interaccionar con el material",
+      "principle": 2
+    }
+  },
+  {
+    "model": "evaluation_student.guideline",
+    "pk": 5,
+    "fields": {
+      "guideline": "Se varía el modelo de respuesta en las actividades (expresión y comunicación)",
+      "principle": 2
+    }
+  },
+  {
+    "model": "evaluation_student.guideline",
+    "pk": 6,
+    "fields": {
+      "guideline": "Facilita el desarrollo de las funciones ejecutivas",
+      "principle": 2
+    }
+  },
+  {
+    "model": "evaluation_student.guideline",
+    "pk": 7,
+    "fields": {
+      "guideline": "Proporciona opciones para captar el interés",
+      "principle": 3
+    }
+  },
+  {
+    "model": "evaluation_student.guideline",
+    "pk": 8,
+    "fields": {
+      "guideline": "Proporciona opciones para mantener el esfuerzo y la persistencia",
+      "principle": 3
+    }
+  },
+  {
+    "model": "evaluation_student.guideline",
+    "pk": 9,
+    "fields": {
+      "guideline": "Proporciona opciones para la auto-regulación",
+      "principle": 3
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 1,
+    "fields": {
+      "question": "¿El recurso presenta informacion auditiva?",
+      "description": "Texto",
+      "metadata": "accessMode:auditory",
+      "interpreter_st_yes": "Contiene material interactivo y/o multimedia",
+      "interpreter_st_no": "No cuenta con un material interactivo y/o multimedia",
+      "interpreter_st_partially": "El material interactivo y/o multimedia es poco implementado dentro de su contenido de informacion",
+      "value_st_importance": "0",
+      "guideline": 1
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 2,
+    "fields": {
+      "question": "¿El recurso presenta informacion textual?",
+      "description": "Iconográfico (fotos, imágenes, logos, iconos, infografías)",
+      "metadata": "accessMode:text",
+      "interpreter_st_yes": "Contiene informacion textual adecuada",
+      "interpreter_st_no": "No cuenta con amplia imformacion textual",
+      "interpreter_st_partially": "La informacion textual del contenido no es muy amplia",
+      "value_st_importance": "0",
+      "guideline": 1
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 3,
+    "fields": {
+      "question": "¿El recurso presenta informacion visual?",
+      "description": "Audiovisual (vídeo, audio).",
+      "metadata": "accessMode:visual",
+      "interpreter_st_yes": "Contiene contenido iconografico como fotos, imágenes,logos, etc",
+      "interpreter_st_no": "No presenta ningun tipo de contenido iconografico",
+      "interpreter_st_partially": "El material iconografico del contenido de informacion es poco usado",
+      "value_st_importance": "0",
+      "guideline": 1
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 4,
+    "fields": {
+      "question": "¿Se utiliza una sintaxis directa, sencilla y jerarquizada por orden de relevancia?",
+      "description": "Se utiliza una sintaxis directa, sencilla y jerarquizada por orden de relevancia",
+      "metadata": "accessibilityFeature:structuralNavigation",
+      "interpreter_st_yes": "La sintaxis del contenido es directa,sencilla y adecuadamente jerarquzada por el orden de relevancia",
+      "interpreter_st_no": "La sintaxis del contenido no esta jerarquizada adecuadamente, por tanto no presenta un contenido directo y sencillo",
+      "interpreter_st_partially": "Solo una parte del contenido es jerarquizado de manera adecuada, por tanto su informacion no es completamente sencilla y directa",
+      "value_st_importance": "0",
+      "guideline": 2
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 5,
+    "fields": {
+      "question": "¿Incluye opciones para clarificar el lenguaje matemático?",
+      "description": "Incluye opciones para clarificar el lenguaje oral, escrito y matemático. Por ejemplo, utilizando: glosario, traductor, conversor de texto a voz, imágenes, audiodescripciones, subtítulos en vídeos, calculadora, etc.",
+      "metadata": "accessibilityFeature:mathML",
+      "interpreter_st_yes": "Presenta opciones que ayudan en la comprension del lenguaje matematico",
+      "interpreter_st_no": "No contiene opciones que ayuden en la comprension del lenguaje matematico",
+      "interpreter_st_partially": "Herramientas que ayuden en la comprension del lenguaje matematico no se implementan en todo su contenido de informacion",
+      "value_st_importance": "0",
+      "guideline": 2
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 6,
+    "fields": {
+      "question": "¿Incluye opciones para clarificar  videos , por ejemplo subtitulos sincronizados?",
+      "description": "Incluye opciones para clarificar el lenguaje oral, escrito y matemático. Por ejemplo, utilizando: glosario, traductor, conversor de texto a voz, imágenes, audiodescripciones, subtítulos en vídeos, calculadora, etc.",
+      "metadata": "accessibilityFeature:captions",
+      "interpreter_st_yes": "Presenta opciones que permiten la comprension de videos como los subtitulos sincronizados",
+      "interpreter_st_no": "Los videos no contiene subtitulos sincornizados que faciliten su comprension",
+      "interpreter_st_partially": "Los videos del contenido no estan completamente subtitulados",
+      "value_st_importance": "0",
+      "guideline": 2
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 7,
+    "fields": {
+      "question": "¿Incluye opciones para clarificar por ejemplo  video con audiodescripcion?",
+      "description": "Incluye opciones para clarificar el lenguaje oral, escrito y matemático. Por ejemplo, utilizando: glosario, traductor, conversor de texto a voz, imágenes, audiodescripciones, subtítulos en vídeos, calculadora, etc.",
+      "metadata": "accessibilityFeature:audioDescription",
+      "interpreter_st_yes": "Presenta opciones que ayudan en la comprension de videos como son las audiodescripciones",
+      "interpreter_st_no": "Los videos no contienen audiodescripciones que faciliten su comprension",
+      "interpreter_st_partially": "Las audiodescripciones no estan presentes en la mayoria de sus videos",
+      "value_st_importance": "0",
+      "guideline": 2
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 8,
+    "fields": {
+      "question": "¿Incluye opciones para clarificar  videos por ejemplo con texto paralelo sincronizado que facilita el seguimiento?",
+      "description": "Incluye opciones para clarificar el lenguaje oral, escrito y matemático. Por ejemplo, utilizando: glosario, traductor, conversor de texto a voz, imágenes, audiodescripciones, subtítulos en vídeos, calculadora, etc.",
+      "metadata": "accessibilityFeature:synchronizedAudioText",
+      "interpreter_st_yes": "Presenta opciones que facilitan el seguimiento de videos con textos sincronizados",
+      "interpreter_st_no": "Los videos no cuentan con texto sincronizado que ayude en su seguimiento",
+      "interpreter_st_partially": "Los textos sincronizados con videos que faciliten el seguimiento no son completamente implementados",
+      "value_st_importance": "0",
+      "guideline": 2
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 9,
+    "fields": {
+      "question": "¿Los encabezados o etiquetas estan acordes al tema principal?",
+      "description": "Se etiquetan convenientemente los elementos multimedia (título, descripción de imágenes o vídeo, autoría…).",
+      "metadata": "accessibilityfeature:readingOrder",
+      "interpreter_st_yes": "Sus etiquetas y/o encabezados concuerdan con el tema principal del objeto",
+      "interpreter_st_no": "El tema principal no esta acorde a sus etiquetas y/o encabezados",
+      "interpreter_st_partially": "El tema principal de su contenido no esta referenciado completamente en sus encabesados y/o etiquetas",
+      "value_st_importance": "0",
+      "guideline": 2
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 10,
+    "fields": {
+      "question": "¿Se apoya la información teórica con ejemplos ,  opciones  de  ayuda, resúmenes, entre otros?",
+      "description": "Se apoya la información teórica con ejemplos, analogías, resúmenes, documentos complementarios y/o simulaciones",
+      "metadata": "accessibilityFeature:annotations",
+      "interpreter_st_yes": "La informacion del contenido cuenta con documentos complementarios,analogias, resumenes, ejemplos, que apoyan el desarrollo de su contenido",
+      "interpreter_st_no": "El contenido no presenta una informacion complementaria de apoyo o base, como lo son resumenes, ejemplos o documentos extras.",
+      "interpreter_st_partially": "Existe muy poca informacion complementaria dentro de su contenido ",
+      "value_st_importance": "0",
+      "guideline": 3
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 11,
+    "fields": {
+      "question": "¿Incluye enlaces de consulta o ampliación que permite  acceder directamente a la informacion?",
+      "description": "Incluye enlaces de consulta o ampliación, que deben abrirse en ventana nueva de navegación.",
+      "metadata": "accessibilityFeature:bookmarks",
+      "interpreter_st_yes": "Cuenta con elaces de consulta o ampliacion que accede directamente a la informacion si es que el usuario lo require",
+      "interpreter_st_no": "No existe ningun tipo enlaces de consulta que ayude al usuario a acceder directamente a la informacion",
+      "interpreter_st_partially": "Contiene  muy pocos enlaces de consullta que den acceso directo a la informacion ",
+      "value_st_importance": "0",
+      "guideline": 3
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 12,
+    "fields": {
+      "question": "¿Existe material digital  variado?",
+      "description": "Los materiales, todos o en parte, se pueden consultar en formato digital y analógico",
+      "metadata": "creativework:LearningResource:learningResourceType",
+      "interpreter_st_yes": "Todo los materiales del contenido permiten ser consultados tanto en formato digital como analogico",
+      "interpreter_st_no": "Los materiales de su contenido no permiten ser consultados de forma digital como analogico",
+      "interpreter_st_partially": "Solo una parte de sus materias permite ser consultada en formato digital o analogico",
+      "value_st_importance": "0",
+      "guideline": 4
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 13,
+    "fields": {
+      "question": "¿Posibilita el uso de ayudas técnicas si fuesen necesarias, por ejemplo se puede navegar secuenciamente sobre el contenido utilizando unicamente el teclado?",
+      "description": "Posibilita el uso de ayudas técnicas si fuesen necesarias",
+      "metadata": "accessibilityControl:fullkeyboardcontrol",
+      "interpreter_st_yes": "Contiene varias tenicas de ayuda para el usuarios en caso de que se requieran, como la navegacion secunecial metiante teclado",
+      "interpreter_st_no": "No posee ningun tipo de tecnicas que ayuden en la navegacion secuencial del contenido por teclado",
+      "interpreter_st_partially": "Las tecnicas de navegacion sobre su contenido mediante teclado son poco implementadas",
+      "value_st_importance": "0",
+      "guideline": 4
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 14,
+    "fields": {
+      "question": "¿Existen diferentes posibilidades para que el alumnado comunique lo que sabe: textual, gráfica, audiovisual, interactiva, cinestésica, musical?",
+      "description": " Existen diferentes posibilidades para que el alumnado comunique lo que sabe: textual, gráfica, audiovisual, interactiva, cinestésica, musical",
+      "metadata": "creativework:LearningResource:competencyRequired",
+      "interpreter_st_yes": "El contenido permite que sus usuarios demuestren sus conocimientos previos al del objeto",
+      "interpreter_st_no": "No permite que sus usuarios especifiquen de alguna forma conocimientos previos ",
+      "interpreter_st_partially": "Los usuarios tienes pocas opciones para especificar sus conocimientos previos",
+      "value_st_importance": "0",
+      "guideline": 5
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 15,
+    "fields": {
+      "question": "¿Hay actividades de realización individual y colectivas?",
+      "description": "Hay actividades de realización individual y colectivas",
+      "metadata": "creativework:interactivityType:active,expositive,mixed",
+      "interpreter_st_yes": "La informacion del contenido implementa multiples actividades de relacion individual y colectiva",
+      "interpreter_st_no": "No se hace uso las actividades de relacion individual y colectiva",
+      "interpreter_st_partially": "Las actividades de relacion individual y colectiva son poco frecuentemente usadas en su contenido de informacion",
+      "value_st_importance": "0",
+      "guideline": 5
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 16,
+    "fields": {
+      "question": "¿Permite al alumnado la elección, entre varias opciones, en determinadas actividades, materiales y/o herramientas?",
+      "description": "Permite al alumnado la elección, entre varias opciones, en determinadas actividades, materiales y/o herramientas",
+      "metadata": "creativework:LearningResource:educationalUse",
+      "interpreter_st_yes": "El contenido permite una amplia libertad de selección de opciones en cuanto a actividades, materiales y/o herramientas",
+      "interpreter_st_no": "Su contenido no brinda una libertad en la selección de las activiades que puede realizar",
+      "interpreter_st_partially": "Las actividades pocas veces permiten una opcion de selección de estas",
+      "value_st_importance": "0",
+      "guideline": 5
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 17,
+    "fields": {
+      "question": "¿El estudiante conocen los objetivos de aprendizaje y las normas de funcionamiento, desde el principio?",
+      "description": "Los alumnos saben lo que se espera de ellos; es decir, conocen los objetivos de aprendizaje y las normas de funcionamiento, desde el principio",
+      "metadata": "creativework:LearningResource:competencyRequired",
+      "interpreter_st_yes": "Los usuarios de su contenido de informcion comprendieron desde el principio lo que se espera de ellos, es decir conocen el objeto y sus normas",
+      "interpreter_st_no": "Su contenido de informacion no es coherente por lo que sus usuarios no comprenden su tema principal",
+      "interpreter_st_partially": "El contenido de informacion de su objeto de aprendizaje  es poco coherente en algunas partes",
+      "value_st_importance": "0",
+      "guideline": 6
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 18,
+    "fields": {
+      "question": "¿El recurso ofrece ejemplos, plantillas, tutoriales, consejos, autocorrectores y/o modelos de apoyo?",
+      "description": "Ofrece ejemplos, plantillas, tutoriales, consejos, autocorrectores y/o modelos de apoyo",
+      "metadata": "creativework:LearningResource:educationalUse",
+      "interpreter_st_yes": "La informacion del contenido brinda adecuadamente ejemplos acordes a su tema, como tutoriales,consejos yo modelos de apoyo",
+      "interpreter_st_no": "No implementa ejemplos adecuados a su tema principal.",
+      "interpreter_st_partially": "Su informacion de contenido pocas veces brinda ejemplos acordes a su tema principal",
+      "value_st_importance": "0",
+      "guideline": 6
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 19,
+    "fields": {
+      "question": "¿Se facilitan herramientas de autocontrol: lista de cotejo, cronómetro, preguntas clave, autoinstrucciones, etc?",
+      "description": "Se facilitan herramientas de autocontrol: lista de cotejo, cronómetro, preguntas clave, autoinstrucciones, etc",
+      "metadata": "creativework:interactivityType:active,expositive,mixed",
+      "interpreter_st_yes": "La informacion del contenido facilita el uso de herramientas de autocontrol como las preguntas clave y/o autoinstrucciones",
+      "interpreter_st_no": "Su informacion no facilita ningun medio y/o herramienta de autocontrol",
+      "interpreter_st_partially": "Una herramienta de autocontrol para su contenido se ve muy poco implementada",
+      "value_st_importance": "0",
+      "guideline": 6
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 20,
+    "fields": {
+      "question": "¿Incluye títulos sugerentes y/o diferentes formas para suscitar la curiosidad?",
+      "description": "Incluye títulos sugerentes y/o diferentes formas para suscitar la curiosidad: retos, desafíos, efectos sorpresa, personajes de ayuda, enigmas, incógnitas, trucos, candados que abrir, pruebas que superar, curiosidades",
+      "metadata": "accessibilityFeature:structuralNavigation",
+      "interpreter_st_yes": "Su contenido emplea informacion sugerente y/o llamativa correctamente lo que susita adecuadamente la curiosidad de a quienes esta dirijido",
+      "interpreter_st_no": "Su contenido no fomenta adecuadamente la curiosidad de a quienes esta dirijido",
+      "interpreter_st_partially": "Su contenido emplea pocas veces informacion llamativa que susite la curiosidad de sus destinatarios",
+      "value_st_importance": "0",
+      "guideline": 7
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 21,
+    "fields": {
+      "question": "¿Existe un opcion para describir de manera mas simple un texto o palabra?",
+      "description": "La redacción utiliza un lenguaje cercano al argot de los destinatarios. Ejemplo: redacción en primera persona del plural, vocabulario comprensible, etc",
+      "metadata": "alignment_types:textcomplexity,complexitylevel",
+      "interpreter_st_yes": "La redaccion de la informacion utiliza correctamente un lenguaje comprensible y cercano al de los destinatarios",
+      "interpreter_st_no": "Su redaccion no esta acorde al un lenguaje comprensible y cercano de los destinatarios",
+      "interpreter_st_partially": "La redaccion de la informacion en algunas secciones no esta no es completamente cercano y/o comprensible al lenguaje de los destinatarios",
+      "value_st_importance": "0",
+      "guideline": 7
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 22,
+    "fields": {
+      "question": "¿Prima el papel activo del alumno, mediante el uso de metodologías activas y aprendizaje cooperativo?",
+      "description": "Prima el papel activo del alumno, mediante el uso de metodologías activas y aprendizaje cooperativo",
+      "metadata": "creativework:LearningResource:educationalUse",
+      "interpreter_st_yes": "Las metodologias del contenido contribuyen adecuadamente en el papel actuvo del usuario",
+      "interpreter_st_no": "Sus metodologias no estan correctamente empleadas lo que priva del papel activo del usuarios",
+      "interpreter_st_partially": "El papel activo del usuarios se ve afectado ya que su metodologia no es completamente funcional en todo su contenido de informacion",
+      "value_st_importance": "0",
+      "guideline": 8
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 23,
+    "fields": {
+      "question": "¿Se divide la meta en diferentes fases o submetas, de menor a mayor complejidad (andamiaje)?   ",
+      "description": "Se divide la meta en diferentes fases o submetas, de menor a mayor complejidad (andamiaje).",
+      "metadata": "creativework:interactivityType:active,expositive,mixed",
+      "interpreter_st_yes": "La meta final de su objeto se divede en faces de menor a mayor complejidad lo que facilita un seguimiento comprensible para el usuario",
+      "interpreter_st_no": "El objetivo final de recurso no cuenta con seguimiento correctamente estructurado para sus destinatarios",
+      "interpreter_st_partially": "Una division de faces de menor a mayor informacion del contenido es poco estructurada y usada para llegar a sus objetivos",
+      "value_st_importance": "0",
+      "guideline": 8
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 24,
+    "fields": {
+      "question": "¿Existe una opcion ayuda para el contenido en general en caso de requerirse?",
+      "description": "Dispone de un feedback automático y correctivo en algunas actividades, orientado hacia la superación",
+      "metadata": "accessibilityFeature:annotations",
+      "interpreter_st_yes": "Dispone de opciones automaticas adecuadas que permiten la correccion de las activiades en caso de requerirse  ",
+      "interpreter_st_no": "No existe ningun tipo opcion y/o herramienta que permita la correccion de sus actividades",
+      "interpreter_st_partially": "Existe pocas opciones que brinden una correccion de sus actividades cuando se requiere",
+      "value_st_importance": "0",
+      "guideline": 8
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 25,
+    "fields": {
+      "question": "¿Existen diferentes instrumentos de evaluación?",
+      "description": "Existen diferentes instrumentos de evaluación. Por ejemplo: lista de control, diana de aprendizaje, cuestionario o test, escalas de estimación, rúbricas de evaluación con diferentes niveles de logro",
+      "metadata": "creativework:LearningResource:assesses",
+      "interpreter_st_yes": "Su contenido cuenta cn multiples formas de evaluacion y con diferentes niveles de logros de quienes son evaluados.",
+      "interpreter_st_no": "No cuenta con formas de evaluacion de su contenido de informacion",
+      "interpreter_st_partially": "Su conteido hace muy poco uso de las multiples formas de valuacion",
+      "value_st_importance": "0",
+      "guideline": 9
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 26,
+    "fields": {
+      "question": "¿Permite la autoevaluación y coevaluación?",
+      "description": "Permite la autoevaluación y coevaluación.",
+      "metadata": "creativework:LearningResource:educationalUse",
+      "interpreter_st_yes": "El objeto permite a sus destinatarios una correcta valoracion de sus conocimientos de la informacion presentada",
+      "interpreter_st_no": "Su recurso no permite a sus destinatarios una autoevaluacion y/o coevaluacion que valore sus conocimientos",
+      "interpreter_st_partially": "Su contenido como tal emplea en pocas ocasiones medios de autoevaluacion y/o coevaluacion",
+      "value_st_importance": "0",
+      "guideline": 9
+    }
+  },
+  {
+    "model": "evaluation_student.question",
+    "pk": 27,
+    "fields": {
+      "question": "¿Incluye acciones para potenciar la reflexión sobre el aprendizaje (diario o portafolio de aprendizaje?",
+      "description": "Incluye acciones para potenciar la reflexión sobre el aprendizaje (diario o portafolio de aprendizaje).",
+      "metadata": "creativework:LearningResource:educationalUse",
+      "interpreter_st_yes": "Permite a sus destinatarios profundizar en su conocimiento de la informacion lo que ayuda a su organización y/o comprender si realmente entienden un tema principal.",
+      "interpreter_st_no": "Su recurso no permite que sus destinatarios reflexionen sobre su contenido de informacion, por lo cual no podriamos saber si comprendieron realmente el tema.",
+      "interpreter_st_partially": "El recurso emplea pocas veces una reflexion del destinatario sobre el aprendizaje",
+      "value_st_importance": "0",
+      "guideline": 9
+    }
+  },
+  {
+    "model": "education_level.educationlevel",
+    "pk": 1,
+    "fields": {
+      "description": "Educación primaria"
+    }
+  },
+  {
+    "model": "education_level.educationlevel",
+    "pk": 2,
+    "fields": {
+      "description": "Educación secundaria"
+    }
+  },
+  {
+    "model": "education_level.educationlevel",
+    "pk": 3,
+    "fields": {
+      "description": "Escuela intermedia"
+    }
+  },
+  {
+    "model": "education_level.educationlevel",
+    "pk": 4,
+    "fields": {
+      "description": "División superior universitaria"
+    }
+  },
+  {
+    "model": "education_level.educationlevel",
+    "pk": 5,
+    "fields": {
+      "description": "Profesional"
+    }
+  },
+  {
+    "model": "education_level.educationlevel",
+    "pk": 2,
+    "fields": {
+      "description": "Educación secundaria"
+    }
+  },
+  {
+    "model": "profession.profession",
+    "pk": 1,
+    "fields": {
+      "description": "Abogado"
+    }
+  },
+  {
+    "model": "profession.profession",
+    "pk": 2,
+    "fields": {
+      "description": "Matemático"
+    }
+  },
+  {
+    "model": "profession.profession",
+    "pk": 3,
+    "fields": {
+      "description": "Antropólogo"
+    }
+  },
+  {
+    "model": "profession.profession",
+    "pk": 4,
+    "fields": {
+      "description": "Psicoanalista"
+    }
+  },
+  {
+    "model": "profession.profession",
+    "pk": 5,
+    "fields": {
+      "description": "Economista"
+    }
+  },
+  {
+    "model": "profession.profession",
+    "pk": 6,
+    "fields": {
+      "description": "Sociólogo"
+    }
+  },
+  {
+    "model": "profession.profession",
+    "pk": 7,
+    "fields": {
+      "description": "Psicólogo"
+    }
+  },
+  {
+    "model": "profession.profession",
+    "pk": 8,
+    "fields": {
+      "description": "Bibliotecólogo"
+    }
+  },
+  {
+    "model": "profession.profession",
+    "pk": 9,
+    "fields": {
+      "description": "Ingeniero"
+    }
+  },
+  {
+    "model": "profession.profession",
+    "pk": 10,
+    "fields": {
+      "description": "Otro"
+    }
+  },
+  {
+    "model": "knowledge_area.knowledgearea",
+    "pk": 1,
+    "fields": {
+      "name": "Programas generales",
+      "description": "Programas básicos de enseñanza preescolar, elemental, primaria, secundaria, etc."
+    }
+  },
+  {
+    "model": "knowledge_area.knowledgearea",
+    "pk": 2,
+    "fields": {
+      "name": "Educación",
+      "description": "Formación de personal docente para: educación preescolar; jardines de infancia; escuelas elementales; asignaturas profesionales, prácticas y no profesionales; educación de adultos; formación de personal docente; formación de maestros de niños minusválidos. Programas generales y especializados de formación de personal docente. Ciencias de la educación: elaboración de programas de estudio de materias no profesionales y profesionales. Evaluación de conocimientos, pruebas y mediciones, investigaciones sobre educación; otros programas relacionados con las ciencias de la educación."
+    }
+  },
+  {
+    "model": "knowledge_area.knowledgearea",
+    "pk": 3,
+    "fields": {
+      "name": "Humanidades y artes",
+      "description": "Bellas artes: dibujo, pintura y escultura; Artes del espectáculo: música, arte dramático, danza, circo; Artes gráficas y audiovisuales: fotografía, cinematografía, producción musical, producción de radio y televisión, impresión y publicación. Diseño; artesanía. Religión y teología; lenguas y culturas extranjeras: lenguas vivas o muertas y sus respectivas literaturas, estudios regionales interdisciplinarios; Lenguas autóctonas: lenguas corrientes o vernáculas y su literatura Otros programas de humanidades: interpretación y traducción, lingüística, literatura comparada, historia, arqueología, filosofía, ética."
+    }
+  },
+  {
+    "model": "knowledge_area.knowledgearea",
+    "pk": 4,
+    "fields": {
+      "name": "Ciencias sociales, educación comercial y derecho",
+      "description": "Economía, historia de la economía, ciencias políticas, sociología, demografía, antropología (excepto antropología física), etnología, futurología, psicología, geografía(excepto geografía física), estudios sobre paz y conflictos, derechos humanos. Periodismo; bibliotecología y personal técnico de bibliotecas; personal técnico de museos y establecimientos similares; Técnicas de documentación; Archivología. Comercio al por menor, comercialización, ventas, relaciones públicas, asuntos inmobiliarios; gestión financiera, administración bancaria, seguros, análisis de inversiones; contabilidad, auditoría, teneduría de libros; gestión, administración pública, administración institucional, administración de personal; secretariado y trabajo de oficina."
+    }
+  },
+  {
+    "model": "knowledge_area.knowledgearea",
+    "pk": 5,
+    "fields": {
+      "name": "Ciencias",
+      "description": "Biología, botánica, bacteriología, toxicología, microbiología, zoología, entomología, ornitología, genética, bioquímica, biofísica, otras ciencias afines, excepto medicina y veterinaria. Astronomía y ciencias espaciales, física y asignaturas atines, química y asignaturas afines, geología, geofísica, mineralogía, antropología física, geografía física y demás ciencias de la tierra, meteorología y demás ciencias de la atmósfera, comprendida la investigación sobre el clima, las ciencias marinas, vulcanología, paleoecología. Matemáticas, investigación de operaciones, análisis numérico, ciencias actuariales, estadística y otros sectores afines. Informática: Concepción de sistemas, programación informática, procesamiento de datos, redes, sistemas operativos - elaboración de programas informáticos solamente (el material y equipo se deben clasificar en el sector de la ingeniería)."
+    }
+  },
+  {
+    "model": "knowledge_area.knowledgearea",
+    "pk": 6,
+    "fields": {
+      "name": "Ingeniería, industria y construcción",
+      "description": "Dibujo técnico, mecánica, metalistería, electricidad, electrónica, telecomunicaciones, ingeniería energética y química, mantenimiento de vehículos, topografía. Alimentación y bebidas, textiles, confección, calzado, cuero, materiales (madera, papel, plástico, vidrio, etc.), minería e industrias extractivas. Arquitectura y urbanismo: arquitectura estructural, arquitectura paisajística, planificación comunitaria, cartografía, edificación, construcción, ingeniería civil."
+    }
+  },
+  {
+    "model": "knowledge_area.knowledgearea",
+    "pk": 7,
+    "fields": {
+      "name": "Agricultura",
+      "description": "Agricultura, producción agropecuaria, agronomía, ganadería, horticultura y jardinería, silvicultura y técnicas forestales, parques naturales, flora y fauna, pesca, ciencia y tecnología pesqueras."
+    }
+  },
+  {
+    "model": "knowledge_area.knowledgearea",
+    "pk": 8,
+    "fields": {
+      "name": "Salud y servicios sociales",
+      "description": "Medicina: anatomía, epidemiología, citología, tisiología, inmunología e inmunohematología, patología, anestesiología, pediatría, obstetricia y ginecología, medicina interna, cirugía, neurología, psiquiatría, radiología, oftalmología. Servicios médicos: servicios de salud pública, higiene, farmacia, farmacología, terapéutica, rehabilitación, prótesis, optometría, nutrición. Enfermería: enfermería básica, partería; servicios dentales: auxiliar de odontología, higienista dental, técnico de laboratorio dental, odontología. Asistencia social: asistencia a minusválidos, asistencia a la infancia, servicios para jóvenes, servicios de gerontología. Trabajo social: orientación, asistencia social."
+    }
+  },
+  {
+    "model": "knowledge_area.knowledgearea",
+    "pk": 9,
+    "fields": {
+      "name": "Servicios",
+      "description": "Hotelería y restaurantes, viajes y turismo, deportes y actividades recreativas, peluquería, tratamientos de belleza y otros servicios personales: lavandería y tintorería, servicios cosméticos, ciencias del hogar. Formación de marinos, oficiales de marina, náutica, tripulación de aviones, control del tráfico aéreo, transporte ferroviario, transporte por carretera, servicios postales. Conservación, vigilancia y protección del medio ambiente, control de la contaminación atmosférica y del agua, ergonomía y seguridad. Protección de personas y bienes: servicios de policía y orden público, criminología, prevención y extinción de incendios, seguridad civil. Enseñanza militar."
+    }
+  },
+  {
+    "model": "knowledge_area.knowledgearea",
+    "pk": 10,
+    "fields": {
+      "name": "Sectores desconocidos no especificados",
+      "description": "(Esta categoría no forma parte de la clasificación en sí, pero en la recopilación de datos “99” se necesita para “los sectores de educación desconocidos o no especificados”)."
+    }
+  },
+  {
+      "model": "license.license",
+      "pk": 1,
+      "fields": {
+          "description": "Dominio Públicos"
+      }
+  },
+  {
+      "model": "license.license",
+      "pk": 2,
+      "fields": {
+          "description": "Creative Commons Reconocimientos"
+      }
+  },
+  {
+      "model": "license.license",
+      "pk": 3,
+      "fields": {
+          "description": "Creative Commons Reconocimiento-CompartirIguals"
+      }
+  },
+  {
+      "model": "license.license",
+      "pk": 4,
+      "fields": {
+          "description": "Creative Commons Reconocimiento-SinObraDerivada"
+      }
+  },
+  {
+      "model": "license.license",
+      "pk": 5,
+      "fields": {
+          "description": "Creative Commons Reconocimiento-NoComercial"
+      }
+  },
+  {
+      "model": "license.license",
+      "pk": 6,
+      "fields": {
+          "description": "Creative Commons Reconocimiento-NoComercial-CompartirIgual"
+      }
+  },
+  {
+      "model": "license.license",
+      "pk": 7,
+      "fields": {
+          "description": "Creative Commons Reconocimiento-NoComercial-SinObraDerivad"
+      }
+  },
+  {
+      "model": "license.license",
+      "pk": 8,
+      "fields": {
+          "description": "Otra licencia libres"
+      }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationconcept",
+    "pk": 1,
+    "fields": {
+      "concept": "Recursos Digitales Visuales"
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationconcept",
+    "pk": 2,
+    "fields": {
+      "concept": "Recursos Digitales Auditivos"
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationconcept",
+    "pk": 3,
+    "fields": {
+      "concept": "Recursos Digitales Textuales"
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationconcept",
+    "pk": 4,
+    "fields": {
+      "concept": "Nivel De Interactividad"
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 1,
+    "fields": {
+      "question": "¿Las imágenes poseen texto alternativo?",
+      "description": "Contenido no textual",
+      "interpreter_yes": "Las imágenes implementan correctamente el texto alternativo",
+      "interpreter_no": "Las imágenes no contiene un texto alternativo adecuado",
+      "interpreter_partially": "El texto alternativo es poco implementado dentro de las imagenes",
+      "value_importance": "0",
+      "code": "RDV1",
+      "evaluation_concept": 1
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 2,
+    "fields": {
+      "question": "¿Exiten imágenes que poseen texto incrustado y consideran una adecuada descripción?",
+      "description": "Imágenes de texto",
+      "schema": "accessibilityFeature:longdescription,alternativeText",
+      "interpreter_yes": "Las imágenes tiene texto incrustado con adecuada descripción",
+      "interpreter_no": "Las imágenesn no tiene texto incrustado con una descripcion ",
+      "interpreter_partially": "La imagenes con texto incrustado no siempre presentan una adecuada descripción",
+      "value_importance": "0",
+      "code": "RDV2",
+      "evaluation_concept": 1
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 3,
+    "fields": {
+      "question": "¿Existe contenido de audio o video?",
+      "description": "Audio solo o vídeo solo (grabado)",
+      "schema": "accessMode:auditory",
+      "interpreter_yes": "Presenta un amplio contenido de audio y/o video",
+      "interpreter_no": "No prensenta ningun tipo de contenido de audio y/o video",
+      "interpreter_partially": "Los contenidos de audio y/o video son escasos",
+      "value_importance": "0",
+      "code": "RDA1",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 4,
+    "fields": {
+      "question": "¿Los videos contienen  subtítulos sincronizados?",
+      "description": "Audio sincronizado con subtítulos (grabado)",
+      "schema": "accessibilityFeature:captions",
+      "interpreter_yes": "Los videos de su contenido cuentan con subtitulos sincronizados",
+      "interpreter_no": "Los videos de su contenido no cuentan con subtitulos sincronizado",
+      "interpreter_partially": "Los subtitulos sincronizados no se encuentran presentes en la mayor parte de su contenido",
+      "value_importance": "0",
+      "code": "RDA2",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 5,
+    "fields": {
+      "question": "¿La mayor cantidad de información es textual?",
+      "description": "Características sensoriales",
+      "schema": "accesMode:textual",
+      "interpreter_yes": "El contenido es mayoritariamente textual",
+      "interpreter_no": "El contenido no presenta ningun tipo de informacion textual",
+      "interpreter_partially": "El contenido de información textual no es muy amplio",
+      "value_importance": "0",
+      "code": "RDT1",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 6,
+    "fields": {
+      "question": "¿El contenido textual contiene títulos, descripciones o enlaces adecuados?",
+      "description": "Propósito de los enlaces (en contexto)",
+      "schema": "accessibilityFeature:structuralNavigation",
+      "interpreter_yes": "Su contenido textual contiene titulos, descripciones con enlaces  adecuados",
+      "interpreter_no": "Su contenido textual no contiene ningun tipo de titulos y/o descripciones con enlaces adecuados",
+      "interpreter_partially": "Parte de su contenido textual contiene titulos, descripciones adecuadas",
+      "value_importance": "0",
+      "code": "RDT2",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 7,
+    "fields": {
+      "question": "¿El contenido no traspasa el umbral de destello general y de destello rojo? (ningún componente destella más de 3 veces en un segundo)",
+      "description": "Umbral de tres destellos o menos",
+      "schema": "accessibilityHazard:flashingHazard",
+      "interpreter_yes": "El contenido no traspasa el umbral de destello general y de destello rojo",
+      "interpreter_no": "El contenido si traspasa el umbral de destello general y de destello rojo",
+      "interpreter_partially": "Existe una sierta cantidad de peligro de umbral de destello general y de destello rojo",
+      "value_importance": "0",
+      "code": "RI1",
+      "evaluation_concept": 4
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 8,
+    "fields": {
+      "question": "¿Existe un mecanismo para activar o desactivar animaciones dentro del contenido?",
+      "description": "Animaciones desde interacciones",
+      "schema": "accessibilityHazard:nomotionsimulationHazard",
+      "interpreter_yes": "Cuenta con un mecanismo de control de animaciones para activarlas o desactivarlas",
+      "interpreter_no": "No cuenta con ningun tipo de control de animaciones para activarlas o desactivarlas",
+      "interpreter_partially": "Un mecanismo de control de animaciones es poco implementado dentro de su contenido",
+      "value_importance": "0",
+      "code": "RI2",
+      "evaluation_concept": 4
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 9,
+    "fields": {
+      "question": "¿Se puede navegar secuencialmente sobre el contenido utilizando únicamente el teclado?",
+      "description": "Teclado",
+      "schema": "accessibilityControl:fullkeyboardcontrol",
+      "interpreter_yes": "Todo su contenido permite una navegacion secuencial con teclado",
+      "interpreter_no": "El contenido no permite una navegacion secuencial mediante el uso de teclado",
+      "interpreter_partially": "Parte de su contenido permite el uso de una navegacion secuencial mediante teclado",
+      "value_importance": "0",
+      "code": "RI3",
+      "evaluation_concept": 4
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 10,
+    "fields": {
+      "question": "¿Existe un control completo del contenido mediante mouse ?",
+      "description": "Actuación de movimiento",
+      "schema": "accessibilityControl:fullmousecontrol",
+      "interpreter_yes": "El contenido en general permite su uso mediante un control total con ratón",
+      "interpreter_no": "Ninguna seccion de su contenido permite el control total mediante raton",
+      "interpreter_partially": "Parte de su contenido permite el control total mediante raton",
+      "value_importance": "0",
+      "code": "RI4",
+      "evaluation_concept": 4
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 11,
+    "fields": {
+      "question": "¿Existe dependencia del color debidamente etiquetada?",
+      "description": "Uso del color",
+      "schema": "Contrario: accessMode:colorDepend",
+      "interpreter_yes": "Contiene una dependencia de color debidamente etiquetada",
+      "interpreter_no": "No contiene una dependencia de color debidamente etiquetada",
+      "interpreter_partially": "Parte de su contenido presenta una dependencia de color debidamente etiquetada",
+      "value_importance": "0",
+      "code": "RDV3",
+      "evaluation_concept": 1
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 12,
+    "fields": {
+      "question": "¿Se cumple con contrastes óptimos en la presentación de la información?",
+      "description": "Contraste mejorado",
+      "schema": "accessibilityFeature:highContrastDisplay",
+      "interpreter_yes": "Cumple con los contraste optimos en el contenido visual",
+      "interpreter_no": "Su contenido de informacion no cumple con los contraste optimos del contenido visual",
+      "interpreter_partially": "Parte de su contenido cumple con contrastes optimos del contenido visual",
+      "value_importance": "0",
+      "code": "RDV4",
+      "evaluation_concept": 1
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 13,
+    "fields": {
+      "question": "¿ La mayor cantidad de información es visual?",
+      "description": "Características sensoriales",
+      "schema": "accessMode:visual",
+      "interpreter_yes": "El contenido es mayoritariamente visual",
+      "interpreter_no": "No presenta ningun tipo de contenido visual",
+      "interpreter_partially": "Su objeto cuenta con poco contenido visual",
+      "value_importance": "0",
+      "code": "RDV5",
+      "evaluation_concept": 1
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 14,
+    "fields": {
+      "question": "¿El contenido de video contiene audio descripción?",
+      "description": "Vídeo con audio descripción o medio alternativo(grabado)",
+      "schema": "accessibilityFeature:audioDescription",
+      "interpreter_yes": "Los videos cuentan con audiodescripciones adecuadas",
+      "interpreter_no": "Los videos no cuentan con audiodescripciones adecuadas",
+      "interpreter_partially": "Parte de Los videos contienen audiodescripciones adecuadas",
+      "value_importance": "0",
+      "code": "RDA3",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 15,
+    "fields": {
+      "question": "¿El contenido de audio y video contiene algún medio interactivo alternativo?",
+      "description": "Vídeo solo o medio sincronizado con un medio alternativo (grabados)",
+      "schema": "accessibilityFeature:ttsMarkup",
+      "interpreter_yes": "Presenta correctamente medios interactivos alternos en contenidos de audio y/o video",
+      "interpreter_no": "No Contiene medios interactivos alternos en contenidos de audio y/o video",
+      "interpreter_partially": "Parte del contenido presentena medios interactivos alternos en contenidos de audio y/o video",
+      "value_importance": "0",
+      "code": "RDA4",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 16,
+    "fields": {
+      "question": "¿Existe una interpretación de lenguaje de señas en los contenidos de audio/ video?",
+      "description": "Audio sincronizado con lengua de signos (grabado)",
+      "schema": "accessibilityFeature:signLanguage",
+      "interpreter_yes": "Contiene una correcta interpretacion del lenguaje de señas en contenidos de audio y/o video",
+      "interpreter_no": "No presenta una correcta interpretacion del lenguaje de señas en contenidos de audio y/o video",
+      "interpreter_partially": "Una correcta interpretacion del lenguaje de señas no esta presente en todo su contenido de audio y/o video ",
+      "value_importance": "0",
+      "code": "RDA5",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 17,
+    "fields": {
+      "question": "¿Los contenidos multimedia disponen de control de volumen?",
+      "description": "Control del audio",
+      "schema": "accessibilityFeature:higtcontrastaudio",
+      "interpreter_yes": "Permite adecuadamente un con control de volumen de sus contenidos multimedia",
+      "interpreter_no": "No existe ningun tipo de control de volumen de sus contenidos multimedia",
+      "interpreter_partially": "Parte de su contenido permite un control de volumen de sus contenidos multimedi",
+      "value_importance": "0",
+      "code": "RDA6",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 18,
+    "fields": {
+      "question": "En caso de existir sonido de fondo, es controlable por el usuario?",
+      "description": "Sonido de fondo bajo o ausente",
+      "schema": "accessibilityFeature:highContrastAudio_switchableBackground",
+      "interpreter_yes": "Su contenido de fondo cuenta adecuadamente con la opcion de control de sonido",
+      "interpreter_no": "No presenta ninguna opcion que permita controlar el sonido de fondo presente",
+      "interpreter_partially": "Existe pocos mecanismos que permitan un control de sonido de fondo",
+      "value_importance": "0",
+      "code": "RDA8",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 19,
+    "fields": {
+      "question": "¿La mayor cantidad de información es auditivo?",
+      "description": "Características sensoriales",
+      "schema": "accessMode:auditory",
+      "interpreter_yes": "El contenido es mayoritariamente auditivo",
+      "interpreter_no": "El contenido no presenta ningun tipo de informacion auditiva",
+      "interpreter_partially": "Existe muy poco contenido auditivo",
+      "value_importance": "0",
+      "code": "RDA9",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 20,
+    "fields": {
+      "question": "¿Los videos disponen de texto paralelo sincronizado que facilita el seguimiento?",
+      "description": "Audio descripción o Medio Alternativo (grabado):",
+      "schema": "accessibilityFeature:synchronizedAudioText",
+      "interpreter_yes": "Los videos cuentan con texto sincronizado para facilitar seguimiento",
+      "interpreter_no": "Sus videos no cuentan con ningun texto sincronizado que facilite el seguimiento",
+      "interpreter_partially": "Parte de su contenido de videos presenta un texto sincronizado que facilite el seguimiento",
+      "value_importance": "0",
+      "code": "RDA10",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 21,
+    "fields": {
+      "question": "¿Existe sonido de fondo?",
+      "description": "Sonido de fondo bajo o ausente",
+      "schema": "accessibilityFeature:highContrastAudio_reducedBackground",
+      "interpreter_yes": "Su contenido cuenta con sonido de fondo adecuado",
+      "interpreter_no": "Su contenido no presenta sonido de fondo adecuado",
+      "interpreter_partially": "Parte de su contenido implementa sonido de fondo adecuado",
+      "value_importance": "0",
+      "code": "RDA7",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 22,
+    "fields": {
+      "question": "¿Los encabezados y/o etiquetas están acordes al tema principal?",
+      "description": "Encabezados y etiquetas",
+      "schema": "accessibilityFeature:readingOrder",
+      "interpreter_yes": "Sus encabezados y/o etiquetas estan acordes al tema principal de su contenido",
+      "interpreter_no": "Sus encabezados y/o etiquetas no estan acordes al tema principal de su contenido",
+      "interpreter_partially": "Parte de sus encabezados y/o etiquetas estan acordes al tema principal de su contenido",
+      "value_importance": "0",
+      "code": "RDT3",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 23,
+    "fields": {
+      "question": "¿Existe una opción ayuda para el contenido en general en caso de requerirse?",
+      "description": "Identificación de errores:",
+      "schema": "accessibilityFeature:annotations",
+      "interpreter_yes": "Contiene opciones de ayuda para el contenido en general, en caso de requerirse",
+      "interpreter_no": "No cuenta con ningun tipo opcion de ayuda para el contenido en general, en caso de requerirse",
+      "interpreter_partially": "Presenta pocas opciones de ayuda para el contenido en general, en caso de requerirse",
+      "value_importance": "0",
+      "code": "RDT4",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 24,
+    "fields": {
+      "question": "¿Existe un opción para describir de manera mas simple un texto o palabra?",
+      "description": "alignment_types:textcomplexity,complexitylevel",
+      "schema": "Palabras inusuales",
+      "interpreter_yes": "Contiene opciones para describir mejor un texto o palabra",
+      "interpreter_no": "No presenta opciones para describir mejor un texto o palabra ",
+      "interpreter_partially": "Existen pocas opciones para describir mejor un texto o palabra",
+      "value_importance": "0",
+      "code": "RDT5",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 25,
+    "fields": {
+      "question": "¿El contenido textual pre-advierte el  nivel de lectura requerido?",
+      "description": "Nivel de lectura",
+      "schema": "alignment_types:reading level",
+      "interpreter_yes": "Pre-advierte correctamente el nivel de lectura requerido para contenido textual",
+      "interpreter_no": "El contenido textual no pre-advierte el  nivel de lectura requerido",
+      "interpreter_partially": "Parte de su contenido pre-advierte el  nivel de lectura requerido ",
+      "value_importance": "0",
+      "code": "RDT6",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 26,
+    "fields": {
+      "question": "¿La estructura de navegación permite acceder de diferentes maneras?",
+      "description": "Información y relaciones",
+      "schema": "accessibilityFeature:structuralNavigation,index",
+      "interpreter_yes": "Contiene una navegacion estructurada con diferentes maneras de acceso",
+      "interpreter_no": "No posee una correcta navegacion estructurada con diferentes maneras de acceso",
+      "interpreter_partially": "Parte de su contenido implementa una navegacion estructurada con diferente maneras de acceso",
+      "value_importance": "0",
+      "code": "RDT7",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 27,
+    "fields": {
+      "question": "¿El tamaño de la letra  puede ser ajustado sin perder la funcionalidad?",
+      "description": "Cambio de tamaño del texto",
+      "schema": "accessibilityFeature:displayTransformabilityfontSize",
+      "interpreter_yes": "Contiene un texto ajustable sin perder funcionalidad",
+      "interpreter_no": "No cuenta con un texto ajustable que evite perder funcionalidad",
+      "interpreter_partially": "Parte de su contenido implementa un texto ajustable sin perder funcionalidad",
+      "value_importance": "0",
+      "code": "RDT8",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 28,
+    "fields": {
+      "question": "¿Se puede acceder directamente a la información principal del contenido?",
+      "description": "Evitar bloques",
+      "schema": "accessibilityFeature:bookmarks",
+      "interpreter_yes": "Permite un acceso rapido a la informacion principal del contenido",
+      "interpreter_no": "No se puede acceder de forma rapida a la informacion principal del contenido",
+      "interpreter_partially": "En pocas opciones se permite acceder de forma rapida a la informacion principal del contenido ",
+      "value_importance": "0",
+      "code": "RDT9",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 29,
+    "fields": {
+      "question": "¿El contenido textual en otros idiomas es coherente y comprensible?",
+      "description": "Idioma de las partes de la página",
+      "schema": "creativework:inLanguage",
+      "interpreter_yes": "El contenido textual en otros idiomas es coerente y comprensible",
+      "interpreter_no": "Su contenido textual en otros idiomas no es nada coerente ni comprensible",
+      "interpreter_partially": "Solo una parte de su contenido textual en otros idiomas es coerente y comprensible",
+      "value_importance": "0",
+      "code": "RDT10",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationquestion",
+    "pk": 30,
+    "fields": {
+      "question": "¿Se cumple con contrastes óptimos en la presentación del contenido de texto y fondo?",
+      "description": "Contraste mínimo",
+      "schema": "accessibilityFeature:highContrastDisplay",
+      "interpreter_yes": "Cumple con los contraste optimos en el contenido textual y de fondo",
+      "interpreter_no": "No cumple con los contraste optimos en el contenido textual y de fondo",
+      "interpreter_partially": "Parte del contenido textual y de fondo cumple con los contraste optimos",
+      "value_importance": "0",
+      "code": "RDT11",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 1,
+    "fields": {
+      "schema": "accessibilityFeature:alternativeText",
+      "description": "Texto alternativo",
+      "value_importance_schema": "0",
+      "code": "RDV1",
+      "evaluation_concept": 1
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 2,
+    "fields": {
+      "schema": "accessibilityFeature:longdescription",
+      "description": "Amplia descripcion",
+      "value_importance_schema": "0",
+      "code": "RDV2",
+      "evaluation_concept": 1
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 3,
+    "fields": {
+      "schema": "accessMode:colorDepend",
+      "description": "Dependencia de Color",
+      "value_importance_schema": "0",
+      "code": "RDV3",
+      "evaluation_concept": 1
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 4,
+    "fields": {
+      "schema": "accessibilityFeature:highContrastDisplay",
+      "description": "Pantalla de alto contraste",
+      "value_importance_schema": "0",
+      "code": "RDV4",
+      "evaluation_concept": 1
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 5,
+    "fields": {
+      "schema": "accessMode:visual",
+      "description": "Informacion Visual",
+      "value_importance_schema": "0",
+      "code": "RDV5",
+      "evaluation_concept": 1
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 6,
+    "fields": {
+      "schema": "accessModeSufficient:visual",
+      "description": "Informacion visual minima",
+      "value_importance_schema": "0",
+      "code": "RDV6",
+      "evaluation_concept": 1
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 7,
+    "fields": {
+      "schema": "accessMode:auditory",
+      "description": "Informacion auditiva",
+      "value_importance_schema": "0",
+      "code": "RDA1",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 8,
+    "fields": {
+      "schema": "accessibilityFeature:captions",
+      "description": "Subtitulos",
+      "value_importance_schema": "0",
+      "code": "RDA2",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 9,
+    "fields": {
+      "schema": "accessibilityFeature:audioDescription",
+      "description": "Audio descripciones",
+      "value_importance_schema": "0",
+      "code": "RDA3",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 10,
+    "fields": {
+      "schema": "accessibilityFeature:ttsMarkup",
+      "description": "Margen",
+      "value_importance_schema": "0",
+      "code": "RDA4",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 11,
+    "fields": {
+      "schema": "accessibilityFeature:signLanguage",
+      "description": "Lenguaje sencillo",
+      "value_importance_schema": "0",
+      "code": "RDA5",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 12,
+    "fields": {
+      "schema": "accessibilityFeature:higtcontrastaudio",
+      "description": "Audio de alto contraste",
+      "value_importance_schema": "0",
+      "code": "RDA6",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 13,
+    "fields": {
+      "schema": "accessibilityFeature:higtcontrastaudio",
+      "description": "Audio de alto contraste",
+      "value_importance_schema": "0",
+      "code": "RDA7",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 14,
+    "fields": {
+      "schema": "accessibilityFeature:highContrastAudioReducedBackground",
+      "description": "Fondo reducido de audio de alto contraste",
+      "value_importance_schema": "0",
+      "code": "RDA8",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 15,
+    "fields": {
+      "schema": "accessibilityFeature:highContrastAudioSwitchableBackground",
+      "description": "Fondo conmutable de audio de alto contraste",
+      "value_importance_schema": "0",
+      "code": "RDA9",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 16,
+    "fields": {
+      "schema": "accessibilityFeature:synchronizedAudioText",
+      "description": "Texto de audio sincronizado",
+      "value_importance_schema": "0",
+      "code": "RDA10",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 17,
+    "fields": {
+      "schema": "accessModeSufficient:auditory",
+      "description": "Modo de acceso suficiente auditivo",
+      "value_importance_schema": "0",
+      "code": "RDA11",
+      "evaluation_concept": 2
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 18,
+    "fields": {
+      "schema": "accesMode:textual",
+      "description": "Modo de acceso textual",
+      "value_importance_schema": "0",
+      "code": "R1",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 19,
+    "fields": {
+      "schema": "accessibilityFeature:structuralNavigation ",
+      "description": "Navegacion Estructurada",
+      "value_importance_schema": "0",
+      "code": "R2",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 20,
+    "fields": {
+      "schema": "accessibilityFeature:readingOrder",
+      "description": "Orden de lectura",
+      "value_importance_schema": "0",
+      "code": "R3",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 21,
+    "fields": {
+      "schema": "accessibilityfeature:annotations",
+      "description": "Anotaciones",
+      "value_importance_schema": "0",
+      "code": "R4",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 22,
+    "fields": {
+      "schema": "alignment_types:textcomplexity",
+      "description": "Complejidad del texto",
+      "value_importance_schema": "0",
+      "code": "R5",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 23,
+    "fields": {
+      "schema": "alignment_types:complexitylevel",
+      "description": "Nivel de complejidad",
+      "value_importance_schema": "0",
+      "code": "R6",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 24,
+    "fields": {
+      "schema": "alignment_types:readinglevel",
+      "description": "Nivel de lectura",
+      "value_importance_schema": "0",
+      "code": "R7",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 25,
+    "fields": {
+      "schema": "accessibilityFeature:index",
+      "description": "Indice",
+      "value_importance_schema": "0",
+      "code": "R8",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 26,
+    "fields": {
+      "schema": "accessibilityFeature:displayTransformabilityfontSize",
+      "description": "Tamaño de fuente de transformación de pantalla",
+      "value_importance_schema": "0",
+      "code": "R9",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 27,
+    "fields": {
+      "schema": "accessibilityFeature:bookmarks",
+      "description": "Marcadores",
+      "value_importance_schema": "0",
+      "code": "R10",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 28,
+    "fields": {
+      "schema": "accessibilityFeature:highContrastDisplay",
+      "description": "Pantalla de alto contraste",
+      "value_importance_schema": "0",
+      "code": "R11",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 29,
+    "fields": {
+      "schema": "accessModeSufficient:textual",
+      "description": "Mode de acceso suficiente textual",
+      "value_importance_schema": "0",
+      "code": "R12",
+      "evaluation_concept": 3
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 30,
+    "fields": {
+      "schema": "accessibilityHazard:noflashingHazard",
+      "description": "Sin peligro intermitente de umbral de destellos",
+      "value_importance_schema": "0",
+      "code": "RNI1",
+      "evaluation_concept": 4
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 31,
+    "fields": {
+      "schema": "accessibilityHazard:flashingHazard",
+      "description": "Peligro intermitente de umbral de destellos",
+      "value_importance_schema": "0",
+      "code": "RNI2",
+      "evaluation_concept": 4
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 32,
+    "fields": {
+      "schema": "accessibilityHazard:nomotionsimulationHazard",
+      "description": "Sin peligro de simulación de movimiento",
+      "value_importance_schema": "0",
+      "code": "RNI3",
+      "evaluation_concept": 4
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 33,
+    "fields": {
+      "schema": "accessibilityHazard:motionsimulationHazard",
+      "description": "Peligro de simulación de movimiento",
+      "value_importance_schema": "0",
+      "code": "RNI4",
+      "evaluation_concept": 4
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 34,
+    "fields": {
+      "schema": "accessibilityHazard:soundHazard",
+      "description": "Peligro de sonido",
+      "value_importance_schema": "0",
+      "code": "RNI5",
+      "evaluation_concept": 4
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 35,
+    "fields": {
+      "schema": "accessibilityHazard:nosoundHazard",
+      "description": "Sin peligro de sonido",
+      "value_importance_schema": "0",
+      "code": "RNI6",
+      "evaluation_concept": 4
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 36,
+    "fields": {
+      "schema": "accessibilityControl:fullkeyboardcontrol",
+      "description": "Control completo del teclado",
+      "value_importance_schema": "0",
+      "code": "RNI7",
+      "evaluation_concept": 4
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 37,
+    "fields": {
+      "schema": "accessibilityControl:fullmousecontrol",
+      "description": "Control total del ratón",
+      "value_importance_schema": "0",
+      "code": "RNI8",
+      "evaluation_concept": 4
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 38,
+    "fields": {
+      "schema": "accessibilityControl:fullkeyvoicecontrol",
+      "description": "Control de voz de tecla completa",
+      "value_importance_schema": "0",
+      "code": "RNI9",
+      "evaluation_concept": 4
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 39,
+    "fields": {
+      "schema": "accessibilityControl:fullkeytouchcontrol",
+      "description": "Control táctil de teclas completo",
+      "value_importance_schema": "0",
+      "code": "RNI10",
+      "evaluation_concept": 4
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 40,
+    "fields": {
+      "schema": "accessModeSufficient:tactile",
+      "description": "Modo de acceso suficiente táctil",
+      "value_importance_schema": "0",
+      "code": "RNI11",
+      "evaluation_concept": 4
+    }
+  },
+  {
+    "model": "evaluation_collaborating_expert.evaluationmetadata",
+    "pk": 41,
+    "fields": {
+      "schema": "accessMode:tactile",
+      "description": "Modo de acceso táctil",
+      "value_importance_schema": "0",
+      "code": "RNI12",
+      "evaluation_concept": 4
+    }
+  }
+]
+

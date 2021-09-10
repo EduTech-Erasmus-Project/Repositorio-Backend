@@ -1,0 +1,2366 @@
+
+
+
+[
+    {
+      "model": "admin.logentry",
+      "pk": 2,
+      "fields": {
+        "action_time": "2021-04-23T06:59:31.526Z",
+        "user": 1,
+        "content_type": 10,
+        "object_id": "4",
+        "object_repr": "Admin2@gmail.com, Admin2, None",
+        "action_flag": 3,
+        "change_message": ""
+      }
+    },
+    {
+      "model": "admin.logentry",
+      "pk": 3,
+      "fields": {
+        "action_time": "2021-04-23T20:42:01.697Z",
+        "user": 1,
+        "content_type": 27,
+        "object_id": "1",
+        "object_repr": "1 - Aprendizaje basado en proyectos: un proyecto aut�ntico y real",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"General description\", \"Public\"]}}]"
+      }
+    },
+    {
+      "model": "admin.logentry",
+      "pk": 4,
+      "fields": {
+        "action_time": "2021-04-23T20:43:37.153Z",
+        "user": 1,
+        "content_type": 23,
+        "object_id": "1",
+        "object_repr": "Recursos Digitales Visuales",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+      }
+    },
+    {
+      "model": "admin.logentry",
+      "pk": 5,
+      "fields": {
+        "action_time": "2021-04-23T20:43:45.095Z",
+        "user": 1,
+        "content_type": 23,
+        "object_id": "2",
+        "object_repr": "Recursos Digitales Auditivos",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+      }
+    },
+    {
+      "model": "admin.logentry",
+      "pk": 6,
+      "fields": {
+        "action_time": "2021-04-23T20:45:21.568Z",
+        "user": 1,
+        "content_type": 25,
+        "object_id": "1",
+        "object_repr": "�Las im�genes poseen texto alternativo?",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+      }
+    },
+    {
+      "model": "admin.logentry",
+      "pk": 7,
+      "fields": {
+        "action_time": "2021-04-23T20:45:55.247Z",
+        "user": 1,
+        "content_type": 25,
+        "object_id": "2",
+        "object_repr": "�Existe contenido de audio o video?",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+      }
+    },
+    {
+      "model": "admin.logentry",
+      "pk": 8,
+      "fields": {
+        "action_time": "2021-04-24T08:30:53.140Z",
+        "user": 1,
+        "content_type": 18,
+        "object_id": "1",
+        "object_repr": "Recursos Digitales Visuales",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+      }
+    },
+    {
+      "model": "admin.logentry",
+      "pk": 9,
+      "fields": {
+        "action_time": "2021-04-24T08:31:07.580Z",
+        "user": 1,
+        "content_type": 18,
+        "object_id": "2",
+        "object_repr": "Recursos Digitales Auditivos",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+      }
+    },
+    {
+      "model": "admin.logentry",
+      "pk": 10,
+      "fields": {
+        "action_time": "2021-04-24T08:32:59.943Z",
+        "user": 1,
+        "content_type": 18,
+        "object_id": "2",
+        "object_repr": "Recursos Digitales Auditivos",
+        "action_flag": 3,
+        "change_message": ""
+      }
+    },
+    {
+      "model": "admin.logentry",
+      "pk": 11,
+      "fields": {
+        "action_time": "2021-04-24T08:33:04.458Z",
+        "user": 1,
+        "content_type": 18,
+        "object_id": "1",
+        "object_repr": "Recursos Digitales Visuales",
+        "action_flag": 3,
+        "change_message": ""
+      }
+    },
+    {
+      "model": "admin.logentry",
+      "pk": 12,
+      "fields": {
+        "action_time": "2021-04-24T08:33:18.676Z",
+        "user": 1,
+        "content_type": 18,
+        "object_id": "3",
+        "object_repr": "Representaci�n",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+      }
+    },
+    {
+      "model": "admin.logentry",
+      "pk": 13,
+      "fields": {
+        "action_time": "2021-04-24T08:33:31.231Z",
+        "user": 1,
+        "content_type": 18,
+        "object_id": "4",
+        "object_repr": "Expresi�n",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+      }
+    },
+    {
+      "model": "admin.logentry",
+      "pk": 14,
+      "fields": {
+        "action_time": "2021-04-24T08:34:10.134Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "1",
+        "object_repr": "1",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+      }
+    },
+    {
+      "model": "admin.logentry",
+      "pk": 15,
+      "fields": {
+        "action_time": "2021-04-24T08:34:26.633Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "2",
+        "object_repr": "2",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+      }
+    },
+    {
+      "model": "admin.logentry",
+      "pk": 16,
+      "fields": {
+        "action_time": "2021-04-24T08:34:43.309Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "3",
+        "object_repr": "3",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+      }
+    },
+    {
+      "model": "admin.logentry",
+      "pk": 17,
+      "fields": {
+        "action_time": "2021-04-24T08:35:11.141Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "4",
+        "object_repr": "4",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+      }
+    },
+    {
+      "model": "admin.logentry",
+      "pk": 18,
+      "fields": {
+        "action_time": "2021-04-24T08:36:31.319Z",
+        "user": 1,
+        "content_type": 20,
+        "object_id": "1",
+        "object_repr": "1",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+      }
+    },
+    {
+      "model": "admin.logentry",
+      "pk": 19,
+      "fields": {
+        "action_time": "2021-04-24T08:37:12.091Z",
+        "user": 1,
+        "content_type": 20,
+        "object_id": "2",
+        "object_repr": "2",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+      }
+    },
+    {
+      "model": "admin.logentry",
+      "pk": 20,
+      "fields": {
+        "action_time": "2021-04-24T08:37:54.044Z",
+        "user": 1,
+        "content_type": 20,
+        "object_id": "3",
+        "object_repr": "3",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+      }
+    },
+    {
+      "model": "admin.logentry",
+      "pk": 21,
+      "fields": {
+        "action_time": "2021-04-24T08:50:42.175Z",
+        "user": 1,
+        "content_type": 20,
+        "object_id": "4",
+        "object_repr": "4",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 1,
+      "fields": {
+        "name": "Can add log entry",
+        "content_type": 1,
+        "codename": "add_logentry"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 2,
+      "fields": {
+        "name": "Can change log entry",
+        "content_type": 1,
+        "codename": "change_logentry"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 3,
+      "fields": {
+        "name": "Can delete log entry",
+        "content_type": 1,
+        "codename": "delete_logentry"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 4,
+      "fields": {
+        "name": "Can view log entry",
+        "content_type": 1,
+        "codename": "view_logentry"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 5,
+      "fields": {
+        "name": "Can add permission",
+        "content_type": 2,
+        "codename": "add_permission"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 6,
+      "fields": {
+        "name": "Can change permission",
+        "content_type": 2,
+        "codename": "change_permission"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 7,
+      "fields": {
+        "name": "Can delete permission",
+        "content_type": 2,
+        "codename": "delete_permission"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 8,
+      "fields": {
+        "name": "Can view permission",
+        "content_type": 2,
+        "codename": "view_permission"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 9,
+      "fields": {
+        "name": "Can add group",
+        "content_type": 3,
+        "codename": "add_group"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 10,
+      "fields": {
+        "name": "Can change group",
+        "content_type": 3,
+        "codename": "change_group"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 11,
+      "fields": {
+        "name": "Can delete group",
+        "content_type": 3,
+        "codename": "delete_group"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 12,
+      "fields": {
+        "name": "Can view group",
+        "content_type": 3,
+        "codename": "view_group"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 13,
+      "fields": {
+        "name": "Can add content type",
+        "content_type": 4,
+        "codename": "add_contenttype"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 14,
+      "fields": {
+        "name": "Can change content type",
+        "content_type": 4,
+        "codename": "change_contenttype"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 15,
+      "fields": {
+        "name": "Can delete content type",
+        "content_type": 4,
+        "codename": "delete_contenttype"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 16,
+      "fields": {
+        "name": "Can view content type",
+        "content_type": 4,
+        "codename": "view_contenttype"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 17,
+      "fields": {
+        "name": "Can add session",
+        "content_type": 5,
+        "codename": "add_session"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 18,
+      "fields": {
+        "name": "Can change session",
+        "content_type": 5,
+        "codename": "change_session"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 19,
+      "fields": {
+        "name": "Can delete session",
+        "content_type": 5,
+        "codename": "delete_session"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 20,
+      "fields": {
+        "name": "Can view session",
+        "content_type": 5,
+        "codename": "view_session"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 21,
+      "fields": {
+        "name": "Can add administrator",
+        "content_type": 6,
+        "codename": "add_administrator"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 22,
+      "fields": {
+        "name": "Can change administrator",
+        "content_type": 6,
+        "codename": "change_administrator"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 23,
+      "fields": {
+        "name": "Can delete administrator",
+        "content_type": 6,
+        "codename": "delete_administrator"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 24,
+      "fields": {
+        "name": "Can view administrator",
+        "content_type": 6,
+        "codename": "view_administrator"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 25,
+      "fields": {
+        "name": "Can add collaborating expert",
+        "content_type": 7,
+        "codename": "add_collaboratingexpert"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 26,
+      "fields": {
+        "name": "Can change collaborating expert",
+        "content_type": 7,
+        "codename": "change_collaboratingexpert"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 27,
+      "fields": {
+        "name": "Can delete collaborating expert",
+        "content_type": 7,
+        "codename": "delete_collaboratingexpert"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 28,
+      "fields": {
+        "name": "Can view collaborating expert",
+        "content_type": 7,
+        "codename": "view_collaboratingexpert"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 29,
+      "fields": {
+        "name": "Can add teacher",
+        "content_type": 8,
+        "codename": "add_teacher"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 30,
+      "fields": {
+        "name": "Can change teacher",
+        "content_type": 8,
+        "codename": "change_teacher"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 31,
+      "fields": {
+        "name": "Can delete teacher",
+        "content_type": 8,
+        "codename": "delete_teacher"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 32,
+      "fields": {
+        "name": "Can view teacher",
+        "content_type": 8,
+        "codename": "view_teacher"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 33,
+      "fields": {
+        "name": "Can add student",
+        "content_type": 9,
+        "codename": "add_student"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 34,
+      "fields": {
+        "name": "Can change student",
+        "content_type": 9,
+        "codename": "change_student"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 35,
+      "fields": {
+        "name": "Can delete student",
+        "content_type": 9,
+        "codename": "delete_student"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 36,
+      "fields": {
+        "name": "Can view student",
+        "content_type": 9,
+        "codename": "view_student"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 37,
+      "fields": {
+        "name": "Can add user",
+        "content_type": 10,
+        "codename": "add_user"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 38,
+      "fields": {
+        "name": "Can change user",
+        "content_type": 10,
+        "codename": "change_user"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 39,
+      "fields": {
+        "name": "Can delete user",
+        "content_type": 10,
+        "codename": "delete_user"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 40,
+      "fields": {
+        "name": "Can view user",
+        "content_type": 10,
+        "codename": "view_user"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 41,
+      "fields": {
+        "name": "Can add learning object file",
+        "content_type": 11,
+        "codename": "add_learningobjectfile"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 42,
+      "fields": {
+        "name": "Can change learning object file",
+        "content_type": 11,
+        "codename": "change_learningobjectfile"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 43,
+      "fields": {
+        "name": "Can delete learning object file",
+        "content_type": 11,
+        "codename": "delete_learningobjectfile"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 44,
+      "fields": {
+        "name": "Can view learning object file",
+        "content_type": 11,
+        "codename": "view_learningobjectfile"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 45,
+      "fields": {
+        "name": "Can add knowledge area",
+        "content_type": 12,
+        "codename": "add_knowledgearea"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 46,
+      "fields": {
+        "name": "Can change knowledge area",
+        "content_type": 12,
+        "codename": "change_knowledgearea"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 47,
+      "fields": {
+        "name": "Can delete knowledge area",
+        "content_type": 12,
+        "codename": "delete_knowledgearea"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 48,
+      "fields": {
+        "name": "Can view knowledge area",
+        "content_type": 12,
+        "codename": "view_knowledgearea"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 49,
+      "fields": {
+        "name": "Can add education level",
+        "content_type": 13,
+        "codename": "add_educationlevel"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 50,
+      "fields": {
+        "name": "Can change education level",
+        "content_type": 13,
+        "codename": "change_educationlevel"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 51,
+      "fields": {
+        "name": "Can delete education level",
+        "content_type": 13,
+        "codename": "delete_educationlevel"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 52,
+      "fields": {
+        "name": "Can view education level",
+        "content_type": 13,
+        "codename": "view_educationlevel"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 53,
+      "fields": {
+        "name": "Can add preferences area",
+        "content_type": 14,
+        "codename": "add_preferencesarea"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 54,
+      "fields": {
+        "name": "Can change preferences area",
+        "content_type": 14,
+        "codename": "change_preferencesarea"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 55,
+      "fields": {
+        "name": "Can delete preferences area",
+        "content_type": 14,
+        "codename": "delete_preferencesarea"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 56,
+      "fields": {
+        "name": "Can view preferences area",
+        "content_type": 14,
+        "codename": "view_preferencesarea"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 57,
+      "fields": {
+        "name": "Can add preferences",
+        "content_type": 15,
+        "codename": "add_preferences"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 58,
+      "fields": {
+        "name": "Can change preferences",
+        "content_type": 15,
+        "codename": "change_preferences"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 59,
+      "fields": {
+        "name": "Can delete preferences",
+        "content_type": 15,
+        "codename": "delete_preferences"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 60,
+      "fields": {
+        "name": "Can view preferences",
+        "content_type": 15,
+        "codename": "view_preferences"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 61,
+      "fields": {
+        "name": "Can add profession",
+        "content_type": 16,
+        "codename": "add_profession"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 62,
+      "fields": {
+        "name": "Can change profession",
+        "content_type": 16,
+        "codename": "change_profession"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 63,
+      "fields": {
+        "name": "Can delete profession",
+        "content_type": 16,
+        "codename": "delete_profession"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 64,
+      "fields": {
+        "name": "Can view profession",
+        "content_type": 16,
+        "codename": "view_profession"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 65,
+      "fields": {
+        "name": "Can add guideline",
+        "content_type": 17,
+        "codename": "add_guideline"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 66,
+      "fields": {
+        "name": "Can change guideline",
+        "content_type": 17,
+        "codename": "change_guideline"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 67,
+      "fields": {
+        "name": "Can delete guideline",
+        "content_type": 17,
+        "codename": "delete_guideline"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 68,
+      "fields": {
+        "name": "Can view guideline",
+        "content_type": 17,
+        "codename": "view_guideline"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 69,
+      "fields": {
+        "name": "Can add principle",
+        "content_type": 18,
+        "codename": "add_principle"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 70,
+      "fields": {
+        "name": "Can change principle",
+        "content_type": 18,
+        "codename": "change_principle"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 71,
+      "fields": {
+        "name": "Can delete principle",
+        "content_type": 18,
+        "codename": "delete_principle"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 72,
+      "fields": {
+        "name": "Can view principle",
+        "content_type": 18,
+        "codename": "view_principle"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 73,
+      "fields": {
+        "name": "Can add student evaluation",
+        "content_type": 19,
+        "codename": "add_studentevaluation"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 74,
+      "fields": {
+        "name": "Can change student evaluation",
+        "content_type": 19,
+        "codename": "change_studentevaluation"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 75,
+      "fields": {
+        "name": "Can delete student evaluation",
+        "content_type": 19,
+        "codename": "delete_studentevaluation"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 76,
+      "fields": {
+        "name": "Can view student evaluation",
+        "content_type": 19,
+        "codename": "view_studentevaluation"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 77,
+      "fields": {
+        "name": "Can add question",
+        "content_type": 20,
+        "codename": "add_question"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 78,
+      "fields": {
+        "name": "Can change question",
+        "content_type": 20,
+        "codename": "change_question"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 79,
+      "fields": {
+        "name": "Can delete question",
+        "content_type": 20,
+        "codename": "delete_question"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 80,
+      "fields": {
+        "name": "Can view question",
+        "content_type": 20,
+        "codename": "view_question"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 81,
+      "fields": {
+        "name": "Can add evaluation question qualification",
+        "content_type": 21,
+        "codename": "add_evaluationquestionqualification"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 82,
+      "fields": {
+        "name": "Can change evaluation question qualification",
+        "content_type": 21,
+        "codename": "change_evaluationquestionqualification"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 83,
+      "fields": {
+        "name": "Can delete evaluation question qualification",
+        "content_type": 21,
+        "codename": "delete_evaluationquestionqualification"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 84,
+      "fields": {
+        "name": "Can view evaluation question qualification",
+        "content_type": 21,
+        "codename": "view_evaluationquestionqualification"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 85,
+      "fields": {
+        "name": "Can add evaluation collaborating expert",
+        "content_type": 22,
+        "codename": "add_evaluationcollaboratingexpert"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 86,
+      "fields": {
+        "name": "Can change evaluation collaborating expert",
+        "content_type": 22,
+        "codename": "change_evaluationcollaboratingexpert"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 87,
+      "fields": {
+        "name": "Can delete evaluation collaborating expert",
+        "content_type": 22,
+        "codename": "delete_evaluationcollaboratingexpert"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 88,
+      "fields": {
+        "name": "Can view evaluation collaborating expert",
+        "content_type": 22,
+        "codename": "view_evaluationcollaboratingexpert"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 89,
+      "fields": {
+        "name": "Can add evaluation concept",
+        "content_type": 23,
+        "codename": "add_evaluationconcept"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 90,
+      "fields": {
+        "name": "Can change evaluation concept",
+        "content_type": 23,
+        "codename": "change_evaluationconcept"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 91,
+      "fields": {
+        "name": "Can delete evaluation concept",
+        "content_type": 23,
+        "codename": "delete_evaluationconcept"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 92,
+      "fields": {
+        "name": "Can view evaluation concept",
+        "content_type": 23,
+        "codename": "view_evaluationconcept"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 93,
+      "fields": {
+        "name": "Can add evaluation concept qualification",
+        "content_type": 24,
+        "codename": "add_evaluationconceptqualification"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 94,
+      "fields": {
+        "name": "Can change evaluation concept qualification",
+        "content_type": 24,
+        "codename": "change_evaluationconceptqualification"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 95,
+      "fields": {
+        "name": "Can delete evaluation concept qualification",
+        "content_type": 24,
+        "codename": "delete_evaluationconceptqualification"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 96,
+      "fields": {
+        "name": "Can view evaluation concept qualification",
+        "content_type": 24,
+        "codename": "view_evaluationconceptqualification"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 97,
+      "fields": {
+        "name": "Can add evaluation question",
+        "content_type": 25,
+        "codename": "add_evaluationquestion"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 98,
+      "fields": {
+        "name": "Can change evaluation question",
+        "content_type": 25,
+        "codename": "change_evaluationquestion"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 99,
+      "fields": {
+        "name": "Can delete evaluation question",
+        "content_type": 25,
+        "codename": "delete_evaluationquestion"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 100,
+      "fields": {
+        "name": "Can view evaluation question",
+        "content_type": 25,
+        "codename": "view_evaluationquestion"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 101,
+      "fields": {
+        "name": "Can add evaluation questions qualification",
+        "content_type": 26,
+        "codename": "add_evaluationquestionsqualification"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 102,
+      "fields": {
+        "name": "Can change evaluation questions qualification",
+        "content_type": 26,
+        "codename": "change_evaluationquestionsqualification"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 103,
+      "fields": {
+        "name": "Can delete evaluation questions qualification",
+        "content_type": 26,
+        "codename": "delete_evaluationquestionsqualification"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 104,
+      "fields": {
+        "name": "Can view evaluation questions qualification",
+        "content_type": 26,
+        "codename": "view_evaluationquestionsqualification"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 105,
+      "fields": {
+        "name": "Can add learning object metadata",
+        "content_type": 27,
+        "codename": "add_learningobjectmetadata"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 106,
+      "fields": {
+        "name": "Can change learning object metadata",
+        "content_type": 27,
+        "codename": "change_learningobjectmetadata"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 107,
+      "fields": {
+        "name": "Can delete learning object metadata",
+        "content_type": 27,
+        "codename": "delete_learningobjectmetadata"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 108,
+      "fields": {
+        "name": "Can view learning object metadata",
+        "content_type": 27,
+        "codename": "view_learningobjectmetadata"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 109,
+      "fields": {
+        "name": "Can add commentary",
+        "content_type": 28,
+        "codename": "add_commentary"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 110,
+      "fields": {
+        "name": "Can change commentary",
+        "content_type": 28,
+        "codename": "change_commentary"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 111,
+      "fields": {
+        "name": "Can delete commentary",
+        "content_type": 28,
+        "codename": "delete_commentary"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 112,
+      "fields": {
+        "name": "Can view commentary",
+        "content_type": 28,
+        "codename": "view_commentary"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 113,
+      "fields": {
+        "name": "Can add license",
+        "content_type": 29,
+        "codename": "add_license"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 114,
+      "fields": {
+        "name": "Can change license",
+        "content_type": 29,
+        "codename": "change_license"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 115,
+      "fields": {
+        "name": "Can delete license",
+        "content_type": 29,
+        "codename": "delete_license"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 116,
+      "fields": {
+        "name": "Can view license",
+        "content_type": 29,
+        "codename": "view_license"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 117,
+      "fields": {
+        "name": "Can add Token",
+        "content_type": 30,
+        "codename": "add_token"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 118,
+      "fields": {
+        "name": "Can change Token",
+        "content_type": 30,
+        "codename": "change_token"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 119,
+      "fields": {
+        "name": "Can delete Token",
+        "content_type": 30,
+        "codename": "delete_token"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 120,
+      "fields": {
+        "name": "Can view Token",
+        "content_type": 30,
+        "codename": "view_token"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 121,
+      "fields": {
+        "name": "Can add token",
+        "content_type": 31,
+        "codename": "add_tokenproxy"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 122,
+      "fields": {
+        "name": "Can change token",
+        "content_type": 31,
+        "codename": "change_tokenproxy"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 123,
+      "fields": {
+        "name": "Can delete token",
+        "content_type": 31,
+        "codename": "delete_tokenproxy"
+      }
+    },
+    {
+      "model": "auth.permission",
+      "pk": 124,
+      "fields": {
+        "name": "Can view token",
+        "content_type": 31,
+        "codename": "view_tokenproxy"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 1,
+      "fields": {
+        "app_label": "admin",
+        "model": "logentry"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 2,
+      "fields": {
+        "app_label": "auth",
+        "model": "permission"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 3,
+      "fields": {
+        "app_label": "auth",
+        "model": "group"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 4,
+      "fields": {
+        "app_label": "contenttypes",
+        "model": "contenttype"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 5,
+      "fields": {
+        "app_label": "sessions",
+        "model": "session"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 6,
+      "fields": {
+        "app_label": "user",
+        "model": "administrator"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 7,
+      "fields": {
+        "app_label": "user",
+        "model": "collaboratingexpert"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 8,
+      "fields": {
+        "app_label": "user",
+        "model": "teacher"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 9,
+      "fields": {
+        "app_label": "user",
+        "model": "student"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 10,
+      "fields": {
+        "app_label": "user",
+        "model": "user"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 11,
+      "fields": {
+        "app_label": "learning_object_file",
+        "model": "learningobjectfile"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 12,
+      "fields": {
+        "app_label": "knowledge_area",
+        "model": "knowledgearea"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 13,
+      "fields": {
+        "app_label": "education_level",
+        "model": "educationlevel"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 14,
+      "fields": {
+        "app_label": "preferences",
+        "model": "preferencesarea"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 15,
+      "fields": {
+        "app_label": "preferences",
+        "model": "preferences"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 16,
+      "fields": {
+        "app_label": "profession",
+        "model": "profession"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 17,
+      "fields": {
+        "app_label": "evaluation_student",
+        "model": "guideline"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 18,
+      "fields": {
+        "app_label": "evaluation_student",
+        "model": "principle"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 19,
+      "fields": {
+        "app_label": "evaluation_student",
+        "model": "studentevaluation"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 20,
+      "fields": {
+        "app_label": "evaluation_student",
+        "model": "question"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 21,
+      "fields": {
+        "app_label": "evaluation_student",
+        "model": "evaluationquestionqualification"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 22,
+      "fields": {
+        "app_label": "evaluation_collaborating_expert",
+        "model": "evaluationcollaboratingexpert"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 23,
+      "fields": {
+        "app_label": "evaluation_collaborating_expert",
+        "model": "evaluationconcept"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 24,
+      "fields": {
+        "app_label": "evaluation_collaborating_expert",
+        "model": "evaluationconceptqualification"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 25,
+      "fields": {
+        "app_label": "evaluation_collaborating_expert",
+        "model": "evaluationquestion"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 26,
+      "fields": {
+        "app_label": "evaluation_collaborating_expert",
+        "model": "evaluationquestionsqualification"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 27,
+      "fields": {
+        "app_label": "learning_object_metadata",
+        "model": "learningobjectmetadata"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 28,
+      "fields": {
+        "app_label": "learning_object_metadata",
+        "model": "commentary"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 29,
+      "fields": {
+        "app_label": "license",
+        "model": "license"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 30,
+      "fields": {
+        "app_label": "authtoken",
+        "model": "token"
+      }
+    },
+    {
+      "model": "contenttypes.contenttype",
+      "pk": 31,
+      "fields": {
+        "app_label": "authtoken",
+        "model": "tokenproxy"
+      }
+    },
+    {
+      "model": "sessions.session",
+      "pk": "8tlhz5rillig7obob0xciwe3h4co2eb4",
+      "fields": {
+        "session_data": ".eJxVjDsOwjAQBe_iGln-rT-U9JzBWttrHECOFCcV4u4QKQW0b2bei0Xc1ha3QUucCjszyU6_W8L8oL6Dcsd-m3me-7pMie8KP-jg17nQ83K4fwcNR_vW1UlK3iCF4JUTWVINFrRBq7VWKVByCtEKRUVmMFCDsEgEYKuHApa9P97lN7U:1lai10:b-TZelFqSl6JMgrgUgQfCEO8gzNM5hCydik5nYpRGNY",
+        "expire_date": "2021-05-09T16:53:50.238Z"
+      }
+    },
+    {
+      "model": "sessions.session",
+      "pk": "hze04k59hxg817gy8xcpqyl11uoz89fz",
+      "fields": {
+        "session_data": ".eJxVjDsOwjAQBe_iGln-rT-U9JzBWttrHECOFCcV4u4QKQW0b2bei0Xc1ha3QUucCjszyU6_W8L8oL6Dcsd-m3me-7pMie8KP-jg17nQ83K4fwcNR_vW1UlK3iCF4JUTWVINFrRBq7VWKVByCtEKRUVmMFCDsEgEYKuHApa9P97lN7U:1laDeW:T6_y2DFFyUoydiLRGEzABXGVKqCnEWnBA3I_3N1b-Vo",
+        "expire_date": "2021-05-08T08:28:36.819Z"
+      }
+    },
+    {
+      "model": "sessions.session",
+      "pk": "m2v8ql7fivcyap8hupq0zeuoareqpzyd",
+      "fields": {
+        "session_data": ".eJxVjDsOwjAQBe_iGln-rT-U9JzBWttrHECOFCcV4u4QKQW0b2bei0Xc1ha3QUucCjszyU6_W8L8oL6Dcsd-m3me-7pMie8KP-jg17nQ83K4fwcNR_vW1UlK3iCF4JUTWVINFrRBq7VWKVByCtEKRUVmMFCDsEgEYKuHApa9P97lN7U:1lZpVc:az_ex_VRi-R-GRJMOniZgLAHZmDRftl5JVMx3yxek7s",
+        "expire_date": "2021-05-07T06:41:48.400Z"
+      }
+    },
+    {
+      "model": "sessions.session",
+      "pk": "qln0u5d669bwbuxrsg6njxprl3oknclq",
+      "fields": {
+        "session_data": ".eJxVjDsOwjAQBe_iGln-rT-U9JzBWttrHECOFCcV4u4QKQW0b2bei0Xc1ha3QUucCjszyU6_W8L8oL6Dcsd-m3me-7pMie8KP-jg17nQ83K4fwcNR_vW1UlK3iCF4JUTWVINFrRBq7VWKVByCtEKRUVmMFCDsEgEYKuHApa9P97lN7U:1lZyeP:gRfauyQw5l8XT0MytDvP2Gu8lWrZaJFEjgCd7UMd3Tw",
+        "expire_date": "2021-05-07T16:27:29.597Z"
+      }
+    },
+    {
+      "model": "sessions.session",
+      "pk": "x7mswna11orhnxdmicubqteeayogqfko",
+      "fields": {
+        "session_data": ".eJxVjMsOwiAQRf-FtSEwUB4u3fsNZGBAqgaS0q6M_65NutDtPefcFwu4rTVsIy9hJnZmip1-t4jpkdsO6I7t1nnqbV3myHeFH3Twa6f8vBzu30HFUb81OE0KjZoEOpFAaZ2kByjeklAogIp0BbQvYMBIG7FILz1RtFNJpC17fwC6gTc-:1lZphC:1VOwlPH0SlbdLCHRtsokTsgSx7_0c4uZFpg6bPe02y0",
+        "expire_date": "2021-05-07T06:53:46.320Z"
+      }
+    },
+    {
+      "model": "user.student",
+      "pk": 1,
+      "fields": {
+        "created": "2021-04-23T06:24:13.082Z",
+        "modified": "2021-04-23T06:24:13.124Z",
+        "birthday": "1999-12-12",
+        "has_disability": true,
+        "disability_description": null,
+        "is_active": true,
+        "education_levels": [
+          1
+        ],
+        "knowledge_areas": [
+          1
+        ],
+        "preferences": [
+          1
+        ]
+      }
+    },
+    {
+      "model": "user.student",
+      "pk": 2,
+      "fields": {
+        "created": "2021-04-23T16:28:54.171Z",
+        "modified": "2021-04-23T16:28:54.338Z",
+        "birthday": "1999-12-12",
+        "has_disability": true,
+        "disability_description": "Movimiento de manos",
+        "is_active": true,
+        "education_levels": [
+          1
+        ],
+        "knowledge_areas": [
+          1
+        ],
+        "preferences": [
+          1
+        ]
+      }
+    },
+    {
+      "model": "user.student",
+      "pk": 3,
+      "fields": {
+        "created": "2021-04-23T16:31:35.441Z",
+        "modified": "2021-04-23T16:31:35.462Z",
+        "birthday": "1999-12-12",
+        "has_disability": true,
+        "disability_description": "Movimiento de pies",
+        "is_active": true,
+        "education_levels": [
+          1
+        ],
+        "knowledge_areas": [
+          1
+        ],
+        "preferences": [
+          1
+        ]
+      }
+    },
+    {
+      "model": "user.student",
+      "pk": 4,
+      "fields": {
+        "created": "2021-04-23T16:32:38.108Z",
+        "modified": "2021-04-23T16:49:32.392Z",
+        "birthday": "1999-12-12",
+        "has_disability": true,
+        "disability_description": null,
+        "is_active": true,
+        "education_levels": [
+          1
+        ],
+        "knowledge_areas": [
+          1
+        ],
+        "preferences": [
+          1
+        ]
+      }
+    },
+    {
+      "model": "user.student",
+      "pk": 5,
+      "fields": {
+        "created": "2021-04-23T16:52:22.486Z",
+        "modified": "2021-04-23T16:52:22.509Z",
+        "birthday": "1999-12-12",
+        "has_disability": true,
+        "disability_description": "Movimiento de cuello",
+        "is_active": true,
+        "education_levels": [
+          1
+        ],
+        "knowledge_areas": [
+          1
+        ],
+        "preferences": [
+          1
+        ]
+      }
+    },
+    {
+      "model": "user.teacher",
+      "pk": 1,
+      "fields": {
+        "created": "2021-04-23T06:24:13.131Z",
+        "modified": "2021-04-23T06:32:58.226Z",
+        "is_active": true,
+        "professions": [
+          1
+        ]
+      }
+    },
+    {
+      "model": "user.teacher",
+      "pk": 2,
+      "fields": {
+        "created": "2021-04-23T16:28:54.463Z",
+        "modified": "2021-04-23T16:28:54.545Z",
+        "is_active": false,
+        "professions": [
+          1
+        ]
+      }
+    },
+    {
+      "model": "user.teacher",
+      "pk": 3,
+      "fields": {
+        "created": "2021-04-23T16:31:35.470Z",
+        "modified": "2021-04-23T16:31:35.478Z",
+        "is_active": false,
+        "professions": [
+          1
+        ]
+      }
+    },
+    {
+      "model": "user.teacher",
+      "pk": 4,
+      "fields": {
+        "created": "2021-04-23T16:32:38.137Z",
+        "modified": "2021-04-23T16:49:32.416Z",
+        "is_active": false,
+        "professions": [
+          1
+        ]
+      }
+    },
+    {
+      "model": "user.teacher",
+      "pk": 5,
+      "fields": {
+        "created": "2021-04-23T16:52:22.515Z",
+        "modified": "2021-04-23T16:52:22.525Z",
+        "is_active": false,
+        "professions": [
+          1
+        ]
+      }
+    },
+    {
+      "model": "user.collaboratingexpert",
+      "pk": 1,
+      "fields": {
+        "created": "2021-04-23T06:24:13.226Z",
+        "modified": "2021-04-23T06:33:00.527Z",
+        "expert_level": "Alto",
+        "web": "https://www.youtube.com/whatch",
+        "academic_profile": "Google academico",
+        "is_active": true
+      }
+    },
+    {
+      "model": "user.collaboratingexpert",
+      "pk": 2,
+      "fields": {
+        "created": "2021-04-23T16:28:54.628Z",
+        "modified": "2021-04-23T16:28:54.635Z",
+        "expert_level": "Alto",
+        "web": "https://www.youtube.com/whatch",
+        "academic_profile": "Google academico",
+        "is_active": false
+      }
+    },
+    {
+      "model": "user.collaboratingexpert",
+      "pk": 3,
+      "fields": {
+        "created": "2021-04-23T16:31:35.561Z",
+        "modified": "2021-04-23T16:31:35.565Z",
+        "expert_level": "Alto",
+        "web": "https://www.youtube.com/whatch",
+        "academic_profile": "Google academico",
+        "is_active": false
+      }
+    },
+    {
+      "model": "user.collaboratingexpert",
+      "pk": 4,
+      "fields": {
+        "created": "2021-04-23T16:32:38.147Z",
+        "modified": "2021-04-23T16:49:32.495Z",
+        "expert_level": "Alto",
+        "web": "https://www.youtube.com/whatch",
+        "academic_profile": "Google academico",
+        "is_active": false
+      }
+    },
+    {
+      "model": "user.collaboratingexpert",
+      "pk": 5,
+      "fields": {
+        "created": "2021-04-23T16:52:22.605Z",
+        "modified": "2021-04-23T16:52:22.608Z",
+        "expert_level": "Alto",
+        "web": "https://www.youtube.com/whatch",
+        "academic_profile": "Google academico",
+        "is_active": false
+      }
+    },
+    {
+      "model": "user.user",
+      "pk": 1,
+      "fields": {
+        "password": "pbkdf2_sha256$216000$oBEYYQkU6v7e$/7guyauytuPYUeoVR20zVCBTxKJig1mFtRYkAe37fUU=",
+        "last_login": "2021-04-25T16:53:50.210Z",
+        "created": "2021-04-23T06:07:47.838Z",
+        "modified": "2021-04-25T16:53:50.210Z",
+        "first_name": "Admin",
+        "last_name": "Admin",
+        "email": "admin@gmail.com",
+        "image": "img/user.png",
+        "student": null,
+        "teacher": null,
+        "collaboratingExpert": null,
+        "administrator": null,
+        "is_superuser": true
+      }
+    },
+    {
+      "model": "user.user",
+      "pk": 2,
+      "fields": {
+        "password": "pbkdf2_sha256$216000$OWcnovpodF27$LFC9k/Y3fdU10nDkoT+UgFC2ZtbyAV5AoC1d18j3p08=",
+        "last_login": null,
+        "created": "2021-04-23T06:24:13.232Z",
+        "modified": "2021-04-23T06:24:13.543Z",
+        "first_name": "Marco",
+        "last_name": "Gonzalez Samaniego",
+        "email": "user@ups.edu.ec",
+        "image": "profile/stephenshaw.png",
+        "student": 1,
+        "teacher": 1,
+        "collaboratingExpert": 1,
+        "administrator": null,
+        "is_superuser": false
+      }
+    },
+    {
+      "model": "user.user",
+      "pk": 5,
+      "fields": {
+        "password": "pbkdf2_sha256$216000$Of3Qm0QFNaUY$LnVoiy0LA+z4z4RPdzFXBna3nqzyyKad1dPBQcwuanw=",
+        "last_login": null,
+        "created": "2021-04-23T16:28:54.637Z",
+        "modified": "2021-04-23T16:28:54.986Z",
+        "first_name": "Juan",
+        "last_name": "Gonzalez Samaniego",
+        "email": "user1@ups.edu.ec",
+        "image": "profile/elwinsharvill.png",
+        "student": 2,
+        "teacher": 2,
+        "collaboratingExpert": 2,
+        "administrator": null,
+        "is_superuser": false
+      }
+    },
+    {
+      "model": "user.user",
+      "pk": 6,
+      "fields": {
+        "password": "pbkdf2_sha256$216000$GWzJm6E1V0AU$+mcQcyk+ImohBhwNWOGakm2oEylOh4Y0jR9+df/pP8s=",
+        "last_login": null,
+        "created": "2021-04-23T16:31:35.568Z",
+        "modified": "2021-04-23T16:31:35.886Z",
+        "first_name": "Juan",
+        "last_name": "Gonzalez Samaniego",
+        "email": "user2@ups.edu.ec",
+        "image": "profile/elwinsharvill_qBFIxdk.png",
+        "student": 3,
+        "teacher": 3,
+        "collaboratingExpert": 3,
+        "administrator": null,
+        "is_superuser": false
+      }
+    },
+    {
+      "model": "user.user",
+      "pk": 7,
+      "fields": {
+        "password": "pbkdf2_sha256$216000$9IkebuSYvLae$P4k2FnfpXAetixpT93WyeKNbJeq2wMoSuZtbeDspVvc=",
+        "last_login": null,
+        "created": "2021-04-23T16:32:38.153Z",
+        "modified": "2021-04-23T16:49:32.497Z",
+        "first_name": "Antonio",
+        "last_name": "Gonzalez Samaniego",
+        "email": "user3@ups.edu.ec",
+        "image": "profile/elwinsharvill_Qek6vGw.png",
+        "student": 4,
+        "teacher": 4,
+        "collaboratingExpert": 4,
+        "administrator": null,
+        "is_superuser": false
+      }
+    },
+    {
+      "model": "user.user",
+      "pk": 8,
+      "fields": {
+        "password": "pbkdf2_sha256$216000$YMyAKqYwM16n$cWdQlk8fmk3ynSehHHGv1IMzoivJcT2yQVpcEjtUXBQ=",
+        "last_login": null,
+        "created": "2021-04-23T16:52:22.611Z",
+        "modified": "2021-04-23T16:52:22.911Z",
+        "first_name": "Antonio",
+        "last_name": "Gonzalez Samaniego",
+        "email": "user4@ups.edu.ec",
+        "image": "profile/elwinsharvill_uLEeDP4.png",
+        "student": 5,
+        "teacher": 5,
+        "collaboratingExpert": 5,
+        "administrator": null,
+        "is_superuser": false
+      }
+    },
+    {
+      "model": "learning_object_file.learningobjectfile",
+      "pk": 1,
+      "fields": {
+        "created": "2021-04-23T06:34:17.570Z",
+        "modified": "2021-04-23T06:34:17.570Z",
+        "file": "oazip/ABCDE_TRAUMA_PEDIATRICO.zip",
+        "url": ""
+      }
+    },
+    {
+      "model": "learning_object_file.learningobjectfile",
+      "pk": 2,
+      "fields": {
+        "created": "2021-04-23T06:34:34.389Z",
+        "modified": "2021-04-23T06:34:35.068Z",
+        "file": "oazip/El_sistema_financieroIMS.zip",
+        "url": "http://localhost:8000/media/Educacion/El_sistema_financieroIMS5674/El_sistema_financiero-IMS_CP - IEEE LOM/index.html"
+      }
+    },
+    {
+      "model": "learning_object_file.learningobjectfile",
+      "pk": 3,
+      "fields": {
+        "created": "2021-04-23T07:02:57.014Z",
+        "modified": "2021-04-23T07:02:57.366Z",
+        "file": "oazip/El_sistema_financieroIMS_z7pLkkW.zip",
+        "url": "http://localhost:8000/media/Educacion/El_sistema_financieroIMS7377/El_sistema_financiero-IMS_CP - IEEE LOM/index.html"
+      }
+    },
+    {
+      "model": "learning_object_file.learningobjectfile",
+      "pk": 4,
+      "fields": {
+        "created": "2021-04-23T07:04:52.393Z",
+        "modified": "2021-04-23T07:04:52.971Z",
+        "file": "oazip/El_sistema_financieroIMS_wvdDU7F.zip",
+        "url": "http://localhost:8000/media/Educacion/El_sistema_financieroIMS7492/El_sistema_financiero-IMS_CP - IEEE LOM/index.html"
+      }
+    },
+    {
+      "model": "knowledge_area.knowledgearea",
+      "pk": 1,
+      "fields": {
+        "created": "2021-04-23T06:11:08.629Z",
+        "modified": "2021-04-23T06:11:08.632Z",
+        "name": "Programas generales",
+        "description": "Desarrollo de destrezas personales, por ejemplo, capacidad de comportamiento, aptitudes\nintelectuales, capacidad organizativa, programas de orientaci�n."
+      }
+    },
+    {
+      "model": "education_level.educationlevel",
+      "pk": 1,
+      "fields": {
+        "created": "2021-04-23T06:21:06.708Z",
+        "modified": "2021-04-23T06:21:06.708Z",
+        "description": "B�sica Secundaria"
+      }
+    },
+    {
+      "model": "preferences.preferencesarea",
+      "pk": 1,
+      "fields": {
+        "created": "2021-04-23T06:14:43.129Z",
+        "modified": "2021-04-23T06:14:43.129Z",
+        "preferences_are": "Recursos Digitales Visuales"
+      }
+    },
+    {
+      "model": "preferences.preferencesarea",
+      "pk": 2,
+      "fields": {
+        "created": "2021-04-23T06:14:53.103Z",
+        "modified": "2021-04-23T06:14:53.103Z",
+        "preferences_are": "Recursos Digitales Textuales"
+      }
+    },
+    {
+      "model": "preferences.preferencesarea",
+      "pk": 3,
+      "fields": {
+        "created": "2021-04-23T06:15:00.732Z",
+        "modified": "2021-04-23T06:15:00.732Z",
+        "preferences_are": "Recursos Digitales Auditivos"
+      }
+    },
+    {
+      "model": "preferences.preferencesarea",
+      "pk": 4,
+      "fields": {
+        "created": "2021-04-23T06:17:38.082Z",
+        "modified": "2021-04-23T06:17:38.082Z",
+        "preferences_are": "Nivel De Interactividad"
+      }
+    },
+    {
+      "model": "preferences.preferences",
+      "pk": 1,
+      "fields": {
+        "created": "2021-04-23T06:19:57.124Z",
+        "modified": "2021-04-23T06:19:57.124Z",
+        "description": "Contenido no textual",
+        "priority": 2,
+        "preferences_area": 1
+      }
+    },
+    {
+      "model": "profession.profession",
+      "pk": 1,
+      "fields": {
+        "created": "2021-04-23T06:20:51.040Z",
+        "modified": "2021-04-23T06:20:51.045Z",
+        "description": "Economista"
+      }
+    },
+    {
+      "model": "evaluation_student.principle",
+      "pk": 3,
+      "fields": {
+        "created": "2021-04-24T08:33:18.671Z",
+        "modified": "2021-04-24T08:33:18.671Z",
+        "principle": "Representaci�n"
+      }
+    },
+    {
+      "model": "evaluation_student.principle",
+      "pk": 4,
+      "fields": {
+        "created": "2021-04-24T08:33:31.228Z",
+        "modified": "2021-04-24T08:33:31.228Z",
+        "principle": "Expresi�n"
+      }
+    },
+    {
+      "model": "evaluation_student.guideline",
+      "pk": 1,
+      "fields": {
+        "created": "2021-04-24T08:34:10.016Z",
+        "modified": "2021-04-24T08:34:10.016Z",
+        "guideline": "Presenta la informaci�n en diferentes formatos (percepci�n)",
+        "principle": 3
+      }
+    },
+    {
+      "model": "evaluation_student.guideline",
+      "pk": 2,
+      "fields": {
+        "created": "2021-04-24T08:34:26.625Z",
+        "modified": "2021-04-24T08:34:26.625Z",
+        "guideline": "Utiliza elementos de apoyo para decodificar la informaci�n:",
+        "principle": 3
+      }
+    },
+    {
+      "model": "evaluation_student.guideline",
+      "pk": 3,
+      "fields": {
+        "created": "2021-04-24T08:34:43.301Z",
+        "modified": "2021-04-24T08:34:43.301Z",
+        "guideline": "Permite m�ltiples medios para interaccionar con el material",
+        "principle": 4
+      }
+    },
+    {
+      "model": "evaluation_student.guideline",
+      "pk": 4,
+      "fields": {
+        "created": "2021-04-24T08:35:11.133Z",
+        "modified": "2021-04-24T08:35:11.133Z",
+        "guideline": "Se var�a el modelo de respuesta en las actividades (expresi�n y comunicaci�n)",
+        "principle": 4
+      }
+    },
+    {
+      "model": "evaluation_student.question",
+      "pk": 1,
+      "fields": {
+        "created": "2021-04-24T08:36:31.307Z",
+        "modified": "2021-04-24T08:36:31.307Z",
+        "question": "�El recurso presenta informaci�n auditiva?",
+        "description": "Iconogr�fico (fotos, im�genes, logos, iconos, infograf�as)",
+        "metadata": "accessMode:auditory",
+        "guideline": 1
+      }
+    },
+    {
+      "model": "evaluation_student.question",
+      "pk": 2,
+      "fields": {
+        "created": "2021-04-24T08:37:12.082Z",
+        "modified": "2021-04-24T08:37:12.082Z",
+        "question": "�Se utiliza una sintaxis directa, sencilla y jerarquizada por orden de relevancia ?",
+        "description": "Se utiliza una sintaxis directa, sencilla y jerarquizada por orden de relevancia",
+        "metadata": "accessibilityFeature: structuralNavigation",
+        "guideline": 2
+      }
+    },
+    {
+      "model": "evaluation_student.question",
+      "pk": 3,
+      "fields": {
+        "created": "2021-04-24T08:37:54.034Z",
+        "modified": "2021-04-24T08:37:54.034Z",
+        "question": "�Existe material digital  variado?",
+        "description": "creativework -> LearningResource:learningResourceType",
+        "metadata": "Los materiales, todos o en parte, se pueden consultar en formato digital y anal�gico",
+        "guideline": 3
+      }
+    },
+    {
+      "model": "evaluation_student.question",
+      "pk": 4,
+      "fields": {
+        "created": "2021-04-24T08:50:42.156Z",
+        "modified": "2021-04-24T08:50:42.156Z",
+        "question": "�Existen diferentes posibilidades para que el alumnado comunique lo que sabe: textual, gr�fica, audiovisual, interactiva, cinest�sica, musical?",
+        "description": "Existen diferentes posibilidades para que el alumnado comunique lo que sabe: textual, gr�fica, audiovisual, interactiva, cinest�sica, musical",
+        "metadata": "creativework -> LearningResource:competencyRequired",
+        "guideline": 4
+      }
+    },
+    {
+      "model": "evaluation_collaborating_expert.evaluationconcept",
+      "pk": 23,
+      "fields": {
+        "created": "2021-04-25T05:58:28.608Z",
+        "modified": "2021-04-25T23:50:03.356Z",
+        "concept": "Recursos Digitales Visuales"
+      }
+    },
+    {
+      "model": "evaluation_collaborating_expert.evaluationconcept",
+      "pk": 25,
+      "fields": {
+        "created": "2021-04-25T16:34:52.018Z",
+        "modified": "2021-04-25T23:53:05.559Z",
+        "concept": "Recursos Digitales Textuales"
+      }
+    },
+    {
+      "model": "evaluation_collaborating_expert.evaluationconcept",
+      "pk": 30,
+      "fields": {
+        "created": "2021-04-25T21:33:40.860Z",
+        "modified": "2021-04-25T23:52:49.825Z",
+        "concept": "Nivel De Interactividad"
+      }
+    },
+    {
+      "model": "evaluation_collaborating_expert.evaluationconcept",
+      "pk": 32,
+      "fields": {
+        "created": "2021-04-25T21:33:51.150Z",
+        "modified": "2021-04-25T23:53:22.483Z",
+        "concept": "Recursos Digitales Auditivos"
+      }
+    },
+    {
+      "model": "evaluation_collaborating_expert.evaluationquestion",
+      "pk": 22,
+      "fields": {
+        "created": "2021-04-26T02:02:12.275Z",
+        "modified": "2021-04-26T02:02:12.275Z",
+        "question": "�Las im�genes poseen texto alternativo?",
+        "description": "Contenido no textual",
+        "schema": "accessibilityFeature: alternativeText",
+        "code": "RDV1",
+        "evaluation_concept": 23
+      }
+    },
+    {
+      "model": "evaluation_collaborating_expert.evaluationquestion",
+      "pk": 24,
+      "fields": {
+        "created": "2021-04-26T02:09:54.758Z",
+        "modified": "2021-04-26T02:09:54.758Z",
+        "question": "�Existe contenido con peligro de umbral de destellos?",
+        "description": "Umbral de tres destellos o menos",
+        "schema": "accessibilityHazard: FlashingHazard",
+        "code": "RI1",
+        "evaluation_concept": 30
+      }
+    },
+    {
+      "model": "evaluation_collaborating_expert.evaluationquestion",
+      "pk": 25,
+      "fields": {
+        "created": "2021-04-26T02:11:29.697Z",
+        "modified": "2021-04-26T02:11:29.697Z",
+        "question": "�Existe un mecanismo para activar o desactivar animaciones dentro del contenido?",
+        "description": "Animaciones desde interacciones",
+        "schema": "accessibilityHazard: nomotionsimulationHazard",
+        "code": "RI2",
+        "evaluation_concept": 30
+      }
+    },
+    {
+      "model": "evaluation_collaborating_expert.evaluationquestion",
+      "pk": 26,
+      "fields": {
+        "created": "2021-04-26T02:19:07.242Z",
+        "modified": "2021-04-26T02:19:07.242Z",
+        "question": "�La mayor cantidad de informaci�n es textual?",
+        "description": "Caracter�sticas sensoriales",
+        "schema": "accesMode: Textual",
+        "code": "RDT1",
+        "evaluation_concept": 25
+      }
+    },
+    {
+      "model": "evaluation_collaborating_expert.evaluationquestion",
+      "pk": 27,
+      "fields": {
+        "created": "2021-04-26T02:20:22.867Z",
+        "modified": "2021-04-26T02:20:22.867Z",
+        "question": "�El contenido textual contiene t�tulos, descripciones o enlaces adecuados ?",
+        "description": "Titulado de p�ginas",
+        "schema": "accessibilityFeature:StructuralNavegation",
+        "code": "RDT2",
+        "evaluation_concept": 25
+      }
+    },
+    {
+      "model": "evaluation_collaborating_expert.evaluationquestion",
+      "pk": 28,
+      "fields": {
+        "created": "2021-04-26T03:14:24.415Z",
+        "modified": "2021-04-26T03:15:49.988Z",
+        "question": "�Las im�genes poseen texto alternativoss?",
+        "description": "Contenido no textuals",
+        "schema": "accessibilityFeature: alternativeText",
+        "code": "AAMQ",
+        "evaluation_concept": 32
+      }
+    },
+    {
+      "model": "evaluation_collaborating_expert.evaluationquestion",
+      "pk": 29,
+      "fields": {
+        "created": "2021-04-26T05:26:17.031Z",
+        "modified": "2021-04-26T05:43:10.706Z",
+        "question": "�Las im�genes poseen texto alternativosssss?",
+        "description": "Contenido no textualsf",
+        "schema": "accessibilityFeature: alternativeText",
+        "code": "AAMQTR",
+        "evaluation_concept": 32
+      }
+    },
+    {
+      "model": "license.license",
+      "pk": 2,
+      "fields": {
+        "created": "2021-04-25T03:23:20.239Z",
+        "modified": "2021-04-25T03:23:20.239Z",
+        "description": "Creative Commons Reconocimiento-CompartirIgual"
+      }
+    }
+    ]
+    
