@@ -122,9 +122,9 @@ WSGI_APPLICATION = 'roabackend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'roa3',
-        'USER': 'roauser3',
-        'PASSWORD': 'USER123456',
+        'NAME': 'roa2',
+        'USER': 'roauser',
+        'PASSWORD': 'GMQCitpx1111',
         'HOST': 'localhost',
         'PORT': '5432',
     }
