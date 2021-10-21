@@ -22,7 +22,7 @@ from django.conf.urls.static import static
 
 schema_view = get_swagger_view(title='ROA API-REST Documentation')
 urlpatterns = [
-    url(r'^$', schema_view),
+    url(r'api-view', schema_view),
     # Admin url
     path('admin/', admin.site.urls),
     # Reset password
@@ -43,6 +43,7 @@ urlpatterns = [
     re_path('',include('applications.knowledge_area.routers')),
     re_path('',include('applications.preferences.routers')),
     re_path('',include('applications.preferences.urls')),
+    re_path('',include('applications.license.urls')),
     re_path('',include('applications.profession.routers')),
     re_path('',include('applications.evaluation_collaborating_expert.routers')),
     re_path('',include('applications.learning_object_metadata.routers')),

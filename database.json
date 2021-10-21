@@ -765,42 +765,35 @@
     "model": "education_level.educationlevel",
     "pk": 1,
     "fields": {
-      "description": "Educación primaria"
+      "name": "Educación primaria"
     }
   },
   {
     "model": "education_level.educationlevel",
     "pk": 2,
     "fields": {
-      "description": "Educación secundaria"
+      "name": "Educación secundaria"
     }
   },
   {
     "model": "education_level.educationlevel",
     "pk": 3,
     "fields": {
-      "description": "Escuela intermedia"
+      "name": "Escuela intermedia"
     }
   },
   {
     "model": "education_level.educationlevel",
     "pk": 4,
     "fields": {
-      "description": "División superior universitaria"
+      "name": "División superior universitaria"
     }
   },
   {
     "model": "education_level.educationlevel",
     "pk": 5,
     "fields": {
-      "description": "Profesional"
-    }
-  },
-  {
-    "model": "education_level.educationlevel",
-    "pk": 2,
-    "fields": {
-      "description": "Educación secundaria"
+      "name": "Profesional"
     }
   },
   {
@@ -957,56 +950,72 @@
       "model": "license.license",
       "pk": 1,
       "fields": {
-          "description": "Dominio Públicos"
+          "name": "Not specified",
+          "value": "unknown"
       }
   },
   {
       "model": "license.license",
       "pk": 2,
       "fields": {
-          "description": "Creative Commons Reconocimientos"
+        "name": "All rights reserved",
+        "value": "allrightsreserved"
       }
   },
   {
       "model": "license.license",
       "pk": 3,
       "fields": {
-          "description": "Creative Commons Reconocimiento-CompartirIguals"
+        "name": "Public domain",
+        "value": "public"
       }
   },
   {
       "model": "license.license",
       "pk": 4,
       "fields": {
-          "description": "Creative Commons Reconocimiento-SinObraDerivada"
+        "name": "Creative Commons",
+        "value": "cc"
       }
   },
   {
       "model": "license.license",
       "pk": 5,
       "fields": {
-          "description": "Creative Commons Reconocimiento-NoComercial"
+        "name": "Creative Commons - NoDerivs",
+        "value": "cc-nd"
       }
   },
   {
       "model": "license.license",
       "pk": 6,
       "fields": {
-          "description": "Creative Commons Reconocimiento-NoComercial-CompartirIgual"
+        "name": "Creative Commons - No Commercial NoDerivs",
+        "value": "cc-nc-nd"
       }
   },
   {
       "model": "license.license",
       "pk": 7,
       "fields": {
-          "description": "Creative Commons Reconocimiento-NoComercial-SinObraDerivad"
+        "name": "Creative Commons - No Commercial",
+        "value": "cc-nc"
       }
   },
   {
       "model": "license.license",
       "pk": 8,
       "fields": {
-          "description": "Otra licencia libres"
+        "name": "Creative Commons - No Commercial ShareAlike",
+        "value": "cc-nc-sa"
+      }
+  },
+  {
+      "model": "license.license",
+      "pk": 9,
+      "fields": {
+        "name": "Creative Commons - ShareAlike",
+        "value": "cc-sa"
       }
   },
   {

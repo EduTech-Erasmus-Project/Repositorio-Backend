@@ -18,6 +18,10 @@ class LearningObjectMetadata(TimeStampedModel):
     adaptation = models.CharField(max_length=10)
     # Metadatos complementarios
     avatar = models.ImageField(null=False, blank=False, upload_to = "avatar")
+
+    author = models.CharField(max_length=100, blank=True, null=True)
+    package_type = models.CharField(max_length=50,blank=True, null=True)
+
     # Preferencias de usuario
     # preferences = models.ManyToManyField(Preferences,related_name="preferences_learning_object")
     # Metadatos Generales del Objeto de aprendizaje
@@ -121,6 +125,7 @@ class LearningObjectMetadata(TimeStampedModel):
         blank=True, null=True
     )
     objects = LearningObjectManager()
+    # created = models.DateTimeField(auto_now_add=True)
     REQUIRED_FIELDS = ['learning_object','general_title','general_description','adaptation','education_level',
     'knowledge_area','license','user_created']
     def save(self, *args, **kwargs):

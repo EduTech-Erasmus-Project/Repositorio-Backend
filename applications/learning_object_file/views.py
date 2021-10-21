@@ -35,6 +35,8 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         learningObject = LearningObjectFile.objects.create(
             file = serializer.validated_data['file']
+            # file_name = serializer.validated_data['file_name'],
+            # file_size = serializer.validated_data['file_size']
         )
 
         now = datetime.now()
@@ -48,27 +50,32 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
             settings_dir = os.path.dirname(__file__)
             PROJECT_ROOT = os.path.abspath(os.path.dirname(settings_dir))
             file = zipfile.ZipFile(serializer.validated_data['file'],'r')
+            size = sum([zinfo.file_size for zinfo in file.filelist])
+            zip_kb = float(size) / 1000  # kB
             vec = file.namelist()
             nombre= file.filename.split('.')
             file_name=nombre[0]
             file_name = "%s%s" % (file_name,str(seconds))
             folder_area = "catalog"
             # folder_area = folder_name("catalog")
-            pathFiles = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+"/"+file_name+"/")
+            pathFiles = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+file_name+"/")
+            # size = os.path.getsize(pathFiles)
             dir_aux=file_name+"/"
             filename = ""
             filename_index = ""
             url=""
+            path = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+file_name+"/")
+            print(path)
             for archi in sorted(file.namelist()):
                 if archi.find(dir_aux) == -1:
-                    pathFiles = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+"/"+file_name+"/")
+                    pathFiles = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+file_name+"/")
                 else:
                     pathFiles = os.path.join(_settings.MEDIA_ROOT+"/")
                 file.extract(archi,pathFiles)
                 for nom in vec:
                     if nom.endswith(".xml"):
                         if archi.find(dir_aux) == -1:
-                            path = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+"/"+file_name+"/")
+                            path = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+file_name+"/")
                         else:
                             path = os.path.join(_settings.MEDIA_ROOT+"/")
                     if 'imsmanifest_nuevo' in nom or 'imsmanifest' in nom or 'contentv3' in nom or 'catalogacionLomes' in nom:
@@ -88,6 +95,8 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
             if XMLFILES_FOLDER is not None:
                 URL = url+index 
                 learningObject.url= URL.replace('http://', 'https://', 1)
+                learningObject.file_name= nombre[0]
+                learningObject.file_size= zip_kb
                 learningObject.save()
             else:
                 return Response({"message": "Ocurrio un error al subir el Objeto de Aprendizaje"}, status=HTTP_404_NOT_FOUND)

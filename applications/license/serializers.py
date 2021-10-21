@@ -4,4 +4,4 @@ from .models import License
 class LicenseSerializer(serializers.ModelSerializer):
     class Meta:
         model = License
-        fields = ('__all__')
+        fields = ('id','name','value')

@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from .models import KnowledgeArea
-from .serializers import KnowledgeAreaSerializer,KnowledgeAreaUpdateSerializer
+from .serializers import KnowledgeAreaSerializer,KnowledgeAreaUpdateSerializer,KnowledgeAreaListSerializer
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated ,AllowAny
@@ -36,14 +36,18 @@ class KnowledgeAreaView(viewsets.ViewSet):
     
     def list(self, request):
         """
-        Servicio para listar areas de conocimiento. API accesible para todos los usuarios.
+        Servicio para listar areas de conocimiento.
         """
         queryset = KnowledgeArea.objects.all()
-        serializer = KnowledgeAreaSerializer(queryset,many=True)
-        return Response(serializer.data,status=HTTP_200_OK)
+        serializer = KnowledgeAreaListSerializer(queryset,many=True)
+        return Response({
+            "key":"knowledge_area",
+            "name":"Área de conocimiento",
+            "values":serializer.data
+        },status=HTTP_200_OK)
     def retrieve(self, request, pk=None):
         """
-        Servicio para listar areas de conocimiento por id. API accesible para todos los usuarios.
+        Servicio para listar areas de conocimiento por id.
         """
         queryset = KnowledgeArea.objects.all()
         user = get_object_or_404(queryset, pk=pk)
@@ -51,7 +55,7 @@ class KnowledgeAreaView(viewsets.ViewSet):
         return Response(serializer.data, status=HTTP_200_OK)
     def update(self, request, pk=None, project_pk=None):
         """
-        Servicio para actualizar area de conocimiento. API accesible para usuario administrador.
+        Servicio para actualizar area de conocimiento.
         """
         queryset = KnowledgeArea.objects.all()
         instance = get_object_or_404(queryset, pk=pk)
@@ -64,7 +68,7 @@ class KnowledgeAreaView(viewsets.ViewSet):
         return Response(serializer.data,status=HTTP_200_OK)
     def destroy(self, request, pk=None):
         """
-        Servicio para eliminar areas de conocimiento. API accesible para usuario administrador.
+        Servicio para eliminar areas de conocimiento.
         """
         queryset = KnowledgeArea.objects.all()
         instance = get_object_or_404(queryset, pk=pk)

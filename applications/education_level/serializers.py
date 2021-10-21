@@ -11,5 +11,5 @@ class EducationLevelListSerializer(serializers.ModelSerializer):
         model = EducationLevel
         fields = (
             'id',
-            'description'
+            'name'
         )
