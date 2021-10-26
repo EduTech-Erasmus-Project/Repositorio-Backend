@@ -1,3 +1,4 @@
+from rest_framework.response import Response
 from applications.learning_object_metadata.utils import get_rating_value
 from applications.evaluation_student.serializers import EvaluationQuestionQualificationSerializer
 from applications.evaluation_student.models import StudentEvaluation
@@ -21,8 +22,18 @@ class LearningObjectMetadataSerializer(serializers.ModelSerializer):
         exclude = ('public', )
 
 class ROANumberPagination(pagination.PageNumberPagination):
-    page_size = 100
-    max_page_size = 200
+    page_size = 15
+    max_page_size = 50
+    def get_paginated_response(self, data):
+        return Response({
+            'count': self.page.paginator.count,
+            'links': {
+               'next': self.get_next_link(),
+               'previous': self.get_previous_link()
+            },
+            'pages': self.page.paginator.num_pages,
+            'results': data
+        })
 
 class ROANumberPaginationPopular(pagination.PageNumberPagination):
     page_size = 8

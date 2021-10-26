@@ -7,6 +7,6 @@ from . import views
 
 app_name = 'preferences'
 urlpatterns = [
-    path('api/v1/learning-object/filters/area/', views.AreaFilters.as_view(), name="filtesr_area"),
+    path('api/v1/learning-object/filters/area', views.AreaFilters.as_view(), name="filtesr_area"),
     
 ]

@@ -52,11 +52,11 @@ class OAFilter(filters.FilterSet):
     """
     permission_classes = [AllowAny]
     general_title = filters.CharFilter(lookup_expr='icontains')
-    education_levels__description = filters.CharFilter(lookup_expr='iexact')
+    education_levels__name = filters.CharFilter(lookup_expr='iexact')
     knowledge_area__name = filters.CharFilter(lookup_expr='iexact')
-    license__description = filters.CharFilter(lookup_expr='iexact')
+    license__value = filters.CharFilter(lookup_expr='iexact')
     created__year = filters.CharFilter(lookup_expr='iexact')
-    key_preferences = filters.CharFilter(method='key_preferences_filter')
+    accesibility_control = filters.CharFilter(method='accesibility_control_filter')
     annotation_modeaccess = filters.CharFilter(method='annotation_modeaccess_filter')
     accesibility_features = filters.CharFilter(method='accesibility_features_filter')
     accesibility_hazard = filters.CharFilter(method='accesibility_hazard_filter')
@@ -65,26 +65,26 @@ class OAFilter(filters.FilterSet):
         model = LearningObjectMetadata
         fields = [
             'general_title',
-            'key_preferences',
+            'accesibility_control',
             'annotation_modeaccess',
             'accesibility_features',
             'accesibility_hazard',
-            'education_levels__description',
+            'education_levels__name',
             'knowledge_area__name',
-            'license__description',
+            'license__value',
             'created__year'
         ]
-    def key_preferences_filter(self, queryset, name, value):
-        key_preferences = self.request.GET.getlist('key_preferences')
-        if len(key_preferences)==1 and 'fullkeyboardcontrol' in key_preferences:
+    def accesibility_control_filter(self, queryset, name, value):
+        accesibility_control = self.request.GET.getlist('accesibility_control')
+        if len(accesibility_control)==1 and 'fullkeyboardcontrol' in accesibility_control:
             return queryset.filter(
                 accesibility_control__icontains =  'fullkeyboardcontrol'
             )
-        elif len(key_preferences)==1 and 'fullMouseControl' in key_preferences:
+        elif len(accesibility_control)==1 and 'fullMouseControl' in accesibility_control:
             return queryset.filter(
                 accesibility_control__icontains =  'fullMouseControl'
             )
-        elif len(key_preferences) == 2 and 'fullMouseControl' in key_preferences and 'fullkeyboardcontrol' in key_preferences:
+        elif len(accesibility_control) == 2 and 'fullMouseControl' in accesibility_control and 'fullkeyboardcontrol' in accesibility_control:
             return queryset.filter(
                 Q(accesibility_control__icontains =  'fullkeyboardcontrol') |
                 Q(accesibility_control__icontains =  'fullMouseControl')
@@ -533,12 +533,12 @@ class OAFilterExpert(filters.FilterSet):
 
 class SerachAPIView(ListAPIView):
     """
-        Buscar todos los Objeto de Aprendizaje
+        Endpoint para el filtro de Objetos de Aprendizaje
     """
     permission_classes = [AllowAny]
-    queryset = LearningObjectMetadata.objects.all().exclude(public=False)
+    queryset = LearningObjectMetadata.objects.all().exclude(public=False).order_by('id')
     serializer_class = LearningObjectMetadataAllSerializer
-    pagination_class= ROANumberPagination
+    pagination_class = ROANumberPagination
     filter_class = OAFilter
 
 class SerachAPIViewExpert(ListAPIView):
@@ -618,7 +618,6 @@ class SerachEvaluatedAPIView(ListAPIView):
     permission_classes = [AllowAny]
     queryset = EvaluationQuestionsQualification.objects.filter(
         concept_evaluations__evaluation_collaborating_expert__learning_object__public = True,
-        # concept_evaluations__average__gte = 0.5
         ).order_by(
             '-concept_evaluations__evaluation_collaborating_expert__learning_object__id'
         ).distinct('concept_evaluations__evaluation_collaborating_expert__learning_object__id')
@@ -643,7 +642,6 @@ class LearningObjectMetadataViewSet(viewsets.ModelViewSet):
         serializer.save(
             user_created=self.request.user
         )
-        print("----------------serializer",serializer.data['id'])
         automaticEvaluation(serializer.data['id'])
         
     def list(self, request):
@@ -779,17 +777,6 @@ class ListLearningObjecYears(ListAPIView):
         ).distinct('created__year')
         return query
 
-# class DetailOARetriveAPIView(RetrieveAPIView):
-#     """
-#         Obtener el detalle de un Objeto de aprendizaje
-#     """
-#     permission_classes = [AllowAny]
-#     serializer_class = LearningObjectMetadataAllSerializer
-#     def get_queryset(self):
-#         return LearningObjectMetadata.objects.filter(
-#             public = True
-#         )
-
 class CommentaryModelView(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, Or(IsTeacherUser,IsStudentUser,IsCollaboratingExpertUser)]
     serializer_class = CommentarySerializer
@@ -865,7 +852,7 @@ class LearningObjectTecherListAPIView(ListAPIView):
 
 
 
-#################################################METODO PARA CALIFICAR UN OAS automaticamente 
+#########METODO PARA CALIFICAR UN OAS automaticamente 
 def automaticEvaluation(id):
     META=LearningObjectMetadata.objects.get(id=id)
     objeto=MetadataAutomaticEvaluation.objects.create(
@@ -917,25 +904,17 @@ def automaticEvaluation(id):
     
     ratingnew=0
     for i in consult_evaluation:
-        #print("iddddddddddddddddddddd--------------",i.id)
         vartotal=0
         cont=0
         for j in MetadataSchemaQualification.objects.filter(evaluation_metadata=i.id):
             vartotal+=j.qualification
             cont+=1
-            #print("----->>>>>>>",j.evaluation_metadata,"---",j.qualification)
-            #print("----------",vartotal)
-            #print("----------",cont)
-        #print("-----Sumatoria-----",vartotal/cont)
         h=(vartotal*5)/(1*cont)
-        #print("-----Sumatoria-----",h)
         i.average_schema=h
         i.save()
         ratingnew+=h
-        #print("raitingggg",ratingnew)
     objeto.rating_schema=ratingnew/len(EvaluationConcept.objects.all())
     objeto.save()
-    #print("------------------>>>>>>>>>>>>>>>>",META)
 
 
     

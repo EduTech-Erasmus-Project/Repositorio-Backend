@@ -34,6 +34,7 @@ class LicenseView(viewsets.ModelViewSet):
         return Response(
             {
                 "key": "license",
+                "filter_param_value": "value",
                 "name": "License",
                 "values":serializer.data
             },status=HTTP_200_OK

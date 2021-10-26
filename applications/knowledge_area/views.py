@@ -42,6 +42,7 @@ class KnowledgeAreaView(viewsets.ViewSet):
         serializer = KnowledgeAreaListSerializer(queryset,many=True)
         return Response({
             "key":"knowledge_area",
+            "filter_param_value": "name",
             "name":"Área de conocimiento",
             "values":serializer.data
         },status=HTTP_200_OK)

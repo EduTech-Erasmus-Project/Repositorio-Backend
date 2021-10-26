@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated ,AllowAny
 from .models import EducationLevel
 from rest_framework.response import Response
-from .serializers import EducationLevelSerializer,EducationLevelListSerializer
+from .serializers import EducationLevelListSerializer
 from applications.user.mixins import IsAdministratorUser
 from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
@@ -29,7 +29,8 @@ class EducationLevelView(viewsets.ModelViewSet):
         queryset = EducationLevel.objects.all().order_by('id')
         serializer = EducationLevelListSerializer(queryset,many=True)
         return Response({
-            "key":"education_level",
+            "key":"education_levels",
+            "filter_param_value": "name",
             "name":"Nivel de educación",
             "values":serializer.data
         },status=HTTP_200_OK)
