@@ -19,10 +19,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'l=7$@=!muo8kj*j+6nq!wl2n$8pn*m^kza*=g60g536#rtb%__'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 # ALLOWED_HOSTS=[]
-ALLOWED_HOSTS=['*','repositorio.edutech-project.org','172.16.42.54','localhost']
+if DEBUG:
+    ALLOWED_HOSTS=['*','repositorio.edutech-project.org','172.16.42.54','localhost']
+else:
+    ALLOWED_HOSTS=['*']
 
 
 
@@ -74,8 +77,10 @@ REST_FRAMEWORK = {
 }
 TOKEN_EXPIRED_AFTER_SECONDS = 60
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-# DOMAIN = 'http://localhost:8000'
-DOMAIN = 'https://repositorio.edutech-project.org'
+if DEBUG:
+    DOMAIN = 'https://repositorio.edutech-project.org'
+else:
+    DOMAIN = 'http://localhost:8000'
 # Puntajes de calificacion del experto
 YES=2
 NO=0

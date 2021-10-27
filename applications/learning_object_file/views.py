@@ -65,7 +65,6 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
             filename_index = ""
             url=""
             path = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+file_name+"/")
-            print(path)
             for archi in sorted(file.namelist()):
                 if archi.find(dir_aux) == -1:
                     pathFiles = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+file_name+"/")
@@ -78,7 +77,7 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
                             path = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+file_name+"/")
                         else:
                             path = os.path.join(_settings.MEDIA_ROOT+"/")
-                    if 'imsmanifest_nuevo' in nom or 'imsmanifest' in nom or 'contentv3' in nom or 'catalogacionLomes' in nom:
+                    if 'imsmanifest_nuevo' in nom or 'imsmanifest' in nom or 'catalogacionLomes' in nom:
                         filename_index = "media/"+folder_area+"/"+file_name
                         filename = "media/"+folder_area+"/"+file_name+"/"+nom
                         url=self.request._current_scheme_host+"/media/"+folder_area+"/"+file_name+"/"
@@ -113,7 +112,7 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
 def get_metadata_imsmanisfest(filename):
     with open(filename, 'r',encoding="utf-8") as myfile:
         jsondoc = xmltodict.parse(myfile.read())
-    jsondata=json.dumps(jsondoc)
+    # jsondata=json.dumps(jsondoc)
     return jsondoc
 
 
@@ -281,17 +280,13 @@ def validateDataBr(data):
 
 def get_index_file(filepath):
     file=""
-    filename=""
     index_path=""
     index_url=""
     for file in os.listdir(filepath):
-        filename=file
-        file=filepath+'/'+file
-    for file in os.listdir(file):
         if file.endswith("index.html") or file.endswith("excursion.html"):
             index_path=file
     if index_path !="":
-        index_url=filename+'/'+index_path
+        index_url=index_path
     else:
         return Response({"message": "Ocurrio un error al cargar el Objeto de Aprendizaje"})
     return index_url
