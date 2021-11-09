@@ -25,3 +25,18 @@ class KnowledgeAreaListSerializer(serializers.ModelSerializer):
             'name',
             'description'
         )
+
+class KnowledgeAreaListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KnowledgeArea
+        exclude = ['name_es','name_en','description_es','description_en','modified','created']
+
+class KnowledgeAreaEsSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source='name_es')
+    class Meta(KnowledgeAreaListSerializer.Meta):
+        pass
+    
+class KnowledgeAreaEnSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source='name_en')
+    class Meta(KnowledgeAreaListSerializer.Meta):
+        pass

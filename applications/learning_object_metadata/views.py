@@ -52,8 +52,8 @@ class OAFilter(filters.FilterSet):
     """
     permission_classes = [AllowAny]
     general_title = filters.CharFilter(lookup_expr='icontains')
-    education_levels__name = filters.CharFilter(lookup_expr='iexact')
-    knowledge_area__name = filters.CharFilter(lookup_expr='iexact')
+    education_levels__id = filters.CharFilter(lookup_expr='iexact')
+    knowledge_area__id = filters.CharFilter(lookup_expr='iexact')
     license__value = filters.CharFilter(lookup_expr='iexact')
     created__year = filters.CharFilter(lookup_expr='iexact')
     accesibility_control = filters.CharFilter(method='accesibility_control_filter')
@@ -69,8 +69,8 @@ class OAFilter(filters.FilterSet):
             'annotation_modeaccess',
             'accesibility_features',
             'accesibility_hazard',
-            'education_levels__name',
-            'knowledge_area__name',
+            'education_levels__id',
+            'knowledge_area__id',
             'license__value',
             'created__year'
         ]

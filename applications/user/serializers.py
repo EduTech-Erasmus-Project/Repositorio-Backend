@@ -169,9 +169,9 @@ class RoleSerializer(serializers.Serializer):
     def validate_email(self,value):
         if  len(self.role_list)==1 and "student" in self.role_list:
             pass
-        else:
-            if ".edu" not in value:
-                raise serializers.ValidationError("El correo debe ser institucionals")
+        # else:
+        #     if ".edu" not in value:
+        #         raise serializers.ValidationError("El correo debe ser institucionals")
         return value
 
 class StudentCreateSerializer(serializers.Serializer):

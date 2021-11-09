@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from .models import KnowledgeArea
-from .serializers import KnowledgeAreaSerializer,KnowledgeAreaUpdateSerializer,KnowledgeAreaListSerializer
+from .serializers import KnowledgeAreaEnSerializer, KnowledgeAreaEsSerializer, KnowledgeAreaSerializer,KnowledgeAreaUpdateSerializer,KnowledgeAreaListSerializer
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated ,AllowAny
@@ -38,14 +38,27 @@ class KnowledgeAreaView(viewsets.ViewSet):
         """
         Servicio para listar areas de conocimiento.
         """
+        if self.request.META.get('HTTP_ACCEPT_LANGUAGE') is None:
+            return Response({"message":"Accept Language in header is required"},status=HTTP_200_OK)
+
         queryset = KnowledgeArea.objects.all()
-        serializer = KnowledgeAreaListSerializer(queryset,many=True)
-        return Response({
-            "key":"knowledge_area",
-            "filter_param_value": "name",
-            "name":"Área de conocimiento",
-            "values":serializer.data
-        },status=HTTP_200_OK)
+        serializer_es = KnowledgeAreaEsSerializer(queryset,many=True)
+        serializer_en = KnowledgeAreaEnSerializer(queryset,many=True)
+        if 'es' in self.request.META.get('HTTP_ACCEPT_LANGUAGE'):
+            return Response({
+                "key":"knowledge_area",
+                "filter_param_value": "id",
+                "name":"Área de conocimiento",
+                "values":serializer_es.data}, status=HTTP_200_OK)
+        elif 'en' in self.request.META.get('HTTP_ACCEPT_LANGUAGE'):
+            return Response({
+                "key":"knowledge_area",
+                "filter_param_value": "id",
+                "name":"Knowledge area",
+                "values":serializer_en.data}, status=HTTP_200_OK)
+        else:
+            return Response({"message":"No available language"},status=HTTP_200_OK)
+
     def retrieve(self, request, pk=None):
         """
         Servicio para listar areas de conocimiento por id.

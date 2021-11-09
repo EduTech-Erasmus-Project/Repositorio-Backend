@@ -4,7 +4,7 @@ from applications.evaluation_student.serializers import EvaluationQuestionQualif
 from applications.evaluation_student.models import StudentEvaluation
 from applications.evaluation_collaborating_expert.serializers import EvaluationConceptQualificationSerializer
 from applications.license.serializers import LicenseSerializer
-from applications.education_level.serializers import EducationLevelListSerializer
+from applications.education_level.serializers import EducationLevelListSerializer, EducationLevelSerializer
 from applications.knowledge_area.serializers import KnowledgeAreaListSerializer, KnowledgeAreaNameSerializer
 from applications.learning_object_file.serializers import LearningObjectSerializer
 from applications.user.serializers import UserCommentSerializer, UserFullName
@@ -42,7 +42,7 @@ class ROANumberPaginationPopular(pagination.PageNumberPagination):
 class LearningObjectMetadataAllSerializer(serializers.ModelSerializer):
     license = LicenseSerializer()
     learning_object_file = LearningObjectSerializer()
-    education_levels = EducationLevelListSerializer(read_only=True)
+    education_levels = EducationLevelSerializer(read_only=True)
     knowledge_area = KnowledgeAreaListSerializer()
     user_created=UserCommentSerializer(read_only=True)
     rating = serializers.SerializerMethodField()

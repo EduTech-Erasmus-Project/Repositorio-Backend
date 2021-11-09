@@ -75,6 +75,8 @@ REST_FRAMEWORK = {
     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     # 'PAGE_SIZE': 150
 }
+
+
 TOKEN_EXPIRED_AFTER_SECONDS = 60
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 if DEBUG:
@@ -129,7 +131,7 @@ WSGI_APPLICATION = 'roabackend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'roa4',
+        'NAME': 'roa5',
         'USER': 'roauser',
         'PASSWORD': 'GMQCitpx1111',
         'HOST': 'localhost',

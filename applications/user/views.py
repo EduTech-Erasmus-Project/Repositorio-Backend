@@ -322,38 +322,38 @@ class ManagementUserView(viewsets.ViewSet):
                     instance.student = new_student
 
                 if instance.teacher is not None and role == 'teacher':
-                    if ".edu" in instance.email:
-                        serializer = TeacherUpdateSerializer(data=request.data)
-                        serializer.is_valid(raise_exception=True)
-                        teacher_instance = Teacher.objects.get(pk=instance.teacher.id)
-                        professions = Profession.objects.filter(
-                            id__in=serializer.validated_data['professions']
-                        )
-                        teacher_instance.professions.clear()
-                        for profession in professions:
-                            teacher_instance.professions.add(profession)
-                        teacher_instance.save()
-                    else:
-                        return Response({"message": "Debe tener un email institucional"}, status=HTTP_400_BAD_REQUEST)
+                    # if ".edu" in instance.email:
+                    serializer = TeacherUpdateSerializer(data=request.data)
+                    serializer.is_valid(raise_exception=True)
+                    teacher_instance = Teacher.objects.get(pk=instance.teacher.id)
+                    professions = Profession.objects.filter(
+                        id__in=serializer.validated_data['professions']
+                    )
+                    teacher_instance.professions.clear()
+                    for profession in professions:
+                        teacher_instance.professions.add(profession)
+                    teacher_instance.save()
+                    # else:
+                    #     return Response({"message": "Debe tener un email institucional"}, status=HTTP_400_BAD_REQUEST)
     
                 if instance.teacher is None and role == "teacher":
-                    if ".edu" in instance.email:
-                        serializer = TeacherUpdateSerializer(data=request.data)
-                        serializer.is_valid(raise_exception=True)
-                        new_teacher = Teacher.objects.create(
-                            is_active=False
-                        )
-                        professions = Profession.objects.filter(
-                            id__in=serializer.validated_data['professions']
-                        )
-                        for profession in professions:
-                            new_teacher.professions.add(profession)
-                        new_teacher.save()
-                        instance.teacher = new_teacher
-                    else:
-                        return Response({"message": "Debe tener un email institucional"}, status=HTTP_400_BAD_REQUEST)
+                    # if ".edu" in instance.email:
+                    serializer = TeacherUpdateSerializer(data=request.data)
+                    serializer.is_valid(raise_exception=True)
+                    new_teacher = Teacher.objects.create(
+                        is_active=False
+                    )
+                    professions = Profession.objects.filter(
+                        id__in=serializer.validated_data['professions']
+                    )
+                    for profession in professions:
+                        new_teacher.professions.add(profession)
+                    new_teacher.save()
+                    instance.teacher = new_teacher
+                    # else:
+                    #     return Response({"message": "Debe tener un email institucional"}, status=HTTP_400_BAD_REQUEST)
 
-                if instance.collaboratingExpert is not None and ".edu" in instance.email and role == 'expert':
+                if instance.collaboratingExpert is not None and role == 'expert':
                     serializer = CollaboratingExpertUpdateSerializer(data=request.data)
                     serializer.is_valid(raise_exception=True)
                     collaboratingExpert_instance = CollaboratingExpert.objects.get(pk=instance.collaboratingExpert.id)
@@ -362,7 +362,7 @@ class ManagementUserView(viewsets.ViewSet):
                     collaboratingExpert_instance.academic_profile = serializer.validated_data['academic_profile']
                     collaboratingExpert_instance.save()
 
-                if instance.collaboratingExpert is None and ".edu" in instance.email and role == 'expert':
+                if instance.collaboratingExpert is None and role == 'expert':
                     serializer = CollaboratingExpertUpdateSerializer(data=request.data)
                     serializer.is_valid(raise_exception=True)
                     new_expert = CollaboratingExpert.objects.create(

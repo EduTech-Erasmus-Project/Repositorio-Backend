@@ -765,35 +765,40 @@
     "model": "education_level.educationlevel",
     "pk": 1,
     "fields": {
-      "name": "Educación primaria"
+      "name_es": "Educación primaria",
+      "name_en": "Elementary School"
     }
   },
   {
     "model": "education_level.educationlevel",
     "pk": 2,
     "fields": {
-      "name": "Educación secundaria"
+      "name_es": "Educación secundaria",
+      "name_en": "Secondary School"
     }
   },
   {
     "model": "education_level.educationlevel",
     "pk": 3,
     "fields": {
-      "name": "Escuela intermedia"
+      "name_es": "Escuela intermedia",
+      "name_en": "Middle School"
     }
   },
   {
     "model": "education_level.educationlevel",
     "pk": 4,
     "fields": {
-      "name": "División superior universitaria"
+      "name_es": "División superior universitaria",
+      "name_en": "University"
     }
   },
   {
     "model": "education_level.educationlevel",
     "pk": 5,
     "fields": {
-      "name": "Profesional"
+      "name_es": "Profesional",
+      "name_en": "Professional"
     }
   },
   {
@@ -870,87 +875,108 @@
     "model": "knowledge_area.knowledgearea",
     "pk": 1,
     "fields": {
-      "name": "Programas generales",
-      "description": "Programas básicos de enseñanza preescolar, elemental, primaria, secundaria, etc."
+      "name_es": "Programas generales",
+      "description_es": "Programas básicos de enseñanza preescolar, elemental, primaria, secundaria, etc.",
+      "name_en": "General programs",
+      "description_en": "Basic programs of preschool, elementary, primary, secondary education, etc."
     }
   },
   {
     "model": "knowledge_area.knowledgearea",
     "pk": 2,
     "fields": {
-      "name": "Educación",
-      "description": "Formación de personal docente para: educación preescolar; jardines de infancia; escuelas elementales; asignaturas profesionales, prácticas y no profesionales; educación de adultos; formación de personal docente; formación de maestros de niños minusválidos. Programas generales y especializados de formación de personal docente. Ciencias de la educación: elaboración de programas de estudio de materias no profesionales y profesionales. Evaluación de conocimientos, pruebas y mediciones, investigaciones sobre educación; otros programas relacionados con las ciencias de la educación."
+      "name_es": "Educación",
+      "description_es": "Formación de personal docente para: educación preescolar; jardines de infancia; escuelas elementales; asignaturas profesionales, prácticas y no profesionales; educación de adultos; formación de personal docente; formación de maestros de niños minusválidos. Programas generales y especializados de formación de personal docente. Ciencias de la educación: elaboración de programas de estudio de materias no profesionales y profesionales. Evaluación de conocimientos, pruebas y mediciones, investigaciones sobre educación; otros programas relacionados con las ciencias de la educación.",
+      "name_en": "Education",
+      "description_en": "Teacher training for: preschool education; kindergartens; elementary schools; professional, practical and non-professional subjects; adult education; training of teaching staff; training of teachers of disabled children. General and specialized training programs for teaching staff. Educational sciences: preparation of study programs for non-professional and professional subjects. Knowledge assessment, tests and measurements, educational research; other programs related to educational sciences."
     }
   },
   {
     "model": "knowledge_area.knowledgearea",
     "pk": 3,
     "fields": {
-      "name": "Humanidades y artes",
-      "description": "Bellas artes: dibujo, pintura y escultura; Artes del espectáculo: música, arte dramático, danza, circo; Artes gráficas y audiovisuales: fotografía, cinematografía, producción musical, producción de radio y televisión, impresión y publicación. Diseño; artesanía. Religión y teología; lenguas y culturas extranjeras: lenguas vivas o muertas y sus respectivas literaturas, estudios regionales interdisciplinarios; Lenguas autóctonas: lenguas corrientes o vernáculas y su literatura Otros programas de humanidades: interpretación y traducción, lingüística, literatura comparada, historia, arqueología, filosofía, ética."
+      "name_es": "Humanidades y artes",
+      "description_es": "Bellas artes: dibujo, pintura y escultura; Artes del espectáculo: música, arte dramático, danza, circo; Artes gráficas y audiovisuales: fotografía, cinematografía, producción musical, producción de radio y televisión, impresión y publicación. Diseño; artesanía. Religión y teología; lenguas y culturas extranjeras: lenguas vivas o muertas y sus respectivas literaturas, estudios regionales interdisciplinarios; Lenguas autóctonas: lenguas corrientes o vernáculas y su literatura Otros programas de humanidades: interpretación y traducción, lingüística, literatura comparada, historia, arqueología, filosofía, ética.",
+      "name_en": "Humanities and arts",
+      "description_en": "Fine arts: drawing, painting and sculpture; Performing arts: music, drama, dance, circus; Graphic and audiovisual arts: photography, cinematography, music production, radio and television production, printing and publishing. Design; crafts. Religion and theology; Foreign languages and cultures: living or dead languages and their respective literatures, interdisciplinary regional studies; Native languages: common or vernacular languages and their literature Other humanities programs: interpretation and translation, linguistics, comparative literature, history, archeology, philosophy, ethics."
     }
   },
   {
     "model": "knowledge_area.knowledgearea",
     "pk": 4,
     "fields": {
-      "name": "Ciencias sociales, educación comercial y derecho",
-      "description": "Economía, historia de la economía, ciencias políticas, sociología, demografía, antropología (excepto antropología física), etnología, futurología, psicología, geografía(excepto geografía física), estudios sobre paz y conflictos, derechos humanos. Periodismo; bibliotecología y personal técnico de bibliotecas; personal técnico de museos y establecimientos similares; Técnicas de documentación; Archivología. Comercio al por menor, comercialización, ventas, relaciones públicas, asuntos inmobiliarios; gestión financiera, administración bancaria, seguros, análisis de inversiones; contabilidad, auditoría, teneduría de libros; gestión, administración pública, administración institucional, administración de personal; secretariado y trabajo de oficina."
+      "name_es": "Ciencias sociales, educación comercial y derecho",
+      "description_es": "Economía, historia de la economía, ciencias políticas, sociología, demografía, antropología (excepto antropología física), etnología, futurología, psicología, geografía(excepto geografía física), estudios sobre paz y conflictos, derechos humanos. Periodismo; bibliotecología y personal técnico de bibliotecas; personal técnico de museos y establecimientos similares; Técnicas de documentación; Archivología. Comercio al por menor, comercialización, ventas, relaciones públicas, asuntos inmobiliarios; gestión financiera, administración bancaria, seguros, análisis de inversiones; contabilidad, auditoría, teneduría de libros; gestión, administración pública, administración institucional, administración de personal; secretariado y trabajo de oficina.",
+      "name_en": "Social sciences, business education and law",
+      "description_en": "Economics, history of economics, political science, sociology, demography, anthropology (except physical anthropology), ethnology, futurology, psychology, geography (except physical geography), peace and conflict studies, human rights. Journalism; librarianship and library technical staff; technical staff of museums and similar establishments; Documentation techniques; Archivology. Retail trade, marketing, sales, public relations, real estate affairs; financial management, bank administration, insurance, investment analysis; accounting, auditing, bookkeeping; management, public administration, institutional administration, personnel administration; secretarial and office work."
     }
   },
   {
     "model": "knowledge_area.knowledgearea",
     "pk": 5,
     "fields": {
-      "name": "Ciencias",
-      "description": "Biología, botánica, bacteriología, toxicología, microbiología, zoología, entomología, ornitología, genética, bioquímica, biofísica, otras ciencias afines, excepto medicina y veterinaria. Astronomía y ciencias espaciales, física y asignaturas atines, química y asignaturas afines, geología, geofísica, mineralogía, antropología física, geografía física y demás ciencias de la tierra, meteorología y demás ciencias de la atmósfera, comprendida la investigación sobre el clima, las ciencias marinas, vulcanología, paleoecología. Matemáticas, investigación de operaciones, análisis numérico, ciencias actuariales, estadística y otros sectores afines. Informática: Concepción de sistemas, programación informática, procesamiento de datos, redes, sistemas operativos - elaboración de programas informáticos solamente (el material y equipo se deben clasificar en el sector de la ingeniería)."
+      "name_es": "Ciencias",
+      "description_es": "Biología, botánica, bacteriología, toxicología, microbiología, zoología, entomología, ornitología, genética, bioquímica, biofísica, otras ciencias afines, excepto medicina y veterinaria. Astronomía y ciencias espaciales, física y asignaturas atines, química y asignaturas afines, geología, geofísica, mineralogía, antropología física, geografía física y demás ciencias de la tierra, meteorología y demás ciencias de la atmósfera, comprendida la investigación sobre el clima, las ciencias marinas, vulcanología, paleoecología. Matemáticas, investigación de operaciones, análisis numérico, ciencias actuariales, estadística y otros sectores afines. Informática: Concepción de sistemas, programación informática, procesamiento de datos, redes, sistemas operativos - elaboración de programas informáticos solamente (el material y equipo se deben clasificar en el sector de la ingeniería).",
+      "name_en": "Sciences",
+      "description_en": "Biology, botany, bacteriology, toxicology, microbiology, zoology, entomology, ornithology, genetics, biochemistry, biophysics, other related sciences, except medicine and veterinary medicine. Astronomy and space sciences, physics and related subjects, chemistry and related subjects, geology, geophysics, mineralogy, physical anthropology, physical geography and other earth sciences, meteorology and other atmospheric sciences, including climate research, science marine, volcanology, palaeoecology. Mathematics, operations research, numerical analysis, actuarial science, statistics and other related sectors. Informatics: Systems conception, computer programming, data processing, networks, operating systems - software development only (hardware and equipment should be classified in the engineering sector)."
     }
   },
   {
     "model": "knowledge_area.knowledgearea",
     "pk": 6,
     "fields": {
-      "name": "Ingeniería, industria y construcción",
-      "description": "Dibujo técnico, mecánica, metalistería, electricidad, electrónica, telecomunicaciones, ingeniería energética y química, mantenimiento de vehículos, topografía. Alimentación y bebidas, textiles, confección, calzado, cuero, materiales (madera, papel, plástico, vidrio, etc.), minería e industrias extractivas. Arquitectura y urbanismo: arquitectura estructural, arquitectura paisajística, planificación comunitaria, cartografía, edificación, construcción, ingeniería civil."
+      "name_es": "Ingeniería, industria y construcción",
+      "description_es": "Dibujo técnico, mecánica, metalistería, electricidad, electrónica, telecomunicaciones, ingeniería energética y química, mantenimiento de vehículos, topografía. Alimentación y bebidas, textiles, confección, calzado, cuero, materiales (madera, papel, plástico, vidrio, etc.), minería e industrias extractivas. Arquitectura y urbanismo: arquitectura estructural, arquitectura paisajística, planificación comunitaria, cartografía, edificación, construcción, ingeniería civil.",
+      "name_en": "Engineering, industry and construction",
+      "description_en": "Technical drawing, mechanics, metalwork, electricity, electronics, telecommunications, energy and chemical engineering, vehicle maintenance, surveying. Food and beverages, textiles, clothing, footwear, leather, materials (wood, paper, plastic, glass, etc.), mining and extractive industries. Architecture and urbanism: structural architecture, landscape architecture, community planning, cartography, building, construction, civil engineering."
     }
   },
   {
     "model": "knowledge_area.knowledgearea",
     "pk": 7,
     "fields": {
-      "name": "Agricultura",
-      "description": "Agricultura, producción agropecuaria, agronomía, ganadería, horticultura y jardinería, silvicultura y técnicas forestales, parques naturales, flora y fauna, pesca, ciencia y tecnología pesqueras."
+      "name_es": "Agricultura",
+      "description_es": "Agricultura, producción agropecuaria, agronomía, ganadería, horticultura y jardinería, silvicultura y técnicas forestales, parques naturales, flora y fauna, pesca, ciencia y tecnología pesqueras.",
+      "name_en": "Farming",
+      "description_en": "Agriculture, agricultural production, agronomy, livestock, horticulture and gardening, forestry and forestry techniques, natural parks, flora and fauna, fishing, fishing science and technology."
     }
   },
   {
     "model": "knowledge_area.knowledgearea",
     "pk": 8,
     "fields": {
-      "name": "Salud y servicios sociales",
-      "description": "Medicina: anatomía, epidemiología, citología, tisiología, inmunología e inmunohematología, patología, anestesiología, pediatría, obstetricia y ginecología, medicina interna, cirugía, neurología, psiquiatría, radiología, oftalmología. Servicios médicos: servicios de salud pública, higiene, farmacia, farmacología, terapéutica, rehabilitación, prótesis, optometría, nutrición. Enfermería: enfermería básica, partería; servicios dentales: auxiliar de odontología, higienista dental, técnico de laboratorio dental, odontología. Asistencia social: asistencia a minusválidos, asistencia a la infancia, servicios para jóvenes, servicios de gerontología. Trabajo social: orientación, asistencia social."
+      "name_es": "Salud y servicios sociales",
+      "description_es": "Medicina: anatomía, epidemiología, citología, tisiología, inmunología e inmunohematología, patología, anestesiología, pediatría, obstetricia y ginecología, medicina interna, cirugía, neurología, psiquiatría, radiología, oftalmología. Servicios médicos: servicios de salud pública, higiene, farmacia, farmacología, terapéutica, rehabilitación, prótesis, optometría, nutrición. Enfermería: enfermería básica, partería; servicios dentales: auxiliar de odontología, higienista dental, técnico de laboratorio dental, odontología. Asistencia social: asistencia a minusválidos, asistencia a la infancia, servicios para jóvenes, servicios de gerontología. Trabajo social: orientación, asistencia social.",
+      "name_en": "Health and social services",
+      "description_en": "Medicine: anatomy, epidemiology, cytology, physiology, immunology and immunohematology, pathology, anesthesiology, pediatrics, obstetrics and gynecology, internal medicine, surgery, neurology, psychiatry, radiology, ophthalmology. Medical services: public health services, hygiene, pharmacy, pharmacology, therapy, rehabilitation, prosthetics, optometry, nutrition. Nursing: basic nursing, midwifery; dental services: dental assistant, dental hygienist, dental lab technician, dentistry. Social assistance: assistance to the handicapped, assistance to childhood, youth services, gerontology services. Social work: orientation, social assistance."
     }
   },
   {
     "model": "knowledge_area.knowledgearea",
     "pk": 9,
     "fields": {
-      "name": "Servicios",
-      "description": "Hotelería y restaurantes, viajes y turismo, deportes y actividades recreativas, peluquería, tratamientos de belleza y otros servicios personales: lavandería y tintorería, servicios cosméticos, ciencias del hogar. Formación de marinos, oficiales de marina, náutica, tripulación de aviones, control del tráfico aéreo, transporte ferroviario, transporte por carretera, servicios postales. Conservación, vigilancia y protección del medio ambiente, control de la contaminación atmosférica y del agua, ergonomía y seguridad. Protección de personas y bienes: servicios de policía y orden público, criminología, prevención y extinción de incendios, seguridad civil. Enseñanza militar."
+      "name_es": "Servicios",
+      "description_es": "Hotelería y restaurantes, viajes y turismo, deportes y actividades recreativas, peluquería, tratamientos de belleza y otros servicios personales: lavandería y tintorería, servicios cosméticos, ciencias del hogar. Formación de marinos, oficiales de marina, náutica, tripulación de aviones, control del tráfico aéreo, transporte ferroviario, transporte por carretera, servicios postales. Conservación, vigilancia y protección del medio ambiente, control de la contaminación atmosférica y del agua, ergonomía y seguridad. Protección de personas y bienes: servicios de policía y orden público, criminología, prevención y extinción de incendios, seguridad civil. Enseñanza militar.",
+      "name_en": "Services",
+      "description_en": "Hotels and restaurants, travel and tourism, sports and recreational activities, hairdressing, beauty treatments and other personal services: laundry and dry cleaning, cosmetic services, home sciences. Training of sailors, naval officers, nautical, aircraft crews, air traffic control, rail transport, road transport, postal services. Conservation, surveillance and protection of the environment, control of atmospheric and water pollution, ergonomics and safety. Protection of people and property: police and public order services, criminology, fire prevention and extinction, civil security. Military education."
     }
   },
   {
     "model": "knowledge_area.knowledgearea",
     "pk": 10,
     "fields": {
-      "name": "Sectores desconocidos no especificados",
-      "description": "(Esta categoría no forma parte de la clasificación en sí, pero en la recopilación de datos “99” se necesita para “los sectores de educación desconocidos o no especificados”)."
+      "name_es": "Sectores desconocidos no especificados",
+      "description_es": "(Esta categoría no forma parte de la clasificación en sí, pero en la recopilación de datos “99” se necesita para “los sectores de educación desconocidos o no especificados”).",
+      "name_en": "Unknown sectors not specified",
+      "description_en": "(This category is not part of the classification itself, but in the data collection “99” is needed for “the unknown or unspecified education sectors”)."
     }
   },
   {
       "model": "license.license",
       "pk": 1,
       "fields": {
-          "name": "Not specified",
+          "name_es": "No especificado",
+          "name_en": "Not specified",
           "value": "unknown"
       }
   },
@@ -958,7 +984,8 @@
       "model": "license.license",
       "pk": 2,
       "fields": {
-        "name": "All rights reserved",
+        "name_es": "Todos los erechos reservados",
+        "name_en": "All rights reserved",
         "value": "allrightsreserved"
       }
   },
@@ -966,7 +993,8 @@
       "model": "license.license",
       "pk": 3,
       "fields": {
-        "name": "Public domain",
+        "name_es": "Domino público ",
+        "name_en": "Public domain",
         "value": "public"
       }
   },
@@ -974,7 +1002,8 @@
       "model": "license.license",
       "pk": 4,
       "fields": {
-        "name": "Creative Commons",
+        "name_es": "Creative Commons",
+        "name_en": "Creative Commons",
         "value": "cc"
       }
   },
@@ -982,7 +1011,8 @@
       "model": "license.license",
       "pk": 5,
       "fields": {
-        "name": "Creative Commons - NoDerivs",
+        "name_es": "Creative Commons - NoDerivs",
+        "name_en": "Creative Commons - NoDerivs",
         "value": "cc-nd"
       }
   },
@@ -990,7 +1020,8 @@
       "model": "license.license",
       "pk": 6,
       "fields": {
-        "name": "Creative Commons - No Commercial NoDerivs",
+        "name_es": "Creative Commons - No Commercial NoDerivs",
+        "name_en": "Creative Commons - No Commercial NoDerivs",
         "value": "cc-nc-nd"
       }
   },
@@ -998,7 +1029,8 @@
       "model": "license.license",
       "pk": 7,
       "fields": {
-        "name": "Creative Commons - No Commercial",
+        "name_es": "Creative Commons - No Commercial",
+        "name_en": "Creative Commons - No Commercial",
         "value": "cc-nc"
       }
   },
@@ -1006,7 +1038,8 @@
       "model": "license.license",
       "pk": 8,
       "fields": {
-        "name": "Creative Commons - No Commercial ShareAlike",
+        "name_es": "Creative Commons - No Commercial ShareAlike",
+        "name_en": "Creative Commons - No Commercial ShareAlike",
         "value": "cc-nc-sa"
       }
   },
@@ -1014,7 +1047,8 @@
       "model": "license.license",
       "pk": 9,
       "fields": {
-        "name": "Creative Commons - ShareAlike",
+        "name_es": "Creative Commons - ShareAlike",
+        "name_en": "Creative Commons - ShareAlike",
         "value": "cc-sa"
       }
   },

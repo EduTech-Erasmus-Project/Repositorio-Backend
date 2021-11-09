@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated ,AllowAny
 from .models import EducationLevel
 from rest_framework.response import Response
-from .serializers import EducationLevelListSerializer
+from .serializers import EducationLevelEnSerializer, EducationLevelEsSerializer, EducationLevelListSerializer
 from applications.user.mixins import IsAdministratorUser
 from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
@@ -23,14 +23,22 @@ class EducationLevelView(viewsets.ModelViewSet):
     serializer_class = EducationLevelListSerializer
     queryset = EducationLevel.objects.all()
     def list(self, request):
+        if self.request.META.get('HTTP_ACCEPT_LANGUAGE') is None:
+            return Response({"message":"Accept Language in header is required"},status=HTTP_200_OK)
         """
         Listado de niveles de eduación registrados.
         """
         queryset = EducationLevel.objects.all().order_by('id')
-        serializer = EducationLevelListSerializer(queryset,many=True)
-        return Response({
-            "key":"education_levels",
-            "filter_param_value": "name",
+        serializer_en = EducationLevelEnSerializer(queryset,many=True)
+        serializer_es = EducationLevelEsSerializer(queryset,many=True)
+        if 'es' in self.request.META.get('HTTP_ACCEPT_LANGUAGE'):
+            return Response({"key":"education_levels",
+            "filter_param_value": "id",
             "name":"Nivel de educación",
-            "values":serializer.data
-        },status=HTTP_200_OK)
+            "values":serializer_es.data},status=HTTP_200_OK)
+        else:
+            return Response({"key":"education_levels",
+            "filter_param_value": "id",
+            "name":"Education Level",
+            "values":serializer_en.data},status=HTTP_200_OK)
+       

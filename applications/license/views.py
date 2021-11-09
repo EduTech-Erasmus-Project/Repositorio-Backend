@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 from applications.user.mixins import IsAdministratorUser, IsTeacherUser
-from .serializers import LicenseSerializer
+from .serializers import LicenseEnSerializer, LicenseEsSerializer, LicenseSerializer
 from .models import License
 # Create your views here.
 class LicenseView(viewsets.ModelViewSet):
@@ -29,16 +29,27 @@ class LicenseView(viewsets.ModelViewSet):
     queryset = License.objects.all()
     def list(self, request, *args, **kwargs):
         """Servicio para listar licencias registrados en la plataforma."""
+        if self.request.META.get('HTTP_ACCEPT_LANGUAGE') is None:
+            return Response({"message":"Accept Language in header is required"},status=HTTP_200_OK)
+
         queryset = License.objects.all()
-        serializer = LicenseSerializer(queryset, many=True)
-        return Response(
-            {
+        serializer_es = LicenseEsSerializer(queryset, many=True)
+        serializer_en = LicenseEnSerializer(queryset, many=True)
+        if 'es' in self.request.META.get('HTTP_ACCEPT_LANGUAGE'):
+            return Response({
+                "key": "license",
+                "filter_param_value": "value",
+                "name": "Licencia",
+                "values":serializer_es.data}, status=HTTP_200_OK)
+        elif 'en' in self.request.META.get('HTTP_ACCEPT_LANGUAGE'):
+            return Response({
                 "key": "license",
                 "filter_param_value": "value",
                 "name": "License",
-                "values":serializer.data
-            },status=HTTP_200_OK
-            )
+                "values":serializer_en.data}, status=HTTP_200_OK)
+        else:
+            return Response({"message":"No available language"},status=HTTP_200_OK)
+
 
 class EndpontFilter(APIView):
     """
@@ -46,9 +57,11 @@ class EndpontFilter(APIView):
     """
     permission_classes = [AllowAny]
     def get(self, request, format=None):
-        values = [
+        if self.request.META.get('HTTP_ACCEPT_LANGUAGE') is None:
+            return Response({"message":"Accept Language in header is required"},status=HTTP_200_OK)
+        value_es = [
                     {
-                          "name": "license",
+                          "name": "Licencia",
                           "endpoint": "https://repositorio.edutech-project.org/api/v1/license",  
                     },
                     {
@@ -60,5 +73,20 @@ class EndpontFilter(APIView):
                           "endpoint": "https://repositorio.edutech-project.org/api/v1/knowledge-area",  
                     }
                 ]
-        
-        return Response(values,status=HTTP_200_OK)
+        value_en = [
+                    {
+                          "name": "License",
+                          "endpoint": "https://repositorio.edutech-project.org/api/v1/license",  
+                    },
+                    {
+                          "name": "Education Level",
+                          "endpoint": "https://repositorio.edutech-project.org/api/v1/education-level",  
+                    },
+                    {
+                          "name": "Knowledge area",
+                          "endpoint": "https://repositorio.edutech-project.org/api/v1/knowledge-area",  
+                    }
+                ]
+        if 'es' in self.request.META.get('HTTP_ACCEPT_LANGUAGE'):
+            return Response(value_es,status=HTTP_200_OK)
+        return Response(value_en,status=HTTP_200_OK)
