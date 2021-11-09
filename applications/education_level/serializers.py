@@ -1,9 +1,12 @@
 from rest_framework import serializers
 from applications.education_level.models import EducationLevel
 class EducationLevelSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField('rename_name')
     class Meta:
         model = EducationLevel
-        exclude = ['created','modified']
+        fields = ['id','name']
+    def rename_name(self, obj):
+        return obj.name_es
         
 class EducationLevelListSerializer(serializers.ModelSerializer):
     class Meta:

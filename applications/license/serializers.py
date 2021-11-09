@@ -2,9 +2,12 @@
 from rest_framework import serializers,pagination
 from .models import License
 class LicenseSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField('rename_name')
     class Meta:
         model = License
-        fields = ('id','name_es','value')
+        fields = ('id','name','value')
+    def rename_name(self, obj):
+        return obj.name_es
 
 class LicenseListSerializer(serializers.ModelSerializer):
     class Meta:

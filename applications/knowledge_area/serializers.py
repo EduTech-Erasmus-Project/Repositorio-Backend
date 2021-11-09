@@ -17,7 +17,9 @@ class KnowledgeAreaUpdateSerializer(serializers.Serializer):
     name = serializers.CharField(required=True)
     description = serializers.CharField(required=True)
 
-class KnowledgeAreaListSerializer(serializers.ModelSerializer):
+class KnowledgeAreaListSerializers(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField('rename_name')
+    description = serializers.SerializerMethodField('rename_description')
     class Meta:
         model = KnowledgeArea
         fields = (
@@ -25,6 +27,10 @@ class KnowledgeAreaListSerializer(serializers.ModelSerializer):
             'name',
             'description'
         )
+    def rename_name(self, obj):
+        return obj.name_es
+    def rename_description(self, obj):
+        return obj.description_es
 
 class KnowledgeAreaListSerializer(serializers.ModelSerializer):
     class Meta:

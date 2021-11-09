@@ -5,7 +5,7 @@ from applications.evaluation_student.models import StudentEvaluation
 from applications.evaluation_collaborating_expert.serializers import EvaluationConceptQualificationSerializer
 from applications.license.serializers import LicenseSerializer
 from applications.education_level.serializers import EducationLevelListSerializer, EducationLevelSerializer
-from applications.knowledge_area.serializers import KnowledgeAreaListSerializer, KnowledgeAreaNameSerializer
+from applications.knowledge_area.serializers import KnowledgeAreaListSerializer, KnowledgeAreaListSerializers, KnowledgeAreaNameSerializer
 from applications.learning_object_file.serializers import LearningObjectSerializer
 from applications.user.serializers import UserCommentSerializer, UserFullName
 from applications.evaluation_collaborating_expert.models import EvaluationCollaboratingExpert
@@ -43,7 +43,7 @@ class LearningObjectMetadataAllSerializer(serializers.ModelSerializer):
     license = LicenseSerializer()
     learning_object_file = LearningObjectSerializer()
     education_levels = EducationLevelSerializer(read_only=True)
-    knowledge_area = KnowledgeAreaListSerializer()
+    knowledge_area = KnowledgeAreaListSerializers()
     user_created=UserCommentSerializer(read_only=True)
     rating = serializers.SerializerMethodField()
     class Meta:
