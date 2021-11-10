@@ -6,7 +6,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser ,AllowAny
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK
+from rest_framework.status import HTTP_200_OK, HTTP_406_NOT_ACCEPTABLE
 from rest_framework.views import APIView
 from applications.user.mixins import IsAdministratorUser, IsTeacherUser
 from .serializers import LicenseEnSerializer, LicenseEsSerializer, LicenseSerializer
@@ -48,7 +48,7 @@ class LicenseView(viewsets.ModelViewSet):
                 "name": "License",
                 "values":serializer_en.data}, status=HTTP_200_OK)
         else:
-            return Response({"message":"No available language"},status=HTTP_200_OK)
+            return Response({"message":"An appropriate representation of the requested resource could not be found on this server."},status=HTTP_406_NOT_ACCEPTABLE)
 
 
 class EndpontFilter(APIView):

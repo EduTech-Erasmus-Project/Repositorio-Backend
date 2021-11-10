@@ -7,7 +7,8 @@ from applications.user.mixins import IsAdministratorUser
 from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
-    HTTP_200_OK
+    HTTP_200_OK,
+    HTTP_406_NOT_ACCEPTABLE
 ) 
 # Create your views here.
 class EducationLevelView(viewsets.ModelViewSet):
@@ -36,9 +37,12 @@ class EducationLevelView(viewsets.ModelViewSet):
             "filter_param_value": "id",
             "name":"Nivel de educación",
             "values":serializer_es.data},status=HTTP_200_OK)
-        else:
+        elif 'en' in self.request.META.get('HTTP_ACCEPT_LANGUAGE'):
             return Response({"key":"education_levels",
             "filter_param_value": "id",
             "name":"Education Level",
             "values":serializer_en.data},status=HTTP_200_OK)
+        else:
+            return Response({"message":"An appropriate representation of the requested resource could not be found on this server."},status=HTTP_406_NOT_ACCEPTABLE)
+
        

@@ -9,7 +9,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
-    HTTP_200_OK
+    HTTP_200_OK,
+    HTTP_406_NOT_ACCEPTABLE
 ) 
 # Create your views here.
 class KnowledgeAreaView(viewsets.ViewSet):
@@ -57,7 +58,8 @@ class KnowledgeAreaView(viewsets.ViewSet):
                 "name":"Knowledge area",
                 "values":serializer_en.data}, status=HTTP_200_OK)
         else:
-            return Response({"message":"No available language"},status=HTTP_200_OK)
+            return Response({"message":"An appropriate representation of the requested resource could not be found on this server."},status=HTTP_406_NOT_ACCEPTABLE)
+
 
     def retrieve(self, request, pk=None):
         """

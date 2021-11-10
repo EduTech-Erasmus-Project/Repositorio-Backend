@@ -984,7 +984,7 @@
       "model": "license.license",
       "pk": 2,
       "fields": {
-        "name_es": "Todos los erechos reservados",
+        "name_es": "Todos los derechos reservados",
         "name_en": "All rights reserved",
         "value": "allrightsreserved"
       }
