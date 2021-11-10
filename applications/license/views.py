@@ -32,7 +32,7 @@ class LicenseView(viewsets.ModelViewSet):
         if self.request.META.get('HTTP_ACCEPT_LANGUAGE') is None:
             return Response({"message":"Accept Language in header is required"},status=HTTP_200_OK)
 
-        queryset = License.objects.all()
+        queryset = License.objects.all().order_by('id')
         serializer_es = LicenseEsSerializer(queryset, many=True)
         serializer_en = LicenseEnSerializer(queryset, many=True)
         if 'es' in self.request.META.get('HTTP_ACCEPT_LANGUAGE'):
