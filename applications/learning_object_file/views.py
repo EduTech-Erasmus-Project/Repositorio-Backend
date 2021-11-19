@@ -89,7 +89,7 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
             elif get_index_file(filename_index)!='':
                 index= get_index_file(filename_index)
             else:
-                 return Response({"message": "Ocurrio un error al subir el Objeto de Aprendizaje"}, status=HTTP_404_NOT_FOUND)
+                 return Response({"message": "Objetos de Aprendizaje aceptados por el repositorio es IMS y SCORM"}, status=HTTP_404_NOT_FOUND)
             data = get_metadata_imsmanisfest(XMLFILES_FOLDER)
             if XMLFILES_FOLDER is not None:
                 URL = url+index 
@@ -98,10 +98,10 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
                 learningObject.file_size= zip_kb
                 learningObject.save()
             else:
-                return Response({"message": "Ocurrio un error al subir el Objeto de Aprendizaje"}, status=HTTP_404_NOT_FOUND)
+                return Response({"message": "No se encontro metadatos en el Objeto de Aprendizaje"}, status=HTTP_404_NOT_FOUND)
         except Exception as e:
             print(e)
-            return Response({"message":"Ocurrio un error al subir el Objeto de Aprendizaje"},status=HTTP_404_NOT_FOUND)
+            return Response({"message":"Objetos de Aprendizaje aceptados por el repositorio es IMS y SCORM."},status=HTTP_404_NOT_FOUND)
         serializer = LearningObjectSerializer(learningObject)
         metadata ={
             "metadata": data,
@@ -112,7 +112,6 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
 def get_metadata_imsmanisfest(filename):
     with open(filename, 'r',encoding="utf-8") as myfile:
         jsondoc = xmltodict.parse(myfile.read())
-    # jsondata=json.dumps(jsondoc)
     return jsondoc
 
 

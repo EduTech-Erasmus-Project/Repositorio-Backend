@@ -53,8 +53,6 @@ from rest_framework.status import (
     HTTP_200_OK,
     HTTP_401_UNAUTHORIZED
 )
-import smtplib
-import email.message
 from applications.user.mixins import IsAdministratorUser, IsCollaboratingExpertUser,IsGeneralUser, IsStudentUser, IsTeacherUser
 # Create your views here.
 
@@ -182,7 +180,7 @@ class ManagementUserView(viewsets.ViewSet):
                 teacher_serializer = TeacherCreateSerializer(data=request.data)
                 teacher_serializer.is_valid(raise_exception=True)
                 new_teacher = Teacher.objects.create(
-                    is_active=False
+                    is_active=True
                 )
                 professions = Profession.objects.filter(
                     id__in=teacher_serializer.validated_data['professions']
@@ -200,7 +198,7 @@ class ManagementUserView(viewsets.ViewSet):
                     expert_level= serializer.validated_data['expert_level'],
                     web= serializer.validated_data['web'],
                     academic_profile= serializer.validated_data['academic_profile'],
-                    is_active = False
+                    is_active = True
                 )
                 new_expert.save()
 
@@ -322,7 +320,6 @@ class ManagementUserView(viewsets.ViewSet):
                     instance.student = new_student
 
                 if instance.teacher is not None and role == 'teacher':
-                    # if ".edu" in instance.email:
                     serializer = TeacherUpdateSerializer(data=request.data)
                     serializer.is_valid(raise_exception=True)
                     teacher_instance = Teacher.objects.get(pk=instance.teacher.id)
@@ -701,28 +698,6 @@ class UserAPIView(RetrieveAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = UserLoginDataSerializer
     def get_object(self):
-        # mail_content = """
-        # Hello,This is a simple mail. There is only text, no attachments are there The mail is sent using Python SMTP library.
-        # Thank You
-        # """
-        # #The mail addresses and password
-        # sender_address = 'edutechproject19@gmail.com'
-        # sender_pass = 'hbvnozysgakvfutv'
-        # receiver_address = 'apaquig@est.ups.edu.ec'
-        # #Setup the MIME
-        # message = MIMEMultipart()
-        # message['From'] = sender_address
-        # message['To'] = receiver_address
-        # message['Subject'] = 'A test mail sent by Python. It has an attachment.'   #The subject line
-        # #The body and the attachments for the mail
-        # message.attach(MIMEText(mail_content, 'plain'))
-        # #Create SMTP session for sending the mail
-        # session = smtplib.SMTP('smtp.ups.edu.ec', 587) #use gmail with port
-        # session.starttls() #enable security
-        # session.login(sender_address, sender_pass) #login with mail_id and password
-        # text = message.as_string()
-        # session.sendmail(sender_address, receiver_address, text)
-        # session.quit()
         return self.request.user
 
 class ChangePasswordView(UpdateAPIView):

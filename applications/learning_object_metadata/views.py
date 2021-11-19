@@ -714,12 +714,27 @@ class ListLearningObjectPopular(ListAPIView):
     """
     permission_classes = [AllowAny]
     serializer_class = LearningObjectMetadataPopularSerializer
+    # serializer_class = LearningObjectMetadataAllSerializer
+
     pagination_class = None
-    # pagination_class = ROANumberPaginationPopular
     def get_queryset(self):
         query = EvaluationCollaboratingExpert.objects.filter(
-            learning_object__public=True,rating__gte = 1.3
+            learning_object__public=True,rating__gte = 0
         ).order_by('-learning_object__id','-rating').distinct('learning_object__id')[:8]
+        return query
+
+class ListLearningObjectAlls(ListAPIView):
+    """
+        Listar los OAS.
+    """
+    permission_classes = [AllowAny]
+    serializer_class = LearningObjectMetadataAllSerializer
+
+    pagination_class = None
+    def get_queryset(self):
+        query = LearningObjectMetadata.objects.filter(
+            public=True
+        ).order_by('-id')[:8]
         return query
 
 class ListLearningObjectEvaluatedByExpert(ListAPIView):
@@ -914,6 +929,9 @@ def automaticEvaluation(id):
         i.save()
         ratingnew+=h
     objeto.rating_schema=ratingnew/len(EvaluationConcept.objects.all())
+    if(ratingnew >= 4.0):
+        META.public = True
+        META.save()
     objeto.save()
 
 
