@@ -1,10 +1,11 @@
+from rest_framework.response import Response
 from applications.learning_object_metadata.utils import get_rating_value
 from applications.evaluation_student.serializers import EvaluationQuestionQualificationSerializer
 from applications.evaluation_student.models import StudentEvaluation
 from applications.evaluation_collaborating_expert.serializers import EvaluationConceptQualificationSerializer
 from applications.license.serializers import LicenseSerializer
-from applications.education_level.serializers import EducationLevelListSerializer
-from applications.knowledge_area.serializers import KnowledgeAreaListSerializer, KnowledgeAreaNameSerializer
+from applications.education_level.serializers import EducationLevelListSerializer, EducationLevelSerializer
+from applications.knowledge_area.serializers import KnowledgeAreaListSerializer, KnowledgeAreaListSerializers, KnowledgeAreaNameSerializer
 from applications.learning_object_file.serializers import LearningObjectSerializer
 from applications.user.serializers import UserCommentSerializer, UserFullName
 from applications.evaluation_collaborating_expert.models import EvaluationCollaboratingExpert
@@ -21,8 +22,18 @@ class LearningObjectMetadataSerializer(serializers.ModelSerializer):
         exclude = ('public', )
 
 class ROANumberPagination(pagination.PageNumberPagination):
-    page_size = 100
-    max_page_size = 200
+    page_size = 15
+    max_page_size = 50
+    def get_paginated_response(self, data):
+        return Response({
+            'count': self.page.paginator.count,
+            'links': {
+               'next': self.get_next_link(),
+               'previous': self.get_previous_link()
+            },
+            'pages': self.page.paginator.num_pages,
+            'results': data
+        })
 
 class ROANumberPaginationPopular(pagination.PageNumberPagination):
     page_size = 8
@@ -31,8 +42,8 @@ class ROANumberPaginationPopular(pagination.PageNumberPagination):
 class LearningObjectMetadataAllSerializer(serializers.ModelSerializer):
     license = LicenseSerializer()
     learning_object_file = LearningObjectSerializer()
-    education_levels = EducationLevelListSerializer(read_only=True)
-    knowledge_area = KnowledgeAreaListSerializer()
+    education_levels = EducationLevelSerializer(read_only=True)
+    knowledge_area = KnowledgeAreaListSerializers()
     user_created=UserCommentSerializer(read_only=True)
     rating = serializers.SerializerMethodField()
     class Meta:

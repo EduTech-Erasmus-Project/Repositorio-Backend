@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from .models import KnowledgeArea
-from .serializers import KnowledgeAreaSerializer,KnowledgeAreaUpdateSerializer
+from .serializers import KnowledgeAreaEnSerializer, KnowledgeAreaEsSerializer, KnowledgeAreaSerializer,KnowledgeAreaUpdateSerializer,KnowledgeAreaListSerializer
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated ,AllowAny
@@ -9,7 +9,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
-    HTTP_200_OK
+    HTTP_200_OK,
+    HTTP_406_NOT_ACCEPTABLE
 ) 
 # Create your views here.
 class KnowledgeAreaView(viewsets.ViewSet):
@@ -36,14 +37,33 @@ class KnowledgeAreaView(viewsets.ViewSet):
     
     def list(self, request):
         """
-        Servicio para listar areas de conocimiento. API accesible para todos los usuarios.
+        Servicio para listar areas de conocimiento.
         """
+        if self.request.META.get('HTTP_ACCEPT_LANGUAGE') is None:
+            return Response({"message":"Accept Language in header is required"},status=HTTP_200_OK)
+
         queryset = KnowledgeArea.objects.all()
-        serializer = KnowledgeAreaSerializer(queryset,many=True)
-        return Response(serializer.data,status=HTTP_200_OK)
+        serializer_es = KnowledgeAreaEsSerializer(queryset,many=True)
+        serializer_en = KnowledgeAreaEnSerializer(queryset,many=True)
+        if 'es' in self.request.META.get('HTTP_ACCEPT_LANGUAGE'):
+            return Response({
+                "key":"knowledge_area",
+                "filter_param_value": "id",
+                "name":"Área de conocimiento",
+                "values":serializer_es.data}, status=HTTP_200_OK)
+        elif 'en' in self.request.META.get('HTTP_ACCEPT_LANGUAGE'):
+            return Response({
+                "key":"knowledge_area",
+                "filter_param_value": "id",
+                "name":"Knowledge area",
+                "values":serializer_en.data}, status=HTTP_200_OK)
+        else:
+            return Response({"message":"An appropriate representation of the requested resource could not be found on this server."},status=HTTP_406_NOT_ACCEPTABLE)
+
+
     def retrieve(self, request, pk=None):
         """
-        Servicio para listar areas de conocimiento por id. API accesible para todos los usuarios.
+        Servicio para listar areas de conocimiento por id.
         """
         queryset = KnowledgeArea.objects.all()
         user = get_object_or_404(queryset, pk=pk)
@@ -51,7 +71,7 @@ class KnowledgeAreaView(viewsets.ViewSet):
         return Response(serializer.data, status=HTTP_200_OK)
     def update(self, request, pk=None, project_pk=None):
         """
-        Servicio para actualizar area de conocimiento. API accesible para usuario administrador.
+        Servicio para actualizar area de conocimiento.
         """
         queryset = KnowledgeArea.objects.all()
         instance = get_object_or_404(queryset, pk=pk)
@@ -64,7 +84,7 @@ class KnowledgeAreaView(viewsets.ViewSet):
         return Response(serializer.data,status=HTTP_200_OK)
     def destroy(self, request, pk=None):
         """
-        Servicio para eliminar areas de conocimiento. API accesible para usuario administrador.
+        Servicio para eliminar areas de conocimiento.
         """
         queryset = KnowledgeArea.objects.all()
         instance = get_object_or_404(queryset, pk=pk)

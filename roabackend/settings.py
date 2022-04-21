@@ -19,9 +19,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'l=7$@=!muo8kj*j+6nq!wl2n$8pn*m^kza*=g60g536#rtb%__'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS=[]
+# ALLOWED_HOSTS=[]
+if DEBUG:
+    ALLOWED_HOSTS=['*','repositorio.edutech-project.org','172.16.42.54','localhost']
+else:
+    ALLOWED_HOSTS=['*']
 
 
 
@@ -68,12 +72,17 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 150
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    # 'PAGE_SIZE': 150
 }
+
+
 TOKEN_EXPIRED_AFTER_SECONDS = 60
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-DOMAIN = 'http://localhost:8000'
+if DEBUG:
+    DOMAIN = 'https://repositorio.edutech-project.org'
+else:
+    DOMAIN = 'http://localhost:8000'
 # Puntajes de calificacion del experto
 YES=2
 NO=0
@@ -122,9 +131,9 @@ WSGI_APPLICATION = 'roabackend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'roa3',
-        'USER': 'roauser3',
-        'PASSWORD': 'USER123456',
+        'NAME': 'roa5',
+        'USER': 'roauser',
+        'PASSWORD': 'GMQCitpx1111',
         'HOST': 'localhost',
         'PORT': '5432',
     }

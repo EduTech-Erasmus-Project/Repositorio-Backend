@@ -1,10 +1,12 @@
+import json
 from applications.user.testMail import SendMail
 from applications.user.utils import Util
+from rest_framework.generics import ListAPIView
 from rest_framework import viewsets
 from rest_framework.generics import GenericAPIView, RetrieveAPIView, RetrieveUpdateAPIView, UpdateAPIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import AllowAny
-from .serializers import ChangePasswordSerializer, MyTokenObtainPairSerializer, RequestPasswordResetEmailSerializer, SetNewPasswordSerializer, UpdateTecherCollaboratingExpertApproveedSerializer, UpdateTecherCollaboratingExpertDisapprovedSerializer, UserUpdatePictureSerializer
+from .serializers import ChangePasswordSerializer, MyTokenObtainPairSerializer, RequestPasswordResetEmailSerializer, SetNewPasswordSerializer, StudentListSerializer, UpdateTecherCollaboratingExpertApproveedSerializer, UpdateTecherCollaboratingExpertDisapprovedSerializer, UserListSerializers, UserUpdatePictureSerializer
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -15,6 +17,8 @@ from applications.education_level.models import EducationLevel
 from applications.knowledge_area.models import KnowledgeArea
 from applications.preferences.models import Preferences
 from applications.profession.models import Profession
+import urllib3
+
 from .models import (
     User,
     Student,
@@ -45,7 +49,8 @@ from .serializers import (
     AdminCollaboratingExpertListSerializer,
     AdminUpdateCollaboratingExpertSerializer,
     AdminAdministratorListSerializer,
-    AdminUpdateAdministratorSerializer
+    AdminUpdateAdministratorSerializer,
+    OrcidValidationSerializer
 )
 from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
@@ -53,8 +58,6 @@ from rest_framework.status import (
     HTTP_200_OK,
     HTTP_401_UNAUTHORIZED
 )
-import smtplib
-import email.message
 from applications.user.mixins import IsAdministratorUser, IsCollaboratingExpertUser,IsGeneralUser, IsStudentUser, IsTeacherUser
 # Create your views here.
 
@@ -133,7 +136,6 @@ class UserAdminView(viewsets.ViewSet):
     def destroy(self, request, pk=None):
         return Response({"message": "Api not found"},status=HTTP_404_NOT_FOUND) 
 
-
 class ManagementUserView(viewsets.ViewSet):
 
     def get_permissions(self):
@@ -182,7 +184,7 @@ class ManagementUserView(viewsets.ViewSet):
                 teacher_serializer = TeacherCreateSerializer(data=request.data)
                 teacher_serializer.is_valid(raise_exception=True)
                 new_teacher = Teacher.objects.create(
-                    is_active=False
+                    is_active=True
                 )
                 professions = Profession.objects.filter(
                     id__in=teacher_serializer.validated_data['professions']
@@ -200,7 +202,7 @@ class ManagementUserView(viewsets.ViewSet):
                     expert_level= serializer.validated_data['expert_level'],
                     web= serializer.validated_data['web'],
                     academic_profile= serializer.validated_data['academic_profile'],
-                    is_active = False
+                    is_active = True
                 )
                 new_expert.save()
 
@@ -322,38 +324,37 @@ class ManagementUserView(viewsets.ViewSet):
                     instance.student = new_student
 
                 if instance.teacher is not None and role == 'teacher':
-                    if ".edu" in instance.email:
-                        serializer = TeacherUpdateSerializer(data=request.data)
-                        serializer.is_valid(raise_exception=True)
-                        teacher_instance = Teacher.objects.get(pk=instance.teacher.id)
-                        professions = Profession.objects.filter(
-                            id__in=serializer.validated_data['professions']
-                        )
-                        teacher_instance.professions.clear()
-                        for profession in professions:
-                            teacher_instance.professions.add(profession)
-                        teacher_instance.save()
-                    else:
-                        return Response({"message": "Debe tener un email institucional"}, status=HTTP_400_BAD_REQUEST)
+                    serializer = TeacherUpdateSerializer(data=request.data)
+                    serializer.is_valid(raise_exception=True)
+                    teacher_instance = Teacher.objects.get(pk=instance.teacher.id)
+                    professions = Profession.objects.filter(
+                        id__in=serializer.validated_data['professions']
+                    )
+                    teacher_instance.professions.clear()
+                    for profession in professions:
+                        teacher_instance.professions.add(profession)
+                    teacher_instance.save()
+                    # else:
+                    #     return Response({"message": "Debe tener un email institucional"}, status=HTTP_400_BAD_REQUEST)
     
                 if instance.teacher is None and role == "teacher":
-                    if ".edu" in instance.email:
-                        serializer = TeacherUpdateSerializer(data=request.data)
-                        serializer.is_valid(raise_exception=True)
-                        new_teacher = Teacher.objects.create(
-                            is_active=False
-                        )
-                        professions = Profession.objects.filter(
-                            id__in=serializer.validated_data['professions']
-                        )
-                        for profession in professions:
-                            new_teacher.professions.add(profession)
-                        new_teacher.save()
-                        instance.teacher = new_teacher
-                    else:
-                        return Response({"message": "Debe tener un email institucional"}, status=HTTP_400_BAD_REQUEST)
+                    # if ".edu" in instance.email:
+                    serializer = TeacherUpdateSerializer(data=request.data)
+                    serializer.is_valid(raise_exception=True)
+                    new_teacher = Teacher.objects.create(
+                        is_active=False
+                    )
+                    professions = Profession.objects.filter(
+                        id__in=serializer.validated_data['professions']
+                    )
+                    for profession in professions:
+                        new_teacher.professions.add(profession)
+                    new_teacher.save()
+                    instance.teacher = new_teacher
+                    # else:
+                    #     return Response({"message": "Debe tener un email institucional"}, status=HTTP_400_BAD_REQUEST)
 
-                if instance.collaboratingExpert is not None and ".edu" in instance.email and role == 'expert':
+                if instance.collaboratingExpert is not None and role == 'expert':
                     serializer = CollaboratingExpertUpdateSerializer(data=request.data)
                     serializer.is_valid(raise_exception=True)
                     collaboratingExpert_instance = CollaboratingExpert.objects.get(pk=instance.collaboratingExpert.id)
@@ -362,7 +363,7 @@ class ManagementUserView(viewsets.ViewSet):
                     collaboratingExpert_instance.academic_profile = serializer.validated_data['academic_profile']
                     collaboratingExpert_instance.save()
 
-                if instance.collaboratingExpert is None and ".edu" in instance.email and role == 'expert':
+                if instance.collaboratingExpert is None and role == 'expert':
                     serializer = CollaboratingExpertUpdateSerializer(data=request.data)
                     serializer.is_valid(raise_exception=True)
                     new_expert = CollaboratingExpert.objects.create(
@@ -650,6 +651,45 @@ class UserCountView(APIView):
             "total_teacher": teacher
         }
         return Response(result, status=HTTP_200_OK)
+import urllib.request
+from bs4 import BeautifulSoup
+import requests
+
+class VerifyOrcid(APIView):
+    """Verificador de ORCID"""
+    permission_classes = [AllowAny]
+    def post(self, request, format=None):
+        serializer = OrcidValidationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        orcid = serializer.validated_data['orcid']
+        """
+            Servicio para verificar si el ORCID es valido.
+        """
+        url = 'https://orcid.org/0000-0002-9659-7109'
+        opener = urllib.request.FancyURLopener({})
+        f = opener.open(url)
+        content = f.read()
+        print(content)
+        # http = urllib3.PoolManager()
+        # response = http.request('GET', url)
+        # data = response.data.decode("utf-8")
+        # datos = urllib.request.urlopen(url).read().decode()
+        # soup =  BeautifulSoup(datos)
+        # tags = soup('title')
+        # r = requests.get(url, allow_redirects=True)
+        # # print(r)
+        # print(r.headers.get('content-type'))
+        # print(tags)
+        # html_tables = data.find("body")
+        
+        # print(data)
+        # print(r.status)
+        # print(r.data)
+        # url = requests.get("https://orcid.org/0000-0003-3250-6156")
+        try:
+            return Response({"message": "OK"}, status=HTTP_200_OK)
+        except:
+            return Response({"message": "invalid"}, status=HTTP_200_OK)
 
 class TotalExpertTeacher(APIView):
     """Este servicio devuelve el total de los expertos colaboradores en la plataforma."""
@@ -701,28 +741,6 @@ class UserAPIView(RetrieveAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = UserLoginDataSerializer
     def get_object(self):
-        # mail_content = """
-        # Hello,This is a simple mail. There is only text, no attachments are there The mail is sent using Python SMTP library.
-        # Thank You
-        # """
-        # #The mail addresses and password
-        # sender_address = 'edutechproject19@gmail.com'
-        # sender_pass = 'hbvnozysgakvfutv'
-        # receiver_address = 'apaquig@est.ups.edu.ec'
-        # #Setup the MIME
-        # message = MIMEMultipart()
-        # message['From'] = sender_address
-        # message['To'] = receiver_address
-        # message['Subject'] = 'A test mail sent by Python. It has an attachment.'   #The subject line
-        # #The body and the attachments for the mail
-        # message.attach(MIMEText(mail_content, 'plain'))
-        # #Create SMTP session for sending the mail
-        # session = smtplib.SMTP('smtp.ups.edu.ec', 587) #use gmail with port
-        # session.starttls() #enable security
-        # session.login(sender_address, sender_pass) #login with mail_id and password
-        # text = message.as_string()
-        # session.sendmail(sender_address, receiver_address, text)
-        # session.quit()
         return self.request.user
 
 class ChangePasswordView(UpdateAPIView):
@@ -808,3 +826,21 @@ class UpdateUserProfilePicture(RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated, (IsStudentUser | IsTeacherUser | IsCollaboratingExpertUser)]
     serializer_class = UserUpdatePictureSerializer
     queryset = User.objects.all()
+
+class GetStudentPreferences(RetrieveAPIView):
+    """
+        Obtener preferencias de un estudiante
+    """
+    lookup_field = 'email'
+    permission_classes = [AllowAny]
+    serializer_class = UserListSerializers
+    def get_queryset(self):
+        email = self.kwargs['email']
+        obj = User.objects.filter(email=email)
+        return obj
+    # def get(self, request):
+    #     print(request.user.email)
+    #     preferences = User.objects.get(email=request.user.email)
+    #     print(preferences)
+    #     serializer = UserListSerializers(preferences)
+    #     return Response(serializer.data, status=HTTP_200_OK)

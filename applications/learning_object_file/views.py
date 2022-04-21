@@ -35,6 +35,8 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         learningObject = LearningObjectFile.objects.create(
             file = serializer.validated_data['file']
+            # file_name = serializer.validated_data['file_name'],
+            # file_size = serializer.validated_data['file_size']
         )
 
         now = datetime.now()
@@ -48,33 +50,65 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
             settings_dir = os.path.dirname(__file__)
             PROJECT_ROOT = os.path.abspath(os.path.dirname(settings_dir))
             file = zipfile.ZipFile(serializer.validated_data['file'],'r')
+            size = sum([zinfo.file_size for zinfo in file.filelist])
+            zip_kb = float(size) / 1000  # kB
             vec = file.namelist()
             nombre= file.filename.split('.')
             file_name=nombre[0]
             file_name = "%s%s" % (file_name,str(seconds))
             folder_area = "catalog"
             # folder_area = folder_name("catalog")
-            pathFiles = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+"/"+file_name+"/")
+            pathFiles = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+file_name+"/")
+            # size = os.path.getsize(pathFiles)
             dir_aux=file_name+"/"
             filename = ""
             filename_index = ""
             url=""
+            path = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+file_name+"/")
+            listNames = [];
+            nommbreak = ""
             for archi in sorted(file.namelist()):
+                listNames = []
                 if archi.find(dir_aux) == -1:
-                    pathFiles = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+"/"+file_name+"/")
+                    pathFiles = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+file_name+"/")
                 else:
                     pathFiles = os.path.join(_settings.MEDIA_ROOT+"/")
                 file.extract(archi,pathFiles)
                 for nom in vec:
                     if nom.endswith(".xml"):
+                        listNames.append(nom)
                         if archi.find(dir_aux) == -1:
-                            path = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+"/"+file_name+"/")
+                            path = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+file_name+"/")
                         else:
                             path = os.path.join(_settings.MEDIA_ROOT+"/")
-                    if 'imsmanifest_nuevo' in nom or 'imsmanifest' in nom or 'contentv3' in nom or 'catalogacionLomes' in nom:
-                        filename_index = "media/"+folder_area+"/"+file_name
-                        filename = "media/"+folder_area+"/"+file_name+"/"+nom
-                        url=self.request._current_scheme_host+"/media/"+folder_area+"/"+file_name+"/"
+            files = ["imslrm.xml","imsmanifest.xml","imsmanifest_nuevo.xml","catalogacionLomes.xml"]
+            for fileName in files:
+                if fileName in listNames and fileName in listNames:
+                    filename_index = "media/"+folder_area+"/"+file_name
+                    filename = "media/"+folder_area+"/"+file_name+"/"+files[0]
+                    url=self.request._current_scheme_host+"/media/"+folder_area+"/"+file_name+"/"
+                    break
+                if files[0] in listNames and files[1] not in listNames and files[2] not in listNames and files[3] not in listNames:
+                    filename_index = "media/"+folder_area+"/"+file_name
+                    filename = "media/"+folder_area+"/"+file_name+"/"+files[0]
+                    url=self.request._current_scheme_host+"/media/"+folder_area+"/"+file_name+"/"
+                    break
+                if files[0] not in listNames and files[1] in listNames and files[2] not in listNames and files[3] not in listNames:
+                    filename_index = "media/"+folder_area+"/"+file_name
+                    filename = "media/"+folder_area+"/"+file_name+"/"+files[1]
+                    url=self.request._current_scheme_host+"/media/"+folder_area+"/"+file_name+"/"
+                    break
+                if files[0] not in listNames and files[1] not in listNames and files[2] in listNames and files[3] not in listNames:
+                    filename_index = "media/"+folder_area+"/"+file_name
+                    filename = "media/"+folder_area+"/"+file_name+"/"+files[2]
+                    url=self.request._current_scheme_host+"/media/"+folder_area+"/"+file_name+"/"
+                    break
+                if files[0] not in listNames and files[1] not in listNames and files[2] not in listNames and files[3] in listNames:
+                    filename_index = "media/"+folder_area+"/"+file_name
+                    filename = "media/"+folder_area+"/"+file_name+"/"+files[3]
+                    url=self.request._current_scheme_host+"/media/"+folder_area+"/"+file_name+"/"
+                    break
+
             PROJECT_ROOT = os.path.abspath(os.path.dirname(PROJECT_ROOT))
             XMLFILES_FOLDER = os.path.join(PROJECT_ROOT, filename)
             index = ""
@@ -83,17 +117,21 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
             elif get_index_file(filename_index)!='':
                 index= get_index_file(filename_index)
             else:
-                 return Response({"message": "Ocurrio un error al subir el Objeto de Aprendizaje"}, status=HTTP_404_NOT_FOUND)
+                 return Response({"message": "Objeto de Aprendizaje aceptados por el repositorio es IMS y SCORM"}, status=HTTP_404_NOT_FOUND)
+            
             data = get_metadata_imsmanisfest(XMLFILES_FOLDER)
             if XMLFILES_FOLDER is not None:
                 URL = url+index 
                 learningObject.url= URL.replace('http://', 'https://', 1)
+                learningObject.file_name= nombre[0]
+                learningObject.file_size= zip_kb
                 learningObject.save()
             else:
-                return Response({"message": "Ocurrio un error al subir el Objeto de Aprendizaje"}, status=HTTP_404_NOT_FOUND)
+                return Response({"message": "No se encontro metadatos en el Objeto de Aprendizaje"}, status=HTTP_404_NOT_FOUND)
         except Exception as e:
             print(e)
-            return Response({"message":"Ocurrio un error al subir el Objeto de Aprendizaje"},status=HTTP_404_NOT_FOUND)
+            print(e.args)
+            return Response({"message":"Objetos de Aprendizaje aceptados por el repositorio es IMS y SCORM."},status=HTTP_404_NOT_FOUND)
         serializer = LearningObjectSerializer(learningObject)
         metadata ={
             "metadata": data,
@@ -104,7 +142,6 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
 def get_metadata_imsmanisfest(filename):
     with open(filename, 'r',encoding="utf-8") as myfile:
         jsondoc = xmltodict.parse(myfile.read())
-    jsondata=json.dumps(jsondoc)
     return jsondoc
 
 
@@ -254,7 +291,31 @@ def get_metadata_imsmanisfest1(filename):
                     'classification':classification,
                     'accesibility':accesibility,
                 }
-
+from bs4 import BeautifulSoup
+def get_metadata_imsmanisfest_normal(filename):
+    general={}
+    lifecycle={}
+    metaMetadata={}
+    technical={}
+    educational={}
+    rights={}
+    relation={}
+    annotation={}
+    classification={}
+    accesibility={}
+    with open(filename, 'r',encoding="utf-8") as myfile:
+        jsondoc = xmltodict.parse(myfile.read())
+        data = jsondoc['manifest']
+        # title = data.find('metadata').find('general').find('title').find('string')
+        res = BeautifulSoup(jsondoc)
+        print(res)
+        # print(od1)
+        # print(jsondoc['manifest']['metadata']);
+        # print(jsondoc['manifest']['organizations']);
+        # print(jsondoc['manifest']['resources']);
+        # print(jsondoc['manifest']['resources']);
+    return jsondoc
+    
 def validateData(data):
     if data:
         return data.text
@@ -272,17 +333,13 @@ def validateDataBr(data):
 
 def get_index_file(filepath):
     file=""
-    filename=""
     index_path=""
     index_url=""
     for file in os.listdir(filepath):
-        filename=file
-        file=filepath+'/'+file
-    for file in os.listdir(file):
         if file.endswith("index.html") or file.endswith("excursion.html"):
             index_path=file
     if index_path !="":
-        index_url=filename+'/'+index_path
+        index_url=index_path
     else:
         return Response({"message": "Ocurrio un error al cargar el Objeto de Aprendizaje"})
     return index_url
