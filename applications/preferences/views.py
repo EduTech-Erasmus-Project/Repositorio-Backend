@@ -3,7 +3,7 @@ from rest_framework.generics import ListAPIView
 from .models import Preferences, PreferencesArea, PreferencesFilter, PreferencesFilterArea
 from rest_framework.permissions import IsAuthenticated ,AllowAny
 from .serializers import PreferencesAreaFilterSerializer, PreferencesAreaListSerializer, PreferencesByAreaSerializer, PreferencesSerializer
-from applications.user.mixins import IsAdministratorUser
+from applications.user.mixins import IsAdministratorUser, IsCollaboratingExpertUser, IsStudentUser, IsTeacherUser
 
 # Create your views here.
 class UserPrefrencesView(viewsets.ModelViewSet):
@@ -44,3 +44,25 @@ class AreaFilters(ListAPIView):
     pagination_class=None
     serializer_class = PreferencesAreaFilterSerializer
     queryset = PreferencesFilterArea.objects.all()
+
+class PreferencesByEmail(ListAPIView):
+    """
+        Actualizar foto de perfil de un usurio
+    """
+    permission_classes = [IsAuthenticated, (IsStudentUser | IsTeacherUser | IsCollaboratingExpertUser)]
+    serializer_class = PreferencesAreaFilterSerializer
+    queryset = PreferencesFilterArea.objects.all()
+
+class SerachPreferencesApiView(ListAPIView):
+    permission_classes = [AllowAny]
+    pagination_class=None
+    serializer_class = PreferencesSerializer
+    queryset = Preferences.objects.all()
+    # """
+    #     Endpoint para el filtro de Objetos de Aprendizaje
+    # """
+    # permission_classes = [AllowAny]
+    # queryset = LearningObjectMetadata.objects.all().exclude(public=False).order_by('id')
+    # serializer_class = LearningObjectMetadataAllSerializer
+    # pagination_class = ROANumberPagination
+    # filter_class = OAFilter

@@ -5,7 +5,7 @@ from rest_framework import serializers, pagination
 from rest_framework.validators import UniqueValidator
 from applications.education_level.serializers import EducationLevelListSerializer
 from applications.knowledge_area.serializers import KnowledgeAreaListSerializer
-from applications.preferences.serializers import PreferencesListSerializer
+from applications.preferences.serializers import PreferencesListSerializer, PreferencesListSerializersTest
 from applications.profession.serializers import ProfessionListSerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.exceptions import APIException, AuthenticationFailed
@@ -227,6 +227,16 @@ class StudentListSerializer(serializers.ModelSerializer):
             'knowledge_areas',
             'preferences'
         )
+
+# AQUI
+class UserListSerializersPreferences(serializers.ModelSerializer):
+    preferences=PreferencesListSerializersTest(many=True)
+    class Meta:
+        model = Student
+        fields = (
+            'preferences',
+        )
+
 
 class TeacherListSerializer(serializers.ModelSerializer):
     professions=ProfessionListSerializer(many=True)
@@ -468,6 +478,9 @@ class AdminUpdateCollaboratingExpertSerializer(serializers.Serializer):
 class AdminUpdateAdministratorSerializer(serializers.Serializer):
     administrator_is_active = serializers.BooleanField(default=False)
 
+class OrcidValidationSerializer(serializers.Serializer):
+    orcid = serializers.CharField(max_length=200)
+    
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
@@ -546,6 +559,13 @@ class SetNewPasswordSerializer(serializers.Serializer):
         except Exception as e:
             raise AuthenticationFailed('The reset link is invalid',401) 
 
+class UserListSerializers(serializers.ModelSerializer):
+    student = UserListSerializersPreferences()
+    class Meta:
+        model = User
+        fields = (
+            'student',
+        )
 
 
 

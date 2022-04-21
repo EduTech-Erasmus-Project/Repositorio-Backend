@@ -65,7 +65,10 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
             filename_index = ""
             url=""
             path = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+file_name+"/")
+            listNames = [];
+            nommbreak = ""
             for archi in sorted(file.namelist()):
+                listNames = []
                 if archi.find(dir_aux) == -1:
                     pathFiles = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+file_name+"/")
                 else:
@@ -73,14 +76,39 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
                 file.extract(archi,pathFiles)
                 for nom in vec:
                     if nom.endswith(".xml"):
+                        listNames.append(nom)
                         if archi.find(dir_aux) == -1:
                             path = os.path.join(_settings.MEDIA_ROOT+"/"+folder_area+"/"+file_name+"/")
                         else:
                             path = os.path.join(_settings.MEDIA_ROOT+"/")
-                    if 'imsmanifest_nuevo' in nom or 'imsmanifest' in nom or 'catalogacionLomes' in nom:
-                        filename_index = "media/"+folder_area+"/"+file_name
-                        filename = "media/"+folder_area+"/"+file_name+"/"+nom
-                        url=self.request._current_scheme_host+"/media/"+folder_area+"/"+file_name+"/"
+            files = ["imslrm.xml","imsmanifest.xml","imsmanifest_nuevo.xml","catalogacionLomes.xml"]
+            for fileName in files:
+                if fileName in listNames and fileName in listNames:
+                    filename_index = "media/"+folder_area+"/"+file_name
+                    filename = "media/"+folder_area+"/"+file_name+"/"+files[0]
+                    url=self.request._current_scheme_host+"/media/"+folder_area+"/"+file_name+"/"
+                    break
+                if files[0] in listNames and files[1] not in listNames and files[2] not in listNames and files[3] not in listNames:
+                    filename_index = "media/"+folder_area+"/"+file_name
+                    filename = "media/"+folder_area+"/"+file_name+"/"+files[0]
+                    url=self.request._current_scheme_host+"/media/"+folder_area+"/"+file_name+"/"
+                    break
+                if files[0] not in listNames and files[1] in listNames and files[2] not in listNames and files[3] not in listNames:
+                    filename_index = "media/"+folder_area+"/"+file_name
+                    filename = "media/"+folder_area+"/"+file_name+"/"+files[1]
+                    url=self.request._current_scheme_host+"/media/"+folder_area+"/"+file_name+"/"
+                    break
+                if files[0] not in listNames and files[1] not in listNames and files[2] in listNames and files[3] not in listNames:
+                    filename_index = "media/"+folder_area+"/"+file_name
+                    filename = "media/"+folder_area+"/"+file_name+"/"+files[2]
+                    url=self.request._current_scheme_host+"/media/"+folder_area+"/"+file_name+"/"
+                    break
+                if files[0] not in listNames and files[1] not in listNames and files[2] not in listNames and files[3] in listNames:
+                    filename_index = "media/"+folder_area+"/"+file_name
+                    filename = "media/"+folder_area+"/"+file_name+"/"+files[3]
+                    url=self.request._current_scheme_host+"/media/"+folder_area+"/"+file_name+"/"
+                    break
+
             PROJECT_ROOT = os.path.abspath(os.path.dirname(PROJECT_ROOT))
             XMLFILES_FOLDER = os.path.join(PROJECT_ROOT, filename)
             index = ""
@@ -89,7 +117,8 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
             elif get_index_file(filename_index)!='':
                 index= get_index_file(filename_index)
             else:
-                 return Response({"message": "Objetos de Aprendizaje aceptados por el repositorio es IMS y SCORM"}, status=HTTP_404_NOT_FOUND)
+                 return Response({"message": "Objeto de Aprendizaje aceptados por el repositorio es IMS y SCORM"}, status=HTTP_404_NOT_FOUND)
+            
             data = get_metadata_imsmanisfest(XMLFILES_FOLDER)
             if XMLFILES_FOLDER is not None:
                 URL = url+index 
@@ -101,6 +130,7 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
                 return Response({"message": "No se encontro metadatos en el Objeto de Aprendizaje"}, status=HTTP_404_NOT_FOUND)
         except Exception as e:
             print(e)
+            print(e.args)
             return Response({"message":"Objetos de Aprendizaje aceptados por el repositorio es IMS y SCORM."},status=HTTP_404_NOT_FOUND)
         serializer = LearningObjectSerializer(learningObject)
         metadata ={
@@ -261,7 +291,31 @@ def get_metadata_imsmanisfest1(filename):
                     'classification':classification,
                     'accesibility':accesibility,
                 }
-
+from bs4 import BeautifulSoup
+def get_metadata_imsmanisfest_normal(filename):
+    general={}
+    lifecycle={}
+    metaMetadata={}
+    technical={}
+    educational={}
+    rights={}
+    relation={}
+    annotation={}
+    classification={}
+    accesibility={}
+    with open(filename, 'r',encoding="utf-8") as myfile:
+        jsondoc = xmltodict.parse(myfile.read())
+        data = jsondoc['manifest']
+        # title = data.find('metadata').find('general').find('title').find('string')
+        res = BeautifulSoup(jsondoc)
+        print(res)
+        # print(od1)
+        # print(jsondoc['manifest']['metadata']);
+        # print(jsondoc['manifest']['organizations']);
+        # print(jsondoc['manifest']['resources']);
+        # print(jsondoc['manifest']['resources']);
+    return jsondoc
+    
 def validateData(data):
     if data:
         return data.text

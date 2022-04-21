@@ -1,10 +1,12 @@
+import json
 from applications.user.testMail import SendMail
 from applications.user.utils import Util
+from rest_framework.generics import ListAPIView
 from rest_framework import viewsets
 from rest_framework.generics import GenericAPIView, RetrieveAPIView, RetrieveUpdateAPIView, UpdateAPIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import AllowAny
-from .serializers import ChangePasswordSerializer, MyTokenObtainPairSerializer, RequestPasswordResetEmailSerializer, SetNewPasswordSerializer, UpdateTecherCollaboratingExpertApproveedSerializer, UpdateTecherCollaboratingExpertDisapprovedSerializer, UserUpdatePictureSerializer
+from .serializers import ChangePasswordSerializer, MyTokenObtainPairSerializer, RequestPasswordResetEmailSerializer, SetNewPasswordSerializer, StudentListSerializer, UpdateTecherCollaboratingExpertApproveedSerializer, UpdateTecherCollaboratingExpertDisapprovedSerializer, UserListSerializers, UserUpdatePictureSerializer
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -15,6 +17,8 @@ from applications.education_level.models import EducationLevel
 from applications.knowledge_area.models import KnowledgeArea
 from applications.preferences.models import Preferences
 from applications.profession.models import Profession
+import urllib3
+
 from .models import (
     User,
     Student,
@@ -45,7 +49,8 @@ from .serializers import (
     AdminCollaboratingExpertListSerializer,
     AdminUpdateCollaboratingExpertSerializer,
     AdminAdministratorListSerializer,
-    AdminUpdateAdministratorSerializer
+    AdminUpdateAdministratorSerializer,
+    OrcidValidationSerializer
 )
 from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
@@ -130,7 +135,6 @@ class UserAdminView(viewsets.ViewSet):
 
     def destroy(self, request, pk=None):
         return Response({"message": "Api not found"},status=HTTP_404_NOT_FOUND) 
-
 
 class ManagementUserView(viewsets.ViewSet):
 
@@ -647,6 +651,45 @@ class UserCountView(APIView):
             "total_teacher": teacher
         }
         return Response(result, status=HTTP_200_OK)
+import urllib.request
+from bs4 import BeautifulSoup
+import requests
+
+class VerifyOrcid(APIView):
+    """Verificador de ORCID"""
+    permission_classes = [AllowAny]
+    def post(self, request, format=None):
+        serializer = OrcidValidationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        orcid = serializer.validated_data['orcid']
+        """
+            Servicio para verificar si el ORCID es valido.
+        """
+        url = 'https://orcid.org/0000-0002-9659-7109'
+        opener = urllib.request.FancyURLopener({})
+        f = opener.open(url)
+        content = f.read()
+        print(content)
+        # http = urllib3.PoolManager()
+        # response = http.request('GET', url)
+        # data = response.data.decode("utf-8")
+        # datos = urllib.request.urlopen(url).read().decode()
+        # soup =  BeautifulSoup(datos)
+        # tags = soup('title')
+        # r = requests.get(url, allow_redirects=True)
+        # # print(r)
+        # print(r.headers.get('content-type'))
+        # print(tags)
+        # html_tables = data.find("body")
+        
+        # print(data)
+        # print(r.status)
+        # print(r.data)
+        # url = requests.get("https://orcid.org/0000-0003-3250-6156")
+        try:
+            return Response({"message": "OK"}, status=HTTP_200_OK)
+        except:
+            return Response({"message": "invalid"}, status=HTTP_200_OK)
 
 class TotalExpertTeacher(APIView):
     """Este servicio devuelve el total de los expertos colaboradores en la plataforma."""
@@ -783,3 +826,21 @@ class UpdateUserProfilePicture(RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated, (IsStudentUser | IsTeacherUser | IsCollaboratingExpertUser)]
     serializer_class = UserUpdatePictureSerializer
     queryset = User.objects.all()
+
+class GetStudentPreferences(RetrieveAPIView):
+    """
+        Obtener preferencias de un estudiante
+    """
+    lookup_field = 'email'
+    permission_classes = [AllowAny]
+    serializer_class = UserListSerializers
+    def get_queryset(self):
+        email = self.kwargs['email']
+        obj = User.objects.filter(email=email)
+        return obj
+    # def get(self, request):
+    #     print(request.user.email)
+    #     preferences = User.objects.get(email=request.user.email)
+    #     print(preferences)
+    #     serializer = UserListSerializers(preferences)
+    #     return Response(serializer.data, status=HTTP_200_OK)

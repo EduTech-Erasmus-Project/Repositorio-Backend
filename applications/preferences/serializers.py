@@ -15,6 +15,20 @@ class PreferencesListSerializer(serializers.ModelSerializer):
             'id',
             'description'
         )
+
+class PreferencesListSerializersTest(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+    class Meta:
+        model = Preferences
+        fields = (
+            'id',
+            'description',
+            'name'
+        )
+    def get_name(self, obj):
+        query = PreferencesFilter.objects.filter(preferences__icontains=obj.description).values('search_value')
+        if query.exists():
+            return query[0]['search_value']
 class PreferencesAreaListSerializer(serializers.ModelSerializer):
     class Meta:
         model = PreferencesArea
