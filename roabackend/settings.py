@@ -19,15 +19,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'l=7$@=!muo8kj*j+6nq!wl2n$8pn*m^kza*=g60g536#rtb%__'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 # ALLOWED_HOSTS=[]
 if DEBUG:
     ALLOWED_HOSTS=['*','repositorio.edutech-project.org','172.16.42.54','localhost']
 else:
     ALLOWED_HOSTS=['*']
-
-
 
 DJANGO_APPS = [
     'django.contrib.admin',
@@ -87,11 +85,13 @@ else:
 YES=2
 NO=0
 PARTIALLY = 1
+NOYAPPLY = -1
 # Variable de calificacion del experto
 CALIFICATION_OPTIONS = {
     'YES':'Si',
     'NO':'No',
-    'PARTIALLY':'Parcialmente'
+    'PARTIALLY':'Parcialmente',
+    'NOTAPPLY':'No aplica'
 }
 
 MIDDLEWARE = [
@@ -104,6 +104,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 ROOT_URLCONF = 'roabackend.urls'
 
 TEMPLATES = [
@@ -132,10 +133,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'roa5',
-        'USER': 'roauser',
-        'PASSWORD': 'GMQCitpx1111',
+        'USER': 'postgres',
+        'PASSWORD': 'manager',
         'HOST': 'localhost',
-        'PORT': '5432',
+        'PORT': '5434',
     }
 }
 
@@ -158,6 +159,8 @@ AUTH_USER_MODEL = 'user.User'
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+#Esta la psue yo recomendable dejarla el false
+CORS_ALLOW_CREDENTIALS = True
 
 LANGUAGE_CODE = 'en-us'
 
@@ -177,11 +180,16 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')   # local path where the media files reside
-MEDIA_URL = '/media/'  #Base URL to serve the media files uploaded 
+MEDIA_URL = '/media/'  #Base URL to serve the media files uploaded
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')  # local path where the media files reside
+
+
 # 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
 EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_HOST_USER = 'apikey'
 EMAIL_HOST_PASSWORD = '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'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+
+#Esto tambien fui yo
+X_FRAME_OPTIONS = 'ALLOW'

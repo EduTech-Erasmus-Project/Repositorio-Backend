@@ -15,5 +15,5 @@ urlpatterns = [
     path('api/v1/user-preferences/email/<str:email>/', views.GetStudentPreferences.as_view(), name='get_preferences'),
     path('api/v1/user/change_password/<int:pk>/', views.ChangePasswordView.as_view(), name='auth_change_password'),
     path('api/v1/orcid-verify/', views.VerifyOrcid.as_view(),name='orcid_verify'),
-
+    path('api/v1/total-expert-teacher-approved-and-disapproved/', views.TotalExpertTeacher.as_view()),
 ]

@@ -18,6 +18,8 @@ from applications.knowledge_area.models import KnowledgeArea
 from applications.preferences.models import Preferences
 from applications.profession.models import Profession
 import urllib3
+import re
+
 
 from .models import (
     User,
@@ -144,12 +146,26 @@ class ManagementUserView(viewsets.ViewSet):
         else:
             permission_classes = [IsAuthenticated, IsGeneralUser,]
         return [permission() for permission in permission_classes]
+
+    def checkEmail(email):
+        print(email)
+        regex = '^([a-zA-Z0-9]+)@((?!hotmail|gmail|yahoo|outlook)(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$'
+        if (re.search(regex, email)):
+            #print("Valid Email")
+            return True
+        else:
+            #print("Invalid Email")
+            return False
+        return False
+
     def create(self, request, *args, **kwargs):
         """
             Servicio para crear un nuevo usuario (Estudiante, Dcente, Experto Colaborador).
         """
+        """ Validamos el correo del usuario """
         role_serializer = RoleSerializer(data=request.data)
         role_serializer.is_valid(raise_exception=True)
+        #print(role_serializer['email'].value)
         new_student = Student()
         new_teacher = Teacher()
         new_expert = CollaboratingExpert()
@@ -177,20 +193,35 @@ class ManagementUserView(viewsets.ViewSet):
                     new_student.knowledge_areas.add(knowledge_area)
                 for preference in preferences:
                     new_student.preferences.add(preference)
-                new_student.is_active = True
+
+                if not ManagementUserView.checkEmail(request.data['email']):
+                    value_active = False
+                else:
+                    value_active = True
+
+                new_student.is_active = value_active
+
                 new_student.save()
 
             if role == 'teacher':
                 teacher_serializer = TeacherCreateSerializer(data=request.data)
                 teacher_serializer.is_valid(raise_exception=True)
+
+                if not ManagementUserView.checkEmail(request.data['email']):
+                    value_active = False
+                else:
+                    value_active = True
+
                 new_teacher = Teacher.objects.create(
-                    is_active=True
+                    is_active=value_active
                 )
+
                 professions = Profession.objects.filter(
                     id__in=teacher_serializer.validated_data['professions']
                 )
                 for profession in professions:
                     new_teacher.professions.add(profession)
+
                 new_teacher.save()
                 # post_save.connect(send_email1, sender=User)
                 # request_finished.connect(send_email1(role_serializer.validated_data['first_name'],role_serializer.validated_data['last_name'],role,role_serializer.validated_data['email']))
@@ -198,20 +229,27 @@ class ManagementUserView(viewsets.ViewSet):
             if role == 'expert':
                 serializer = CollaboratingExpertCreateSerializer(data=request.data)
                 serializer.is_valid(raise_exception=True)
+
+                if not ManagementUserView.checkEmail(request.data['email']):
+                    value_active = False
+                else:
+                    value_active = True
+
                 new_expert = CollaboratingExpert.objects.create(
                     expert_level= serializer.validated_data['expert_level'],
                     web= serializer.validated_data['web'],
                     academic_profile= serializer.validated_data['academic_profile'],
-                    is_active = True
+                    is_active = value_active
                 )
                 new_expert.save()
 
-        new_user  = User.objects.create_general_user(
+        new_user = User.objects.create_general_user(
             first_name= role_serializer.validated_data['first_name'],
             last_name= role_serializer.validated_data['last_name'],
             email= role_serializer.validated_data['email'],
             password= role_serializer.validated_data['password'],
             )
+
         new_user.image=role_serializer.validated_data['image']
         if new_student.pk is not None:
             new_user.student = new_student
@@ -224,7 +262,7 @@ class ManagementUserView(viewsets.ViewSet):
             new_user.save()
         serializer = GeneralUserListSerializer(new_user)
         return Response(serializer.data,status=HTTP_200_OK)
-        
+
     def list(self, request):
         """
             Servicio para listar el usuario autentidado (Estudiante, Dcente, Experto Colaborador).
@@ -831,6 +869,7 @@ class GetStudentPreferences(RetrieveAPIView):
     """
         Obtener preferencias de un estudiante
     """
+
     lookup_field = 'email'
     permission_classes = [AllowAny]
     serializer_class = UserListSerializers

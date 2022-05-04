@@ -252,7 +252,7 @@ class EvaluationExpertCreateSerializer(serializers.Serializer):
             if len(EvaluationQuestion.objects.filter(pk=value['id']))==0:
                  raise serializers.ValidationError(f"Not exist question with pk {value['id']}")
         for option in data['results']:
-            if option['value'] != CALIFICATION_OPTIONS['YES'] and option['value'] != CALIFICATION_OPTIONS['NO'] and option['value'] != CALIFICATION_OPTIONS['PARTIALLY']:
+            if option['value'] != CALIFICATION_OPTIONS['YES'] and option['value'] != CALIFICATION_OPTIONS['NO'] and option['value'] != CALIFICATION_OPTIONS['PARTIALLY'] and option['value'] != CALIFICATION_OPTIONS['NOTAPPLY']:
                 raise serializers.ValidationError(f"Options are Si, No and Parcialmente")
         return data
 

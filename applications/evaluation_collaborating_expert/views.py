@@ -224,6 +224,7 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
                 scores.append(NO)
             else:
                 scores.append(PARTIALLY)
+
         evaluationCollaboratingExpert= EvaluationCollaboratingExpert.objects.create(
             learning_object =learningObjectMetadata,
             rating = 0.0,
@@ -250,8 +251,11 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
                         )
                     ratings=ratings+qualification
                     evaluationQuestionsQualificationList.append(evaluationQuestionsQualification)
+
         updateAverage(evaluationQuestionsQualificationList,evaluationConceptQualificationList)
+
         evaluationCollaboratingExpert.rating=ratings/len(evaluationQuestionsQualificationList)
+
         evaluationCollaboratingExpert.save()
         serializer = EvaluationCollaboratingExpertSerializer(evaluationCollaboratingExpert)
         return Response(serializer.data, status=HTTP_200_OK)                           
