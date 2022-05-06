@@ -222,8 +222,10 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
                 scores.append(YES)
             elif(qualification==CALIFICATION_OPTIONS['NO']):
                 scores.append(NO)
-            else:
+            elif(qualification==CALIFICATION_OPTIONS['PARTIALLY']):
                 scores.append(PARTIALLY)
+            #else:
+             #   scores.append(NOTAPPLY)
 
         evaluationCollaboratingExpert= EvaluationCollaboratingExpert.objects.create(
             learning_object =learningObjectMetadata,
