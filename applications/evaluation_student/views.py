@@ -1,5 +1,5 @@
 from copy import Error, error
-from roabackend.settings import CALIFICATION_OPTIONS, YES,NO,PARTIALLY
+from roabackend.settings import CALIFICATION_OPTIONS, YES,NO,PARTIALLY, NOT_APPLY
 from applications.learning_object_metadata.serializers import LearningObjectMetadataAllSerializer, LearningObjectMetadataByStudent, ROANumberPagination
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
@@ -81,6 +81,8 @@ class StudentEvaluationView(viewsets.ViewSet):
                 scores.append(YES)
             elif(qualification==CALIFICATION_OPTIONS['NO']):
                 scores.append(NO)
+            elif (qualification == CALIFICATION_OPTIONS['NOT_APPLY']):
+                scores.append(NOT_APPLY)
             else:
                 scores.append(PARTIALLY)
         #print("----------------",scores)
@@ -132,6 +134,7 @@ class StudentEvaluationView(viewsets.ViewSet):
                     totalguideline+=b.qualification
                     cont+=1
             #print("----------aaaaaa---",totalguideline,cont)
+
             h=(totalguideline*5)/(2*cont)
             a.average_guideline=h
             a.save()
@@ -151,6 +154,7 @@ class StudentEvaluationView(viewsets.ViewSet):
             ratingOBJ+=i.average_principle
             totalprinciple=0
             contg=0
+
         evaluationStudent.rating=ratingOBJ/len(Principle.objects.all())
         evaluationStudent.save()  
         serializer = StudentEvaluationSerializer(evaluationStudent)

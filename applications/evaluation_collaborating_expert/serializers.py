@@ -5,7 +5,7 @@ from applications.knowledge_area.serializers import KnowledgeAreaListSerializer
 from applications.education_level.serializers import EducationLevelListSerializer
 from applications.learning_object_file.serializers import LearningObjectSerializer
 from applications.license.serializers import LicenseSerializer
-from roabackend.settings import CALIFICATION_OPTIONS, YES, NO
+from roabackend.settings import CALIFICATION_OPTIONS, YES, NO, NOT_APPLY
 from django.db.models.aggregates import Avg
 from rest_framework.validators import UniqueValidator
 from applications.learning_object_metadata.models import LearningObjectMetadata
@@ -99,6 +99,7 @@ class QuestionQualificationListSerializer(serializers.ModelSerializer):
     interpreter_yes = serializers.SerializerMethodField()
     interpreter_no = serializers.SerializerMethodField()
     interpreter_partially = serializers.SerializerMethodField()
+    interpreter_not_apply = serializers.SerializerMethodField()
     schema = serializers.SerializerMethodField()
     class Meta:
         model = EvaluationQuestionsQualification
@@ -111,6 +112,7 @@ class QuestionQualificationListSerializer(serializers.ModelSerializer):
             'interpreter_yes',
             'interpreter_no',
             'interpreter_partially',
+            'interpreter_not_apply',
         )
     def get_schema(self, obj):
         query = EvaluationQuestion.objects.filter(pk = obj.evaluation_question.id).values('schema')
@@ -136,6 +138,12 @@ class QuestionQualificationListSerializer(serializers.ModelSerializer):
             return query[0]['interpreter_partially']
         else:
             return ""
+    def get_interpreter_not_apply(self, obj):
+        query = EvaluationQuestion.objects.filter(pk = obj.evaluation_question.id).values('interpreter_not_apply')
+        if query.exists():
+            return query[0]['interpreter_not_apply']
+        else:
+            return ""
     def get_question(self, obj):
         query = EvaluationQuestion.objects.filter(pk = obj.evaluation_question.id).values('question')
         if query.exists():
@@ -144,11 +152,14 @@ class QuestionQualificationListSerializer(serializers.ModelSerializer):
             return ""
     def get_question_id(self, obj):
         return obj.evaluation_question.id
+
     def get_qualification(self,obj):
         if obj.qualification is not None and obj.qualification==YES:
             return CALIFICATION_OPTIONS['YES']
         elif obj.qualification is not None and obj.qualification==NO:
             return CALIFICATION_OPTIONS['NO']
+        elif obj.qualification is not None and obj.qualification == NOT_APPLY:
+            return CALIFICATION_OPTIONS['NOT_APPLY']
         else:
             return CALIFICATION_OPTIONS['PARTIALLY']
 
@@ -204,7 +215,7 @@ class EvaluationCollaboratingExpertAllSerializer(serializers.ModelSerializer):
 
 class EvaluationConceptQualificationsValueSerializer(serializers.ModelSerializer):
     #print("calificado----------------------")
-    evaluation_concept=EvaluationConceptSerializer()
+    evaluation_concept = EvaluationConceptSerializer()
     question_evaluations = QuestionQualificationListSerializer(many=True,read_only=True)
     average = serializers.SerializerMethodField()
     class Meta:
@@ -252,8 +263,8 @@ class EvaluationExpertCreateSerializer(serializers.Serializer):
             if len(EvaluationQuestion.objects.filter(pk=value['id']))==0:
                  raise serializers.ValidationError(f"Not exist question with pk {value['id']}")
         for option in data['results']:
-            if option['value'] != CALIFICATION_OPTIONS['YES'] and option['value'] != CALIFICATION_OPTIONS['NO'] and option['value'] != CALIFICATION_OPTIONS['PARTIALLY']:
-                raise serializers.ValidationError(f"Options are Si, No and Parcialmente")
+            if option['value'] != CALIFICATION_OPTIONS['YES'] and option['value'] != CALIFICATION_OPTIONS['NO'] and option['value'] != CALIFICATION_OPTIONS['PARTIALLY'] and option['value'] != CALIFICATION_OPTIONS['NOT_APPLY']:
+                raise serializers.ValidationError(f"Options are Si, No, Parcialmente and No aplica")
         return data
 
 class LearningObjectMetadataSearchSerializer(serializers.ModelSerializer):

@@ -89,8 +89,8 @@ class EvaluationStudentCreateSerializer(serializers.Serializer):
             if len(Question.objects.filter(pk=value['id']))==0:
                  raise serializers.ValidationError(f"Not exist question with pk {value['id']}")
         for option in data['results']:
-            if option['value'] != CALIFICATION_OPTIONS['YES'] and option['value'] != CALIFICATION_OPTIONS['NO'] and option['value'] != CALIFICATION_OPTIONS['PARTIALLY']:
-                raise serializers.ValidationError(f"Options are Si, No and Parcialmente")
+            if option['value'] != CALIFICATION_OPTIONS['YES'] and option['value'] != CALIFICATION_OPTIONS['NO'] and option['value'] != CALIFICATION_OPTIONS['PARTIALLY'] and option['value'] != CALIFICATION_OPTIONS['NOT_APPLY']:
+                raise serializers.ValidationError(f"Options are Si, No, No aplica and Parcialmente")
         return data
 
 #############################CRUD PREGUNTAS
@@ -224,6 +224,8 @@ class QuestionSerializer(serializers.ModelSerializer):
     metadata = serializers.SerializerMethodField()
     interpreter_st_no = serializers.SerializerMethodField()
     interpreter_st_partially = serializers.SerializerMethodField()
+    interpreter_st_not_apply = serializers.SerializerMethodField()
+
     class Meta:
         model = EvaluationQuestionQualification
         fields = (
@@ -235,6 +237,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             'interpreter_st_yes',
             'interpreter_st_no',
             'interpreter_st_partially',
+            'interpreter_st_not_apply',
         )
     def get_interpreter_st_no(self, obj):
         query = Question.objects.filter(pk = obj.evaluation_question.id).values('interpreter_st_no')
@@ -260,6 +263,14 @@ class QuestionSerializer(serializers.ModelSerializer):
             return query[0]['interpreter_st_yes']
         else:
             return ""
+
+    def get_interpreter_st_not_apply(self, obj):
+        query = Question.objects.filter(pk=obj.evaluation_question.id).values('interpreter_st_not_apply')
+        if query.exists():
+            return query[0]['interpreter_st_not_apply']
+        else:
+            return ""
+
     def get_question(self, obj):
         query = Question.objects.filter(pk = obj.evaluation_question.id).values('question')
         if query.exists():

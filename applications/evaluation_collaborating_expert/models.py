@@ -19,6 +19,7 @@ class EvaluationQuestion(TimeStampedModel):
     interpreter_yes = models.TextField(blank=True, null=True)
     interpreter_no = models.TextField(blank=True, null=True)
     interpreter_partially = models.TextField(blank=True, null=True)
+    interpreter_not_apply = models.TextField(blank=True, null=True)
     value_importance = models.FloatField(blank=True, null=True)
     #######################################################################
     code = models.CharField(max_length=10, unique=True)
