@@ -1,5 +1,5 @@
 [
-  
+
   {
     "model": "preferences.preferencesarea",
     "pk": 1,
@@ -379,7 +379,7 @@
     "model": "evaluation_student.guideline",
     "pk": 9,
     "fields": {
-      "guideline": "Proporciona opciones para la auto-regulación",
+      "guideline": "Proporciona opciones para la autorregulación",
       "principle": 3
     }
   },
@@ -387,7 +387,7 @@
     "model": "evaluation_student.question",
     "pk": 1,
     "fields": {
-      "question": "¿El recurso presenta informacion auditiva?",
+      "question": "¿El recurso presenta información auditiva?",
       "description": "Texto",
       "metadata": "accessMode:auditory",
       "interpreter_st_yes": "Contiene material interactivo y/o multimedia",
@@ -401,12 +401,12 @@
     "model": "evaluation_student.question",
     "pk": 2,
     "fields": {
-      "question": "¿El recurso presenta informacion textual?",
+      "question": "¿El recurso presenta información textual?",
       "description": "Iconográfico (fotos, imágenes, logos, iconos, infografías)",
       "metadata": "accessMode:text",
-      "interpreter_st_yes": "Contiene informacion textual adecuada",
-      "interpreter_st_no": "No cuenta con amplia imformacion textual",
-      "interpreter_st_partially": "La informacion textual del contenido no es muy amplia",
+      "interpreter_st_yes": "Contiene información textual adecuada",
+      "interpreter_st_no": "No cuenta con amplia información textual",
+      "interpreter_st_partially": "La información textual del contenido no es muy amplia",
       "value_st_importance": "0",
       "guideline": 1
     }
@@ -415,12 +415,12 @@
     "model": "evaluation_student.question",
     "pk": 3,
     "fields": {
-      "question": "¿El recurso presenta informacion visual?",
+      "question": "¿El recurso presenta información visual?",
       "description": "Audiovisual (vídeo, audio).",
       "metadata": "accessMode:visual",
-      "interpreter_st_yes": "Contiene contenido iconografico como fotos, imágenes,logos, etc",
-      "interpreter_st_no": "No presenta ningun tipo de contenido iconografico",
-      "interpreter_st_partially": "El material iconografico del contenido de informacion es poco usado",
+      "interpreter_st_yes": "Contiene contenido iconográfico como fotos, imágenes,logos, etc",
+      "interpreter_st_no": "No presenta ningún tipo de contenido iconográfico",
+      "interpreter_st_partially": "El material iconográfico del contenido de informacion es poco usado",
       "value_st_importance": "0",
       "guideline": 1
     }
@@ -432,9 +432,9 @@
       "question": "¿Se utiliza una sintaxis directa, sencilla y jerarquizada por orden de relevancia?",
       "description": "Se utiliza una sintaxis directa, sencilla y jerarquizada por orden de relevancia",
       "metadata": "accessibilityFeature:structuralNavigation",
-      "interpreter_st_yes": "La sintaxis del contenido es directa,sencilla y adecuadamente jerarquzada por el orden de relevancia",
-      "interpreter_st_no": "La sintaxis del contenido no esta jerarquizada adecuadamente, por tanto no presenta un contenido directo y sencillo",
-      "interpreter_st_partially": "Solo una parte del contenido es jerarquizado de manera adecuada, por tanto su informacion no es completamente sencilla y directa",
+      "interpreter_st_yes": "La sintaxis del contenido es directa, sencilla y adecuadamente jerarquizada por el orden de relevancia",
+      "interpreter_st_no": "La sintaxis del contenido no está jerarquizada adecuadamente, por tanto no presenta un contenido directo y sencillo",
+      "interpreter_st_partially": "Solo una parte del contenido es jerarquizado de manera adecuada, por tanto su información no es completamente sencilla y directa",
       "value_st_importance": "0",
       "guideline": 2
     }
@@ -444,11 +444,11 @@
     "pk": 5,
     "fields": {
       "question": "¿Incluye opciones para clarificar el lenguaje matemático?",
-      "description": "Incluye opciones para clarificar el lenguaje oral, escrito y matemático. Por ejemplo, utilizando: glosario, traductor, conversor de texto a voz, imágenes, audiodescripciones, subtítulos en vídeos, calculadora, etc.",
+      "description": "Incluye opciones para clarificar el lenguaje oral, escrito y matemático. Por ejemplo, utilizando: glosario, traductor, conversor de texto a voz, imágenes, audio descripciones, subtítulos en vídeos, calculadora, etc.",
       "metadata": "accessibilityFeature:mathML",
-      "interpreter_st_yes": "Presenta opciones que ayudan en la comprension del lenguaje matematico",
-      "interpreter_st_no": "No contiene opciones que ayuden en la comprension del lenguaje matematico",
-      "interpreter_st_partially": "Herramientas que ayuden en la comprension del lenguaje matematico no se implementan en todo su contenido de informacion",
+      "interpreter_st_yes": "Presenta opciones que ayudan en la comprensión del lenguaje matemático",
+      "interpreter_st_no": "No contiene opciones que ayuden en la comprensión del lenguaje matemático",
+      "interpreter_st_partially": "Herramientas que ayuden en la comprensión del lenguaje matemático no se implementan en todo su contenido de información",
       "value_st_importance": "0",
       "guideline": 2
     }
@@ -458,11 +458,11 @@
     "pk": 6,
     "fields": {
       "question": "¿Incluye opciones para clarificar  videos , por ejemplo subtitulos sincronizados?",
-      "description": "Incluye opciones para clarificar el lenguaje oral, escrito y matemático. Por ejemplo, utilizando: glosario, traductor, conversor de texto a voz, imágenes, audiodescripciones, subtítulos en vídeos, calculadora, etc.",
+      "description": "Incluye opciones para clarificar el lenguaje oral, escrito y matemático. Por ejemplo, utilizando: glosario, traductor, conversor de texto a voz, imágenes, audio descripciones, subtítulos en vídeos, calculadora, etc.",
       "metadata": "accessibilityFeature:captions",
-      "interpreter_st_yes": "Presenta opciones que permiten la comprension de videos como los subtitulos sincronizados",
-      "interpreter_st_no": "Los videos no contiene subtitulos sincornizados que faciliten su comprension",
-      "interpreter_st_partially": "Los videos del contenido no estan completamente subtitulados",
+      "interpreter_st_yes": "Presenta opciones que permiten la comprensión de videos como los subtítulos sincronizados",
+      "interpreter_st_no": "Los videos no contiene subtítulos sincronizados que faciliten su comprensión",
+      "interpreter_st_partially": "Los videos del contenido no están completamente subtitulados",
       "value_st_importance": "0",
       "guideline": 2
     }
@@ -475,8 +475,8 @@
       "description": "Incluye opciones para clarificar el lenguaje oral, escrito y matemático. Por ejemplo, utilizando: glosario, traductor, conversor de texto a voz, imágenes, audiodescripciones, subtítulos en vídeos, calculadora, etc.",
       "metadata": "accessibilityFeature:audioDescription",
       "interpreter_st_yes": "Presenta opciones que ayudan en la comprension de videos como son las audiodescripciones",
-      "interpreter_st_no": "Los videos no contienen audiodescripciones que faciliten su comprension",
-      "interpreter_st_partially": "Las audiodescripciones no estan presentes en la mayoria de sus videos",
+      "interpreter_st_no": "Los videos no contienen audiodescripciones que faciliten su comprensión",
+      "interpreter_st_partially": "Las audiodescripciones no están presentes en la mayoria de sus videos",
       "value_st_importance": "0",
       "guideline": 2
     }
@@ -499,12 +499,12 @@
     "model": "evaluation_student.question",
     "pk": 9,
     "fields": {
-      "question": "¿Los encabezados o etiquetas estan acordes al tema principal?",
+      "question": "¿Los encabezados o etiquetas están acordes al tema principal?",
       "description": "Se etiquetan convenientemente los elementos multimedia (título, descripción de imágenes o vídeo, autoría…).",
       "metadata": "accessibilityfeature:readingOrder",
       "interpreter_st_yes": "Sus etiquetas y/o encabezados concuerdan con el tema principal del objeto",
-      "interpreter_st_no": "El tema principal no esta acorde a sus etiquetas y/o encabezados",
-      "interpreter_st_partially": "El tema principal de su contenido no esta referenciado completamente en sus encabesados y/o etiquetas",
+      "interpreter_st_no": "El tema principal no está acorde a sus etiquetas y/o encabezados",
+      "interpreter_st_partially": "El tema principal de su contenido no está referenciado completamente en sus encabezados y/o etiquetas",
       "value_st_importance": "0",
       "guideline": 2
     }
@@ -516,9 +516,9 @@
       "question": "¿Se apoya la información teórica con ejemplos ,  opciones  de  ayuda, resúmenes, entre otros?",
       "description": "Se apoya la información teórica con ejemplos, analogías, resúmenes, documentos complementarios y/o simulaciones",
       "metadata": "accessibilityFeature:annotations",
-      "interpreter_st_yes": "La informacion del contenido cuenta con documentos complementarios,analogias, resumenes, ejemplos, que apoyan el desarrollo de su contenido",
-      "interpreter_st_no": "El contenido no presenta una informacion complementaria de apoyo o base, como lo son resumenes, ejemplos o documentos extras.",
-      "interpreter_st_partially": "Existe muy poca informacion complementaria dentro de su contenido ",
+      "interpreter_st_yes": "La información del contenido cuenta con documentos complementarios, analogías, resúmenes, ejemplos, que apoyan el desarrollo de su contenido",
+      "interpreter_st_no": "El contenido no presenta una información complementaria de apoyo o base, como lo son resúmenes, ejemplos o documentos extras.",
+      "interpreter_st_partially": "Existe muy poca información complementaria dentro de su contenido ",
       "value_st_importance": "0",
       "guideline": 3
     }
@@ -527,12 +527,12 @@
     "model": "evaluation_student.question",
     "pk": 11,
     "fields": {
-      "question": "¿Incluye enlaces de consulta o ampliación que permite  acceder directamente a la informacion?",
+      "question": "¿Incluye enlaces de consulta o ampliación que permite  acceder directamente a la información?",
       "description": "Incluye enlaces de consulta o ampliación, que deben abrirse en ventana nueva de navegación.",
       "metadata": "accessibilityFeature:bookmarks",
-      "interpreter_st_yes": "Cuenta con elaces de consulta o ampliacion que accede directamente a la informacion si es que el usuario lo require",
-      "interpreter_st_no": "No existe ningun tipo enlaces de consulta que ayude al usuario a acceder directamente a la informacion",
-      "interpreter_st_partially": "Contiene  muy pocos enlaces de consullta que den acceso directo a la informacion ",
+      "interpreter_st_yes": "Cuenta con enlaces de consulta o ampliación que accede directamente a la información si es que el usuario lo requiere",
+      "interpreter_st_no": "No existe ningún tipo enlaces de consulta que ayude al usuario a acceder directamente a la información",
+      "interpreter_st_partially": "Contiene  muy pocos enlaces de consulta que den acceso directo a la información ",
       "value_st_importance": "0",
       "guideline": 3
     }
@@ -544,9 +544,9 @@
       "question": "¿Existe material digital  variado?",
       "description": "Los materiales, todos o en parte, se pueden consultar en formato digital y analógico",
       "metadata": "creativework:LearningResource:learningResourceType",
-      "interpreter_st_yes": "Todo los materiales del contenido permiten ser consultados tanto en formato digital como analogico",
-      "interpreter_st_no": "Los materiales de su contenido no permiten ser consultados de forma digital como analogico",
-      "interpreter_st_partially": "Solo una parte de sus materias permite ser consultada en formato digital o analogico",
+      "interpreter_st_yes": "Todo los materiales del contenido permiten ser consultados tanto en formato digital como analógico",
+      "interpreter_st_no": "Los materiales de su contenido no permiten ser consultados de forma digital como analógico",
+      "interpreter_st_partially": "Solo una parte de sus materias permite ser consultada en formato digital o analógico",
       "value_st_importance": "0",
       "guideline": 4
     }
@@ -555,12 +555,12 @@
     "model": "evaluation_student.question",
     "pk": 13,
     "fields": {
-      "question": "¿Posibilita el uso de ayudas técnicas si fuesen necesarias, por ejemplo se puede navegar secuenciamente sobre el contenido utilizando unicamente el teclado?",
+      "question": "¿Posibilita el uso de ayudas técnicas si fuesen necesarias, por ejemplo se puede navegar secuencialmente sobre el contenido utilizando únicamente el teclado?",
       "description": "Posibilita el uso de ayudas técnicas si fuesen necesarias",
       "metadata": "accessibilityControl:fullkeyboardcontrol",
-      "interpreter_st_yes": "Contiene varias tenicas de ayuda para el usuarios en caso de que se requieran, como la navegacion secunecial metiante teclado",
-      "interpreter_st_no": "No posee ningun tipo de tecnicas que ayuden en la navegacion secuencial del contenido por teclado",
-      "interpreter_st_partially": "Las tecnicas de navegacion sobre su contenido mediante teclado son poco implementadas",
+      "interpreter_st_yes": "Contiene varias técnicas de ayuda para el usuarios en caso de que se requieran, como la navegación secuencial mediante teclado",
+      "interpreter_st_no": "No posee ningún tipo de técnicas que ayuden en la navegación secuencial del contenido por teclado",
+      "interpreter_st_partially": "Las técnicas de navegación sobre su contenido mediante teclado son poco implementadas",
       "value_st_importance": "0",
       "guideline": 4
     }
@@ -586,9 +586,9 @@
       "question": "¿Hay actividades de realización individual y colectivas?",
       "description": "Hay actividades de realización individual y colectivas",
       "metadata": "creativework:interactivityType:active,expositive,mixed",
-      "interpreter_st_yes": "La informacion del contenido implementa multiples actividades de relacion individual y colectiva",
-      "interpreter_st_no": "No se hace uso las actividades de relacion individual y colectiva",
-      "interpreter_st_partially": "Las actividades de relacion individual y colectiva son poco frecuentemente usadas en su contenido de informacion",
+      "interpreter_st_yes": "La información del contenido implementa múltiples actividades de relación individual y colectiva",
+      "interpreter_st_no": "No se hace uso las actividades de relación individual y colectiva",
+      "interpreter_st_partially": "Las actividades de relación individual y colectiva son poco frecuentemente usadas en su contenido de información",
       "value_st_importance": "0",
       "guideline": 5
     }
@@ -602,7 +602,7 @@
       "metadata": "creativework:LearningResource:educationalUse",
       "interpreter_st_yes": "El contenido permite una amplia libertad de selección de opciones en cuanto a actividades, materiales y/o herramientas",
       "interpreter_st_no": "Su contenido no brinda una libertad en la selección de las activiades que puede realizar",
-      "interpreter_st_partially": "Las actividades pocas veces permiten una opcion de selección de estas",
+      "interpreter_st_partially": "Las actividades pocas veces permiten una opción de selección de estas",
       "value_st_importance": "0",
       "guideline": 5
     }
@@ -614,9 +614,9 @@
       "question": "¿El estudiante conocen los objetivos de aprendizaje y las normas de funcionamiento, desde el principio?",
       "description": "Los alumnos saben lo que se espera de ellos; es decir, conocen los objetivos de aprendizaje y las normas de funcionamiento, desde el principio",
       "metadata": "creativework:LearningResource:competencyRequired",
-      "interpreter_st_yes": "Los usuarios de su contenido de informcion comprendieron desde el principio lo que se espera de ellos, es decir conocen el objeto y sus normas",
-      "interpreter_st_no": "Su contenido de informacion no es coherente por lo que sus usuarios no comprenden su tema principal",
-      "interpreter_st_partially": "El contenido de informacion de su objeto de aprendizaje  es poco coherente en algunas partes",
+      "interpreter_st_yes": "Los usuarios de su contenido de información comprendieron desde el principio lo que se espera de ellos, es decir conocen el objeto y sus normas",
+      "interpreter_st_no": "Su contenido de información no es coherente por lo que sus usuarios no comprenden su tema principal",
+      "interpreter_st_partially": "El contenido de información de su objeto de aprendizaje  es poco coherente en algunas partes",
       "value_st_importance": "0",
       "guideline": 6
     }
@@ -625,12 +625,12 @@
     "model": "evaluation_student.question",
     "pk": 18,
     "fields": {
-      "question": "¿El recurso ofrece ejemplos, plantillas, tutoriales, consejos, autocorrectores y/o modelos de apoyo?",
+      "question": "¿El recurso ofrece ejemplos, plantillas, tutoriales, consejos, auto correctores y/o modelos de apoyo?",
       "description": "Ofrece ejemplos, plantillas, tutoriales, consejos, autocorrectores y/o modelos de apoyo",
       "metadata": "creativework:LearningResource:educationalUse",
-      "interpreter_st_yes": "La informacion del contenido brinda adecuadamente ejemplos acordes a su tema, como tutoriales,consejos yo modelos de apoyo",
+      "interpreter_st_yes": "La información del contenido brinda adecuadamente ejemplos acordes a su tema, como tutoriales, consejos yo modelos de apoyo",
       "interpreter_st_no": "No implementa ejemplos adecuados a su tema principal.",
-      "interpreter_st_partially": "Su informacion de contenido pocas veces brinda ejemplos acordes a su tema principal",
+      "interpreter_st_partially": "Su información de contenido pocas veces brinda ejemplos acordes a su tema principal",
       "value_st_importance": "0",
       "guideline": 6
     }
@@ -639,11 +639,11 @@
     "model": "evaluation_student.question",
     "pk": 19,
     "fields": {
-      "question": "¿Se facilitan herramientas de autocontrol: lista de cotejo, cronómetro, preguntas clave, autoinstrucciones, etc?",
-      "description": "Se facilitan herramientas de autocontrol: lista de cotejo, cronómetro, preguntas clave, autoinstrucciones, etc",
+      "question": "¿Se facilitan herramientas de autocontrol: lista de cotejo, cronómetro, preguntas clave, auto instrucciones, etc?",
+      "description": "Se facilitan herramientas de autocontrol: lista de cotejo, cronómetro, preguntas clave, auto instrucciones, etc",
       "metadata": "creativework:interactivityType:active,expositive,mixed",
-      "interpreter_st_yes": "La informacion del contenido facilita el uso de herramientas de autocontrol como las preguntas clave y/o autoinstrucciones",
-      "interpreter_st_no": "Su informacion no facilita ningun medio y/o herramienta de autocontrol",
+      "interpreter_st_yes": "La información del contenido facilita el uso de herramientas de autocontrol como las preguntas clave y/o auto instrucciones",
+      "interpreter_st_no": "Su información no facilita ningún medio y/o herramienta de autocontrol",
       "interpreter_st_partially": "Una herramienta de autocontrol para su contenido se ve muy poco implementada",
       "value_st_importance": "0",
       "guideline": 6
@@ -656,9 +656,9 @@
       "question": "¿Incluye títulos sugerentes y/o diferentes formas para suscitar la curiosidad?",
       "description": "Incluye títulos sugerentes y/o diferentes formas para suscitar la curiosidad: retos, desafíos, efectos sorpresa, personajes de ayuda, enigmas, incógnitas, trucos, candados que abrir, pruebas que superar, curiosidades",
       "metadata": "accessibilityFeature:structuralNavigation",
-      "interpreter_st_yes": "Su contenido emplea informacion sugerente y/o llamativa correctamente lo que susita adecuadamente la curiosidad de a quienes esta dirijido",
-      "interpreter_st_no": "Su contenido no fomenta adecuadamente la curiosidad de a quienes esta dirijido",
-      "interpreter_st_partially": "Su contenido emplea pocas veces informacion llamativa que susite la curiosidad de sus destinatarios",
+      "interpreter_st_yes": "Su contenido emplea información sugerente y/o llamativa correctamente lo que suscita adecuadamente la curiosidad de a quienes esta dirijido",
+      "interpreter_st_no": "Su contenido no fomenta adecuadamente la curiosidad de a quienes está dirigido",
+      "interpreter_st_partially": "Su contenido emplea pocas veces información llamativa que suscite la curiosidad de sus destinatarios",
       "value_st_importance": "0",
       "guideline": 7
     }
@@ -667,12 +667,12 @@
     "model": "evaluation_student.question",
     "pk": 21,
     "fields": {
-      "question": "¿Existe un opcion para describir de manera mas simple un texto o palabra?",
+      "question": "¿Existe un opción para describir de manera mas simple un texto o palabra?",
       "description": "La redacción utiliza un lenguaje cercano al argot de los destinatarios. Ejemplo: redacción en primera persona del plural, vocabulario comprensible, etc",
       "metadata": "alignment_types:textcomplexity,complexitylevel",
       "interpreter_st_yes": "La redaccion de la informacion utiliza correctamente un lenguaje comprensible y cercano al de los destinatarios",
-      "interpreter_st_no": "Su redaccion no esta acorde al un lenguaje comprensible y cercano de los destinatarios",
-      "interpreter_st_partially": "La redaccion de la informacion en algunas secciones no esta no es completamente cercano y/o comprensible al lenguaje de los destinatarios",
+      "interpreter_st_no": "Su redacción no está acorde a un lenguaje comprensible y cercano de los destinatarios",
+      "interpreter_st_partially": "La redacción de la información en algunas secciones no esta no es completamente cercano y/o comprensible al lenguaje de los destinatarios",
       "value_st_importance": "0",
       "guideline": 7
     }
@@ -684,9 +684,9 @@
       "question": "¿Prima el papel activo del alumno, mediante el uso de metodologías activas y aprendizaje cooperativo?",
       "description": "Prima el papel activo del alumno, mediante el uso de metodologías activas y aprendizaje cooperativo",
       "metadata": "creativework:LearningResource:educationalUse",
-      "interpreter_st_yes": "Las metodologias del contenido contribuyen adecuadamente en el papel actuvo del usuario",
-      "interpreter_st_no": "Sus metodologias no estan correctamente empleadas lo que priva del papel activo del usuarios",
-      "interpreter_st_partially": "El papel activo del usuarios se ve afectado ya que su metodologia no es completamente funcional en todo su contenido de informacion",
+      "interpreter_st_yes": "Las metodologías del contenido contribuyen adecuadamente en el papel activo del usuario",
+      "interpreter_st_no": "Sus metodologías no están correctamente empleadas lo que priva del papel activo del usuarios",
+      "interpreter_st_partially": "El papel activo del usuarios se ve afectado ya que su metodología no es completamente funcional en todo su contenido de información",
       "value_st_importance": "0",
       "guideline": 8
     }
@@ -698,9 +698,9 @@
       "question": "¿Se divide la meta en diferentes fases o submetas, de menor a mayor complejidad (andamiaje)?   ",
       "description": "Se divide la meta en diferentes fases o submetas, de menor a mayor complejidad (andamiaje).",
       "metadata": "creativework:interactivityType:active,expositive,mixed",
-      "interpreter_st_yes": "La meta final de su objeto se divede en faces de menor a mayor complejidad lo que facilita un seguimiento comprensible para el usuario",
+      "interpreter_st_yes": "La meta final de su objeto se divide en faces de menor a mayor complejidad lo que facilita un seguimiento comprensible para el usuario",
       "interpreter_st_no": "El objetivo final de recurso no cuenta con seguimiento correctamente estructurado para sus destinatarios",
-      "interpreter_st_partially": "Una division de faces de menor a mayor informacion del contenido es poco estructurada y usada para llegar a sus objetivos",
+      "interpreter_st_partially": "Una división de faces de menor a mayor información del contenido es poco estructurada y usada para llegar a sus objetivos",
       "value_st_importance": "0",
       "guideline": 8
     }
@@ -709,11 +709,11 @@
     "model": "evaluation_student.question",
     "pk": 24,
     "fields": {
-      "question": "¿Existe una opcion ayuda para el contenido en general en caso de requerirse?",
+      "question": "¿Existe una opción ayuda para el contenido en general en caso de requerirse?",
       "description": "Dispone de un feedback automático y correctivo en algunas actividades, orientado hacia la superación",
       "metadata": "accessibilityFeature:annotations",
-      "interpreter_st_yes": "Dispone de opciones automaticas adecuadas que permiten la correccion de las activiades en caso de requerirse  ",
-      "interpreter_st_no": "No existe ningun tipo opcion y/o herramienta que permita la correccion de sus actividades",
+      "interpreter_st_yes": "Dispone de opciones automáticas adecuadas que permiten la corrección de las actividades en caso de requerirse  ",
+      "interpreter_st_no": "No existe ningún tipo opción y/o herramienta que permita la corrección de sus actividades",
       "interpreter_st_partially": "Existe pocas opciones que brinden una correccion de sus actividades cuando se requiere",
       "value_st_importance": "0",
       "guideline": 8
@@ -726,9 +726,9 @@
       "question": "¿Existen diferentes instrumentos de evaluación?",
       "description": "Existen diferentes instrumentos de evaluación. Por ejemplo: lista de control, diana de aprendizaje, cuestionario o test, escalas de estimación, rúbricas de evaluación con diferentes niveles de logro",
       "metadata": "creativework:LearningResource:assesses",
-      "interpreter_st_yes": "Su contenido cuenta cn multiples formas de evaluacion y con diferentes niveles de logros de quienes son evaluados.",
-      "interpreter_st_no": "No cuenta con formas de evaluacion de su contenido de informacion",
-      "interpreter_st_partially": "Su conteido hace muy poco uso de las multiples formas de valuacion",
+      "interpreter_st_yes": "Su contenido cuenta con múltiples formas de evaluación y con diferentes niveles de logros de quienes son evaluados.",
+      "interpreter_st_no": "No cuenta con formas de evaluación de su contenido de informacion",
+      "interpreter_st_partially": "Su contenido hace muy poco uso de las multiples formas de valuacion",
       "value_st_importance": "0",
       "guideline": 9
     }
@@ -740,9 +740,9 @@
       "question": "¿Permite la autoevaluación y coevaluación?",
       "description": "Permite la autoevaluación y coevaluación.",
       "metadata": "creativework:LearningResource:educationalUse",
-      "interpreter_st_yes": "El objeto permite a sus destinatarios una correcta valoracion de sus conocimientos de la informacion presentada",
+      "interpreter_st_yes": "El objeto permite a sus destinatarios una correcta valoracion de sus conocimientos de la información presentada",
       "interpreter_st_no": "Su recurso no permite a sus destinatarios una autoevaluacion y/o coevaluacion que valore sus conocimientos",
-      "interpreter_st_partially": "Su contenido como tal emplea en pocas ocasiones medios de autoevaluacion y/o coevaluacion",
+      "interpreter_st_partially": "Su contenido como tal emplea en pocas ocasiones medios de autoevaluación y/o coevaluación",
       "value_st_importance": "0",
       "guideline": 9
     }
@@ -754,9 +754,9 @@
       "question": "¿Incluye acciones para potenciar la reflexión sobre el aprendizaje (diario o portafolio de aprendizaje?",
       "description": "Incluye acciones para potenciar la reflexión sobre el aprendizaje (diario o portafolio de aprendizaje).",
       "metadata": "creativework:LearningResource:educationalUse",
-      "interpreter_st_yes": "Permite a sus destinatarios profundizar en su conocimiento de la informacion lo que ayuda a su organización y/o comprender si realmente entienden un tema principal.",
-      "interpreter_st_no": "Su recurso no permite que sus destinatarios reflexionen sobre su contenido de informacion, por lo cual no podriamos saber si comprendieron realmente el tema.",
-      "interpreter_st_partially": "El recurso emplea pocas veces una reflexion del destinatario sobre el aprendizaje",
+      "interpreter_st_yes": "Permite a sus destinatarios profundizar en su conocimiento de la información lo que ayuda a su organización y/o comprender si realmente entienden un tema principal.",
+      "interpreter_st_no": "Su recurso no permite que sus destinatarios reflexionen sobre su contenido de información, por lo cual no podriamos saber si comprendieron realmente el tema.",
+      "interpreter_st_partially": "El recurso emplea pocas veces una reflexión del destinatario sobre el aprendizaje",
       "value_st_importance": "0",
       "guideline": 9
     }
@@ -1088,7 +1088,7 @@
       "description": "Contenido no textual",
       "interpreter_yes": "Las imágenes implementan correctamente el texto alternativo",
       "interpreter_no": "Las imágenes no contiene un texto alternativo adecuado",
-      "interpreter_partially": "El texto alternativo es poco implementado dentro de las imagenes",
+      "interpreter_partially": "El texto alternativo es poco implementado dentro de las imágenes",
       "value_importance": "0",
       "code": "RDV1",
       "evaluation_concept": 1
@@ -1098,12 +1098,12 @@
     "model": "evaluation_collaborating_expert.evaluationquestion",
     "pk": 2,
     "fields": {
-      "question": "¿Exiten imágenes que poseen texto incrustado y consideran una adecuada descripción?",
+      "question": "¿Existen imágenes que poseen texto incrustado y consideran una adecuada descripción?",
       "description": "Imágenes de texto",
       "schema": "accessibilityFeature:longdescription,alternativeText",
       "interpreter_yes": "Las imágenes tiene texto incrustado con adecuada descripción",
-      "interpreter_no": "Las imágenesn no tiene texto incrustado con una descripcion ",
-      "interpreter_partially": "La imagenes con texto incrustado no siempre presentan una adecuada descripción",
+      "interpreter_no": "Las imágenes no tiene texto incrustado con una descripcion ",
+      "interpreter_partially": "La imágenes con texto incrustado no siempre presentan una adecuada descripción",
       "value_importance": "0",
       "code": "RDV2",
       "evaluation_concept": 1
@@ -1117,7 +1117,7 @@
       "description": "Audio solo o vídeo solo (grabado)",
       "schema": "accessMode:auditory",
       "interpreter_yes": "Presenta un amplio contenido de audio y/o video",
-      "interpreter_no": "No prensenta ningun tipo de contenido de audio y/o video",
+      "interpreter_no": "No presenta ningún tipo de contenido de audio y/o video",
       "interpreter_partially": "Los contenidos de audio y/o video son escasos",
       "value_importance": "0",
       "code": "RDA1",
@@ -1133,7 +1133,7 @@
       "schema": "accessibilityFeature:captions",
       "interpreter_yes": "Los videos de su contenido cuentan con subtitulos sincronizados",
       "interpreter_no": "Los videos de su contenido no cuentan con subtitulos sincronizado",
-      "interpreter_partially": "Los subtitulos sincronizados no se encuentran presentes en la mayor parte de su contenido",
+      "interpreter_partially": "Los subtítulos sincronizados no se encuentran presentes en la mayor parte de su contenido",
       "value_importance": "0",
       "code": "RDA2",
       "evaluation_concept": 2
@@ -1147,7 +1147,7 @@
       "description": "Características sensoriales",
       "schema": "accesMode:textual",
       "interpreter_yes": "El contenido es mayoritariamente textual",
-      "interpreter_no": "El contenido no presenta ningun tipo de informacion textual",
+      "interpreter_no": "El contenido no presenta ningún tipo de información textual",
       "interpreter_partially": "El contenido de información textual no es muy amplio",
       "value_importance": "0",
       "code": "RDT1",
@@ -1161,9 +1161,9 @@
       "question": "¿El contenido textual contiene títulos, descripciones o enlaces adecuados?",
       "description": "Propósito de los enlaces (en contexto)",
       "schema": "accessibilityFeature:structuralNavigation",
-      "interpreter_yes": "Su contenido textual contiene titulos, descripciones con enlaces  adecuados",
-      "interpreter_no": "Su contenido textual no contiene ningun tipo de titulos y/o descripciones con enlaces adecuados",
-      "interpreter_partially": "Parte de su contenido textual contiene titulos, descripciones adecuadas",
+      "interpreter_yes": "Su contenido textual contiene títulos, descripciones con enlaces  adecuados",
+      "interpreter_no": "Su contenido textual no contiene ningún tipo de títulos y/o descripciones con enlaces adecuados",
+      "interpreter_partially": "Parte de su contenido textual contiene títulos, descripciones adecuadas",
       "value_importance": "0",
       "code": "RDT2",
       "evaluation_concept": 3
@@ -1178,7 +1178,7 @@
       "schema": "accessibilityHazard:flashingHazard",
       "interpreter_yes": "El contenido no traspasa el umbral de destello general y de destello rojo",
       "interpreter_no": "El contenido si traspasa el umbral de destello general y de destello rojo",
-      "interpreter_partially": "Existe una sierta cantidad de peligro de umbral de destello general y de destello rojo",
+      "interpreter_partially": "Existe una cierta cantidad de peligro de umbral de destello general y de destello rojo",
       "value_importance": "0",
       "code": "RI1",
       "evaluation_concept": 4
@@ -1192,7 +1192,7 @@
       "description": "Animaciones desde interacciones",
       "schema": "accessibilityHazard:nomotionsimulationHazard",
       "interpreter_yes": "Cuenta con un mecanismo de control de animaciones para activarlas o desactivarlas",
-      "interpreter_no": "No cuenta con ningun tipo de control de animaciones para activarlas o desactivarlas",
+      "interpreter_no": "No cuenta con ningún tipo de control de animaciones para activarlas o desactivarlas",
       "interpreter_partially": "Un mecanismo de control de animaciones es poco implementado dentro de su contenido",
       "value_importance": "0",
       "code": "RI2",
@@ -1206,8 +1206,8 @@
       "question": "¿Se puede navegar secuencialmente sobre el contenido utilizando únicamente el teclado?",
       "description": "Teclado",
       "schema": "accessibilityControl:fullkeyboardcontrol",
-      "interpreter_yes": "Todo su contenido permite una navegacion secuencial con teclado",
-      "interpreter_no": "El contenido no permite una navegacion secuencial mediante el uso de teclado",
+      "interpreter_yes": "Todo su contenido permite una navegación secuencial con teclado",
+      "interpreter_no": "El contenido no permite una navegación secuencial mediante el uso de teclado",
       "interpreter_partially": "Parte de su contenido permite el uso de una navegacion secuencial mediante teclado",
       "value_importance": "0",
       "code": "RI3",
@@ -1222,8 +1222,8 @@
       "description": "Actuación de movimiento",
       "schema": "accessibilityControl:fullmousecontrol",
       "interpreter_yes": "El contenido en general permite su uso mediante un control total con ratón",
-      "interpreter_no": "Ninguna seccion de su contenido permite el control total mediante raton",
-      "interpreter_partially": "Parte de su contenido permite el control total mediante raton",
+      "interpreter_no": "Ninguna sección de su contenido permite el control total mediante ratón",
+      "interpreter_partially": "Parte de su contenido permite el control total mediante ratón",
       "value_importance": "0",
       "code": "RI4",
       "evaluation_concept": 4
@@ -1252,7 +1252,7 @@
       "description": "Contraste mejorado",
       "schema": "accessibilityFeature:highContrastDisplay",
       "interpreter_yes": "Cumple con los contraste optimos en el contenido visual",
-      "interpreter_no": "Su contenido de informacion no cumple con los contraste optimos del contenido visual",
+      "interpreter_no": "Su contenido de información no cumple con los contraste optimos del contenido visual",
       "interpreter_partially": "Parte de su contenido cumple con contrastes optimos del contenido visual",
       "value_importance": "0",
       "code": "RDV4",
@@ -1267,7 +1267,7 @@
       "description": "Características sensoriales",
       "schema": "accessMode:visual",
       "interpreter_yes": "El contenido es mayoritariamente visual",
-      "interpreter_no": "No presenta ningun tipo de contenido visual",
+      "interpreter_no": "No presenta ningún tipo de contenido visual",
       "interpreter_partially": "Su objeto cuenta con poco contenido visual",
       "value_importance": "0",
       "code": "RDV5",
@@ -1298,7 +1298,7 @@
       "schema": "accessibilityFeature:ttsMarkup",
       "interpreter_yes": "Presenta correctamente medios interactivos alternos en contenidos de audio y/o video",
       "interpreter_no": "No Contiene medios interactivos alternos en contenidos de audio y/o video",
-      "interpreter_partially": "Parte del contenido presentena medios interactivos alternos en contenidos de audio y/o video",
+      "interpreter_partially": "Parte del contenido presenten medios interactivos alternos en contenidos de audio y/o video",
       "value_importance": "0",
       "code": "RDA4",
       "evaluation_concept": 2
@@ -1311,9 +1311,9 @@
       "question": "¿Existe una interpretación de lenguaje de señas en los contenidos de audio/ video?",
       "description": "Audio sincronizado con lengua de signos (grabado)",
       "schema": "accessibilityFeature:signLanguage",
-      "interpreter_yes": "Contiene una correcta interpretacion del lenguaje de señas en contenidos de audio y/o video",
-      "interpreter_no": "No presenta una correcta interpretacion del lenguaje de señas en contenidos de audio y/o video",
-      "interpreter_partially": "Una correcta interpretacion del lenguaje de señas no esta presente en todo su contenido de audio y/o video ",
+      "interpreter_yes": "Contiene una correcta interpretación del lenguaje de señas en contenidos de audio y/o video",
+      "interpreter_no": "No presenta una correcta interpretación del lenguaje de señas en contenidos de audio y/o video",
+      "interpreter_partially": "Una correcta interpretación del lenguaje de señas no está presente en todo su contenido de audio y/o video ",
       "value_importance": "0",
       "code": "RDA5",
       "evaluation_concept": 2
@@ -1327,8 +1327,8 @@
       "description": "Control del audio",
       "schema": "accessibilityFeature:higtcontrastaudio",
       "interpreter_yes": "Permite adecuadamente un con control de volumen de sus contenidos multimedia",
-      "interpreter_no": "No existe ningun tipo de control de volumen de sus contenidos multimedia",
-      "interpreter_partially": "Parte de su contenido permite un control de volumen de sus contenidos multimedi",
+      "interpreter_no": "No existe ningún tipo de control de volumen de sus contenidos multimedia",
+      "interpreter_partially": "Parte de su contenido permite un control de volumen de sus contenidos multimedia",
       "value_importance": "0",
       "code": "RDA6",
       "evaluation_concept": 2
@@ -1342,7 +1342,7 @@
       "description": "Sonido de fondo bajo o ausente",
       "schema": "accessibilityFeature:highContrastAudio_switchableBackground",
       "interpreter_yes": "Su contenido de fondo cuenta adecuadamente con la opcion de control de sonido",
-      "interpreter_no": "No presenta ninguna opcion que permita controlar el sonido de fondo presente",
+      "interpreter_no": "No presenta ninguna opción que permita controlar el sonido de fondo presente",
       "interpreter_partially": "Existe pocos mecanismos que permitan un control de sonido de fondo",
       "value_importance": "0",
       "code": "RDA8",
@@ -1357,7 +1357,7 @@
       "description": "Características sensoriales",
       "schema": "accessMode:auditory",
       "interpreter_yes": "El contenido es mayoritariamente auditivo",
-      "interpreter_no": "El contenido no presenta ningun tipo de informacion auditiva",
+      "interpreter_no": "El contenido no presenta ningún tipo de información auditiva",
       "interpreter_partially": "Existe muy poco contenido auditivo",
       "value_importance": "0",
       "code": "RDA9",
@@ -1372,7 +1372,7 @@
       "description": "Audio descripción o Medio Alternativo (grabado):",
       "schema": "accessibilityFeature:synchronizedAudioText",
       "interpreter_yes": "Los videos cuentan con texto sincronizado para facilitar seguimiento",
-      "interpreter_no": "Sus videos no cuentan con ningun texto sincronizado que facilite el seguimiento",
+      "interpreter_no": "Sus videos no cuentan con ningún texto sincronizado que facilite el seguimiento",
       "interpreter_partially": "Parte de su contenido de videos presenta un texto sincronizado que facilite el seguimiento",
       "value_importance": "0",
       "code": "RDA10",
@@ -1401,9 +1401,9 @@
       "question": "¿Los encabezados y/o etiquetas están acordes al tema principal?",
       "description": "Encabezados y etiquetas",
       "schema": "accessibilityFeature:readingOrder",
-      "interpreter_yes": "Sus encabezados y/o etiquetas estan acordes al tema principal de su contenido",
-      "interpreter_no": "Sus encabezados y/o etiquetas no estan acordes al tema principal de su contenido",
-      "interpreter_partially": "Parte de sus encabezados y/o etiquetas estan acordes al tema principal de su contenido",
+      "interpreter_yes": "Sus encabezados y/o etiquetas están acordes al tema principal de su contenido",
+      "interpreter_no": "Sus encabezados y/o etiquetas no están acordes al tema principal de su contenido",
+      "interpreter_partially": "Parte de sus encabezados y/o etiquetas están acordes al tema principal de su contenido",
       "value_importance": "0",
       "code": "RDT3",
       "evaluation_concept": 3
@@ -1417,7 +1417,7 @@
       "description": "Identificación de errores:",
       "schema": "accessibilityFeature:annotations",
       "interpreter_yes": "Contiene opciones de ayuda para el contenido en general, en caso de requerirse",
-      "interpreter_no": "No cuenta con ningun tipo opcion de ayuda para el contenido en general, en caso de requerirse",
+      "interpreter_no": "No cuenta con ningún tipo opción de ayuda para el contenido en general, en caso de requerirse",
       "interpreter_partially": "Presenta pocas opciones de ayuda para el contenido en general, en caso de requerirse",
       "value_importance": "0",
       "code": "RDT4",
@@ -1461,9 +1461,9 @@
       "question": "¿La estructura de navegación permite acceder de diferentes maneras?",
       "description": "Información y relaciones",
       "schema": "accessibilityFeature:structuralNavigation,index",
-      "interpreter_yes": "Contiene una navegacion estructurada con diferentes maneras de acceso",
-      "interpreter_no": "No posee una correcta navegacion estructurada con diferentes maneras de acceso",
-      "interpreter_partially": "Parte de su contenido implementa una navegacion estructurada con diferente maneras de acceso",
+      "interpreter_yes": "Contiene una navegación estructurada con diferentes maneras de acceso",
+      "interpreter_no": "No posee una correcta navegación estructurada con diferentes maneras de acceso",
+      "interpreter_partially": "Parte de su contenido implementa una navegación estructurada con diferente maneras de acceso",
       "value_importance": "0",
       "code": "RDT7",
       "evaluation_concept": 3
@@ -1491,9 +1491,9 @@
       "question": "¿Se puede acceder directamente a la información principal del contenido?",
       "description": "Evitar bloques",
       "schema": "accessibilityFeature:bookmarks",
-      "interpreter_yes": "Permite un acceso rapido a la informacion principal del contenido",
-      "interpreter_no": "No se puede acceder de forma rapida a la informacion principal del contenido",
-      "interpreter_partially": "En pocas opciones se permite acceder de forma rapida a la informacion principal del contenido ",
+      "interpreter_yes": "Permite un acceso rápido a la información principal del contenido",
+      "interpreter_no": "No se puede acceder de forma rápida a la información principal del contenido",
+      "interpreter_partially": "En pocas opciones se permite acceder de forma rápida a la información principal del contenido ",
       "value_importance": "0",
       "code": "RDT9",
       "evaluation_concept": 3
@@ -1506,9 +1506,9 @@
       "question": "¿El contenido textual en otros idiomas es coherente y comprensible?",
       "description": "Idioma de las partes de la página",
       "schema": "creativework:inLanguage",
-      "interpreter_yes": "El contenido textual en otros idiomas es coerente y comprensible",
-      "interpreter_no": "Su contenido textual en otros idiomas no es nada coerente ni comprensible",
-      "interpreter_partially": "Solo una parte de su contenido textual en otros idiomas es coerente y comprensible",
+      "interpreter_yes": "El contenido textual en otros idiomas es coherente y comprensible",
+      "interpreter_no": "Su contenido textual en otros idiomas no es nada coherente ni comprensible",
+      "interpreter_partially": "Solo una parte de su contenido textual en otros idiomas es coherente y comprensible",
       "value_importance": "0",
       "code": "RDT10",
       "evaluation_concept": 3
@@ -1521,9 +1521,9 @@
       "question": "¿Se cumple con contrastes óptimos en la presentación del contenido de texto y fondo?",
       "description": "Contraste mínimo",
       "schema": "accessibilityFeature:highContrastDisplay",
-      "interpreter_yes": "Cumple con los contraste optimos en el contenido textual y de fondo",
-      "interpreter_no": "No cumple con los contraste optimos en el contenido textual y de fondo",
-      "interpreter_partially": "Parte del contenido textual y de fondo cumple con los contraste optimos",
+      "interpreter_yes": "Cumple con los contraste óptimos en el contenido textual y de fondo",
+      "interpreter_no": "No cumple con los contraste óptimos en el contenido textual y de fondo",
+      "interpreter_partially": "Parte del contenido textual y de fondo cumple con los contraste óptimos",
       "value_importance": "0",
       "code": "RDT11",
       "evaluation_concept": 3
@@ -1578,7 +1578,7 @@
     "pk": 5,
     "fields": {
       "schema": "accessMode:visual",
-      "description": "Informacion Visual",
+      "description": "Información Visual",
       "value_importance_schema": "0",
       "code": "RDV5",
       "evaluation_concept": 1
@@ -1589,7 +1589,7 @@
     "pk": 6,
     "fields": {
       "schema": "accessModeSufficient:visual",
-      "description": "Informacion visual minima",
+      "description": "Información visual mínima",
       "value_importance_schema": "0",
       "code": "RDV6",
       "evaluation_concept": 1
@@ -1600,7 +1600,7 @@
     "pk": 7,
     "fields": {
       "schema": "accessMode:auditory",
-      "description": "Informacion auditiva",
+      "description": "Información auditiva",
       "value_importance_schema": "0",
       "code": "RDA1",
       "evaluation_concept": 2
@@ -1611,7 +1611,7 @@
     "pk": 8,
     "fields": {
       "schema": "accessibilityFeature:captions",
-      "description": "Subtitulos",
+      "description": "Subtítulos",
       "value_importance_schema": "0",
       "code": "RDA2",
       "evaluation_concept": 2
@@ -1798,7 +1798,7 @@
     "pk": 25,
     "fields": {
       "schema": "accessibilityFeature:index",
-      "description": "Indice",
+      "description": "Índice",
       "value_importance_schema": "0",
       "code": "R8",
       "evaluation_concept": 3
@@ -1842,7 +1842,7 @@
     "pk": 29,
     "fields": {
       "schema": "accessModeSufficient:textual",
-      "description": "Mode de acceso suficiente textual",
+      "description": "Modo de acceso suficiente textual",
       "value_importance_schema": "0",
       "code": "R12",
       "evaluation_concept": 3

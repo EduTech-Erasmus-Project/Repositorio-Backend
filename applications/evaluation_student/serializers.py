@@ -1,5 +1,5 @@
 from rest_framework.validators import UniqueValidator
-from roabackend.settings import CALIFICATION_OPTIONS, YES,NO
+from roabackend.settings import CALIFICATION_OPTIONS, YES,NO, NOT_APPLY
 from applications.learning_object_metadata.models import LearningObjectMetadata
 from applications.evaluation_student.models import EvaluationGuidelineQualification, EvaluationPrincipleQualification, EvaluationQuestionQualification, Guideline, Principle, Question, StudentEvaluation
 from rest_framework import serializers
@@ -16,6 +16,7 @@ class StudentQuestionSerializer(serializers.ModelSerializer):
             'interpreter_st_yes',
             'interpreter_st_no',
             'interpreter_st_partially',
+            'interpreter_st_not_apply',
             'value_st_importance'
             )
 
@@ -111,6 +112,7 @@ class EvaluationQuestionStRegisterSerializer(serializers.Serializer):
     interpreter_st_yes = serializers.CharField(required=True)
     interpreter_st_no = serializers.CharField(required=True)
     interpreter_st_partially = serializers.CharField(required=True)
+    interpreter_st_not_apply = serializers.CharField(required=True)
     value_st_importance = serializers.CharField(required=True)
     ###################################################
 
@@ -176,6 +178,8 @@ class EvaluationQuestionEstudentQualificationSerializer(serializers.ModelSeriali
             return CALIFICATION_OPTIONS['YES']
         elif obj.qualification is not None and obj.qualification==NO:
             return CALIFICATION_OPTIONS['NO']
+        elif obj.qualification is not None and obj.qualification == NOT_APPLY:
+            return CALIFICATION_OPTIONS['NOT_APPLY']
         else:
             return CALIFICATION_OPTIONS['PARTIALLY']
 
@@ -279,11 +283,14 @@ class QuestionSerializer(serializers.ModelSerializer):
             return ""
     def get_question_id(self, obj):
         return obj.evaluation_question.id
+
     def get_qualification(self,obj):
         if obj.qualification is not None and obj.qualification==YES:
             return CALIFICATION_OPTIONS['YES']
         elif obj.qualification is not None and obj.qualification==NO:
             return CALIFICATION_OPTIONS['NO']
+        elif obj.qualification is not None and obj.qualification == NOT_APPLY:
+            return CALIFICATION_OPTIONS['NOT_APPLY']
         else:
             return CALIFICATION_OPTIONS['PARTIALLY']
 
@@ -357,7 +364,7 @@ class EvaluationPrincipleGuidelineRegSchemaListSerializer(serializers.ModelSeria
         'interpreter_st_yes',
         'interpreter_st_no',
         'interpreter_st_partially',
-        'interpreter_st_partially',
+        'interpreter_st_not_apply',
         'value_st_importance'
         )
 

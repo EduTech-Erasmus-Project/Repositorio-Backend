@@ -133,7 +133,6 @@ class StudentEvaluationView(viewsets.ViewSet):
                 if a.id==b.guideline_evaluations.id:
                     totalguideline+=b.qualification
                     cont+=1
-            #print("----------aaaaaa---",totalguideline,cont)
 
             h=(totalguideline*5)/(2*cont)
             a.average_guideline=h
@@ -143,19 +142,27 @@ class StudentEvaluationView(viewsets.ViewSet):
         
         totalprinciple=0
         ratingOBJ=0
-        for i in listEvaluationPrinciple:
+        cont_not_apply = 0
+
+        for i, qualification in zip(listEvaluationPrinciple, scores):
             contg=0
             for j in listEvaluationGuideine:
                 if i.id==j.principle_gl.id:
                     totalprinciple+=j.average_guideline
                     contg+=1
+
             i.average_principle=totalprinciple/contg
             i.save()
-            ratingOBJ+=i.average_principle
+
+            if (qualification != -1):
+                ratingOBJ += i.average_principle
+            else:
+                cont_not_apply += 1
+
             totalprinciple=0
             contg=0
 
-        evaluationStudent.rating=ratingOBJ/len(Principle.objects.all())
+        evaluationStudent.rating=ratingOBJ/(len(Principle.objects.all()) - cont_not_apply)
         evaluationStudent.save()  
         serializer = StudentEvaluationSerializer(evaluationStudent)
         #serializer = Evaluation_Student_Serializer(evaluationStudent)
@@ -214,6 +221,8 @@ class StudentEvaluationView(viewsets.ViewSet):
                     scores.append(YES)
                 elif(qualification==CALIFICATION_OPTIONS['NO']):
                     scores.append(NO)
+                elif (qualification == CALIFICATION_OPTIONS['NOT_APPLY']):
+                    scores.append(NOT_APPLY)
                 else:
                     scores.append(PARTIALLY)
 
@@ -273,29 +282,34 @@ class StudentEvaluationView(viewsets.ViewSet):
                     totalnewguidelie=0
                 except:
                     hnwe=0
-                
-            #print(",,,,,,,,,,,1111,,,,,",listguideline)
 
             totalprinciple_new=0
             totalrating_new=0
+            cont_not_apply = 0
             for i in EvaluationPrincipleQualification.objects.filter(
                 evaluation_student__id=pk
             ):
                 cont3=0
                 for j in listguideline:
-                    #print("---------bucle2---------",j)
                     if i.id==j.principle_gl.id:
-                        totalprinciple_new+=j.average_guideline
-                        cont3+=1
-                #print("----------eeeeee----------",i.id,totalprinciple_new,cont3)
+                        if (qualification != -1):
+                            totalprinciple_new+=j.average_guideline
+                            cont3+=1
+                        else:
+                            cont_not_apply += 1
                 try:
+
                     i.average_principle=totalprinciple_new/cont3
+
                 except:
                     pass
+
                 i.save()
                 totalrating_new+=i.average_principle
                 totalprinciple_new=0
-            evaluation_student.rating=totalrating_new/len(Principle.objects.all())
+
+            evaluation_student.rating=totalrating_new/(len(Principle.objects.all()) - cont_not_apply )
+
             evaluation_student.save() 
             serializer = StudentEvaluationSerializer(evaluation_student)            
         except Error as e:
@@ -413,6 +427,7 @@ class EvaluationQuestionsStudentViewSet(viewsets.ModelViewSet):
         instance.interpreter_st_yes = serializer.validated_data['interpreter_st_yes']
         instance.interpreter_st_no = serializer.validated_data['interpreter_st_no']
         instance.interpreter_st_partially = serializer.validated_data['interpreter_st_partially']
+        instance.interpreter_st_partially = serializer.validated_data['interpreter_st_not_apply']
         instance.value_st_importance = serializer.validated_data['value_st_importance']
         ###############################################################
         instance.save()

@@ -311,6 +311,8 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
                 scores.append(YES)
             elif(qualification==CALIFICATION_OPTIONS['NO']):
                 scores.append(NO)
+            elif (qualification == CALIFICATION_OPTIONS['NOT_APPLY']):
+                scores.append(NOT_APPLY)
             else:
                 scores.append(PARTIALLY)
         
@@ -331,10 +333,16 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
             )
             evaluationConceptQualificationList.append(evaluationConceptQualification)
         rating=0.0
+        cont_not_apply = 0
         for evaluationQuestionsQualification,qualification in zip(evaluationQuestionsQualifications,scores):
             evaluationQuestionsQualification.qualification=qualification
-            rating = rating+qualification
-        evaluation_expert.rating=rating/len(evaluationQuestionsQualifications)
+            if (qualification != -1):
+                rating = rating+qualification
+            else:
+                cont_not_apply += 1
+
+        evaluation_expert.rating=rating/(len(evaluationQuestionsQualifications) - cont_not_apply)
+
         evaluation_expert.save()
         updateAverage(evaluationQuestionsQualifications,evaluationConceptQualificationList)
         EvaluationQuestionsQualification.objects.bulk_update(evaluationQuestionsQualifications,['qualification'])
