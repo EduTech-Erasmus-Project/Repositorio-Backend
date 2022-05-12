@@ -23,6 +23,7 @@ class Question(TimeStampedModel):
     interpreter_st_yes = models.TextField(blank=True, null=True)
     interpreter_st_no = models.TextField(blank=True, null=True)
     interpreter_st_partially = models.TextField(blank=True, null=True)
+    interpreter_st_not_apply = models.TextField(blank=True, null=True)
     value_st_importance= models.FloatField(blank=True, null=True)
     #########################################
     guideline = models.ForeignKey(Guideline, on_delete=models.CASCADE, related_name='questions')

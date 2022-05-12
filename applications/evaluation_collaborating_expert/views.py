@@ -39,7 +39,7 @@ from rest_framework.status import (
 ) 
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
-from roabackend.settings import NO, PARTIALLY, YES,CALIFICATION_OPTIONS
+from roabackend.settings import NO, PARTIALLY, YES,CALIFICATION_OPTIONS, NOT_APPLY
 # Create your views here.
 # EVALUATION
 class EvaluationConceptViewSet(viewsets.ModelViewSet):
@@ -224,8 +224,8 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
                 scores.append(NO)
             elif(qualification==CALIFICATION_OPTIONS['PARTIALLY']):
                 scores.append(PARTIALLY)
-            #else:
-             #   scores.append(NOTAPPLY)
+            else:
+                scores.append(NOT_APPLY)
 
         evaluationCollaboratingExpert= EvaluationCollaboratingExpert.objects.create(
             learning_object =learningObjectMetadata,
@@ -243,20 +243,27 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
             )
             evaluationConceptQualificationList.append(evaluationConceptQualification)
         evaluationQuestionsQualificationList = []
+        cont_not_apply = 0
         for evaluation_question,qualification in zip(evaluation_questions,scores):
             for evaluationConceptQualification in evaluationConceptQualificationList:
                 if(evaluationConceptQualification.evaluation_concept==evaluation_question.evaluation_concept):
+
                     evaluationQuestionsQualification = EvaluationQuestionsQualification.objects.create(
-                        concept_evaluations=evaluationConceptQualification,
-                        evaluation_question=evaluation_question,
-                        qualification=qualification
-                        )
-                    ratings=ratings+qualification
+                            concept_evaluations=evaluationConceptQualification,
+                            evaluation_question=evaluation_question,
+                            qualification=qualification
+                            )
+                    if (qualification != -1):
+                        ratings=ratings+qualification
+
+                    else:
+                        cont_not_apply += 1
+
                     evaluationQuestionsQualificationList.append(evaluationQuestionsQualification)
 
         updateAverage(evaluationQuestionsQualificationList,evaluationConceptQualificationList)
 
-        evaluationCollaboratingExpert.rating=ratings/len(evaluationQuestionsQualificationList)
+        evaluationCollaboratingExpert.rating=ratings/(len(evaluationQuestionsQualificationList) - cont_not_apply)
 
         evaluationCollaboratingExpert.save()
         serializer = EvaluationCollaboratingExpertSerializer(evaluationCollaboratingExpert)
@@ -304,6 +311,8 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
                 scores.append(YES)
             elif(qualification==CALIFICATION_OPTIONS['NO']):
                 scores.append(NO)
+            elif (qualification == CALIFICATION_OPTIONS['NOT_APPLY']):
+                scores.append(NOT_APPLY)
             else:
                 scores.append(PARTIALLY)
         
@@ -324,10 +333,16 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
             )
             evaluationConceptQualificationList.append(evaluationConceptQualification)
         rating=0.0
+        cont_not_apply = 0
         for evaluationQuestionsQualification,qualification in zip(evaluationQuestionsQualifications,scores):
             evaluationQuestionsQualification.qualification=qualification
-            rating = rating+qualification
-        evaluation_expert.rating=rating/len(evaluationQuestionsQualifications)
+            if (qualification != -1):
+                rating = rating+qualification
+            else:
+                cont_not_apply += 1
+
+        evaluation_expert.rating=rating/(len(evaluationQuestionsQualifications) - cont_not_apply)
+
         evaluation_expert.save()
         updateAverage(evaluationQuestionsQualifications,evaluationConceptQualificationList)
         EvaluationQuestionsQualification.objects.bulk_update(evaluationQuestionsQualifications,['qualification'])
@@ -412,6 +427,7 @@ class ListOAEvaluatedToExpertRetriveAPIView(ListAPIView):
         Listar resultado de la evaluación realizado por el experto por id del OA.
         El servicio requiere de la autenticación como experto.
     """
+
     permission_classes = [IsAuthenticated,IsCollaboratingExpertUser]
     serializer_class = EvaluationCollaboratingExpertEvaluationSerializer
 
@@ -421,6 +437,7 @@ class ListOAEvaluatedToExpertRetriveAPIView(ListAPIView):
             collaborating_expert__id=self.request.user.id,
             learning_object__id=id,
         ).distinct('learning_object'))
+
         return EvaluationCollaboratingExpert.objects.filter(
             collaborating_expert__id=self.request.user.id,
             learning_object__id=id,
@@ -453,40 +470,45 @@ def updateAverage(scoreData:list,instances:list):
     for concept in scoreData:
         if(str(concept.concept_evaluations.evaluation_concept))==concepts[0]:
             concept_1 = str(concept.concept_evaluations.evaluation_concept)
-            average1 = average1+concept.qualification
-            tam1 = tam1+1
-            #print("---1",average1,"tam",tam1)
-            dicDta1 = {
-                'average':average1/tam1,
-                'concept':concept_1
-            }
+            if(concept.qualification != -1):
+                average1 = average1+concept.qualification
+                tam1 = tam1+1
+                #print("---1",average1,"tam",tam1)
+                dicDta1 = {
+                    'average':average1/tam1,
+                    'concept':concept_1
+                }
+
         if(str(concept.concept_evaluations.evaluation_concept))==concepts[1]:
             concept_2 = str(concept.concept_evaluations.evaluation_concept)
-            average2 = average2+concept.qualification
-            tam2 = tam2+1
-            #print("---2",average2,"tam",tam2)
-            dicDta2 = {
-                'average':average2/tam2,
-                'concept':concept_2
-            }
+            if (concept.qualification != -1):
+                average2 = average2+concept.qualification
+                tam2 = tam2+1
+                #print("---2",average2,"tam",tam2)
+                dicDta2 = {
+                    'average':average2/tam2,
+                    'concept':concept_2
+                }
         if(str(concept.concept_evaluations.evaluation_concept))==concepts[2]:
             concept_3 = str(concept.concept_evaluations.evaluation_concept)
-            average3 = average3+concept.qualification
-            tam3 = tam3+1
-            #print("---3",average3,"tam",tam3)
-            dicDta3 = {
-                'average':average3/tam3,
-                'concept':concept_3
-            }
+            if (concept.qualification != -1):
+                average3 = average3+concept.qualification
+                tam3 = tam3+1
+                #print("---3",average3,"tam",tam3)
+                dicDta3 = {
+                    'average':average3/tam3,
+                    'concept':concept_3
+                }
         if(str(concept.concept_evaluations.evaluation_concept))==concepts[3]:
             concept_4 = str(concept.concept_evaluations.evaluation_concept)
-            average4 = average4+concept.qualification
-            tam4 = tam4+1
-            #print("---4",average4,"tam",tam4)
-            dicDta4 = {
-                'average':average4/tam4,
-                'concept':concept_4
-            }
+            if (concept.qualification != -1):
+                average4 = average4+concept.qualification
+                tam4 = tam4+1
+                #print("---4",average4,"tam",tam4)
+                dicDta4 = {
+                    'average':average4/tam4,
+                    'concept':concept_4
+                }
 
     for instance in instances:
         instance_update = EvaluationConceptQualification.objects.get(id=instance.id)

@@ -86,13 +86,14 @@ else:
 YES=2
 NO=0
 PARTIALLY = 1
-#NOTAPPLY = -1
+NOT_APPLY = -1
 
 # Variable de calificacion del experto
 CALIFICATION_OPTIONS = {
     'YES':'Si',
     'NO':'No',
     'PARTIALLY':'Parcialmente',
+    'NOT_APPLY': 'No aplica',
 }
 
 MIDDLEWARE = [
@@ -160,8 +161,8 @@ AUTH_USER_MODEL = 'user.User'
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-#Esta la psue yo recomendable dejarla el false
-#CORS_ALLOW_CREDENTIALS = False
+#Esta la psue yo recomendable dejarla el false o comentar
+#CORS_ALLOW_CREDENTIALS = True
 
 LANGUAGE_CODE = 'en-us'
 
