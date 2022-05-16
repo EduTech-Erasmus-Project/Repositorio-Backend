@@ -35,6 +35,7 @@ class EvaluationQuestionRegisterSerializer(serializers.Serializer):
     interpreter_yes = serializers.CharField(required=True)
     interpreter_no = serializers.CharField(required=True)
     interpreter_partially = serializers.CharField(required=True)
+    interpreter_not_apply = serializers.CharField(required=True)
     value_importance = serializers.CharField(required=True)
     ###################################################
     code = serializers.CharField(required=True,validators=[
@@ -61,6 +62,7 @@ class EvaluationQuestionListSerializer(serializers.ModelSerializer):
             'interpreter_yes',
             'interpreter_no',
             'interpreter_partially',
+            'interpreter_not_apply',
             'value_importance')
 
 class EvaluationConceptSerializer(serializers.ModelSerializer):
@@ -89,6 +91,8 @@ class EvaluationQuestionQualificationSerializer(serializers.ModelSerializer):
             return CALIFICATION_OPTIONS['YES']
         elif obj.qualification is not None and obj.qualification==NO:
             return CALIFICATION_OPTIONS['NO']
+        elif obj.qualification is not None and obj.qualification == NOT_APPLY:
+            return CALIFICATION_OPTIONS['NOT_APPLY']
         else:
             return CALIFICATION_OPTIONS['PARTIALLY']
 
