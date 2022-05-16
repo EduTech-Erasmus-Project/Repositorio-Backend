@@ -393,7 +393,7 @@
       "interpreter_st_yes": "Contiene material interactivo y/o multimedia",
       "interpreter_st_no": "Podría mejorar con un material interactivo y/o multimedia",
       "interpreter_st_partially": "El material interactivo y/o multimedia es poco implementado dentro de su contenido de informacion",
-       "interpreter_not_apply": "No aplica",
+       "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 1
     }
@@ -408,7 +408,7 @@
       "interpreter_st_yes": "Contiene información textual adecuada",
       "interpreter_st_no": "Podría mejorar con una amplia información textual",
       "interpreter_st_partially": "La información textual del contenido no es muy amplia",
-       "interpreter_not_apply": "No aplica",
+       "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 1
     }
@@ -423,7 +423,7 @@
       "interpreter_st_yes": "Contiene contenido iconográfico como fotos, imágenes,logos, etc",
       "interpreter_st_no": "Podría mejorar con algún tipo de contenido iconográfico",
       "interpreter_st_partially": "El material iconográfico del contenido de información es poco usado",
-       "interpreter_not_apply": "No aplica",
+       "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 1
     }
@@ -438,7 +438,7 @@
       "interpreter_st_yes": "La sintaxis del contenido es directa, sencilla y adecuadamente jerarquizada por el orden de relevancia",
       "interpreter_st_no": "Podría mejorar la sintaxis del contenido para que este jerarquizada adecuadamente, por tanto presenta un contenido directo y sencillo",
       "interpreter_st_partially": "Solo una parte del contenido es jerarquizado de manera adecuada, por tanto su información no es completamente sencilla y directa",
-       "interpreter_not_apply": "No aplica",
+       "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 2
     }
@@ -453,7 +453,7 @@
       "interpreter_st_yes": "Presenta opciones que ayudan en la comprensión del lenguaje matemático",
       "interpreter_st_no": "Podría mejorar con opciones que ayuden en la comprensión del lenguaje matemático",
       "interpreter_st_partially": "Herramientas que ayuden en la comprensión del lenguaje matemático no se implementan en todo su contenido de información",
-      "interpreter_not_apply": "No aplica",
+      "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 2
     }
@@ -468,7 +468,7 @@
       "interpreter_st_yes": "Presenta opciones que permiten la comprensión de videos como los subtítulos sincronizados",
       "interpreter_st_no": "Podría mejorar los videos con subtítulos sincronizados que faciliten su comprensión",
       "interpreter_st_partially": "Los videos del contenido no están completamente subtitulados",
-      "interpreter_not_apply": "No aplica",
+      "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 2
     }
@@ -483,7 +483,7 @@
       "interpreter_st_yes": "Presenta opciones que ayudan en la comprension de videos como son las audiodescripciones",
       "interpreter_st_no": "Podría mejorar los videos con audiodescripciones que faciliten su comprensión",
       "interpreter_st_partially": "Las audiodescripciones no están presentes en la mayoria de sus videos",
-       "interpreter_not_apply": "No aplica",
+       "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 2
     }
@@ -498,7 +498,7 @@
       "interpreter_st_yes": "Presenta opciones que facilitan el seguimiento de videos con textos sincronizados",
       "interpreter_st_no": "Podría mejorar los videos con texto sincronizado que ayude en su seguimiento",
       "interpreter_st_partially": "Los textos sincronizados con videos que faciliten el seguimiento no son completamente implementados",
-       "interpreter_not_apply": "No aplica",
+       "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 2
     }
@@ -513,7 +513,7 @@
       "interpreter_st_yes": "Sus etiquetas y/o encabezados concuerdan con el tema principal del objeto",
       "interpreter_st_no": "Podría mejorar el tema principal acorde a sus etiquetas y/o encabezados",
       "interpreter_st_partially": "El tema principal de su contenido no está referenciado completamente en sus encabezados y/o etiquetas",
-       "interpreter_not_apply": "No aplica",
+       "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 2
     }
@@ -528,7 +528,7 @@
       "interpreter_st_yes": "La información del contenido cuenta con documentos complementarios, analogías, resúmenes, ejemplos, que apoyan el desarrollo de su contenido",
       "interpreter_st_no": "Podría mejorar el contenido con una información complementaria de apoyo o base, como lo son resúmenes, ejemplos o documentos extras.",
       "interpreter_st_partially": "Existe muy poca información complementaria dentro de su contenido ",
-       "interpreter_not_apply": "No aplica",
+       "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 3
     }
@@ -543,7 +543,7 @@
       "interpreter_st_yes": "Cuenta con enlaces de consulta o ampliación que accede directamente a la información si es que el usuario lo requiere",
       "interpreter_st_no": "Podría mejorar con algún tipo enlaces de consulta que ayude al usuario a acceder directamente a la información",
       "interpreter_st_partially": "Contiene  muy pocos enlaces de consulta que den acceso directo a la información ",
-      "interpreter_not_apply": "No aplica",
+      "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 3
     }
@@ -558,7 +558,7 @@
       "interpreter_st_yes": "Todo los materiales del contenido permiten ser consultados tanto en formato digital como analógico",
       "interpreter_st_no": "Podría mejorar los materiales de su contenido para que permitan ser consultados de forma digital como analógico",
       "interpreter_st_partially": "Solo una parte de sus materias permite ser consultada en formato digital o analógico",
-      "interpreter_not_apply": "No aplica",
+      "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 4
     }
@@ -573,7 +573,7 @@
       "interpreter_st_yes": "Contiene varias técnicas de ayuda para el usuarios en caso de que se requieran, como la navegación secuencial mediante teclado",
       "interpreter_st_no": "Podría mejorar con algún tipo de técnicas que ayuden en la navegación secuencial del contenido por teclado",
       "interpreter_st_partially": "Las técnicas de navegación sobre su contenido mediante teclado son poco implementadas",
-       "interpreter_not_apply": "No aplica",
+       "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 4
     }
@@ -588,7 +588,7 @@
       "interpreter_st_yes": "El contenido permite que sus usuarios demuestren sus conocimientos previos al del objeto",
       "interpreter_st_no": "Podría mejorar el acceso sus usuarios que especifiquen de alguna forma conocimientos previos ",
       "interpreter_st_partially": "Los usuarios tienes pocas opciones para especificar sus conocimientos previos",
-       "interpreter_not_apply": "No aplica",
+       "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 5
     }
@@ -603,7 +603,7 @@
       "interpreter_st_yes": "La información del contenido implementa múltiples actividades de relación individual y colectiva",
       "interpreter_st_no": "Podría mejorar el uso las actividades de relación individual y colectiva",
       "interpreter_st_partially": "Las actividades de relación individual y colectiva son poco frecuentemente usadas en su contenido de información",
-       "interpreter_not_apply": "No aplica",
+       "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 5
     }
@@ -618,7 +618,7 @@
       "interpreter_st_yes": "El contenido permite una amplia libertad de selección de opciones en cuanto a actividades, materiales y/o herramientas",
       "interpreter_st_no": "Podría mejorar su contenido para que brinde una libertad en la selección de las actividades que puede realizar",
       "interpreter_st_partially": "Las actividades pocas veces permiten una opción de selección de estas",
-       "interpreter_not_apply": "No aplica",
+       "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 5
     }
@@ -633,7 +633,7 @@
       "interpreter_st_yes": "Los usuarios de su contenido de información comprendieron desde el principio lo que se espera de ellos, es decir conocen el objeto y sus normas",
       "interpreter_st_no": "Podría mejorar su contenido de información para que sea coherente para que sus usuarios comprendan su tema principal",
       "interpreter_st_partially": "El contenido de información de su objeto de aprendizaje  es poco coherente en algunas partes",
-       "interpreter_not_apply": "No aplica",
+       "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 6
     }
@@ -648,7 +648,7 @@
       "interpreter_st_yes": "La información del contenido brinda adecuadamente ejemplos acordes a su tema, como tutoriales, consejos yo modelos de apoyo",
       "interpreter_st_no": "Podría mejorar con implementación de ejemplos adecuados a su tema principal.",
       "interpreter_st_partially": "Su información de contenido pocas veces brinda ejemplos acordes a su tema principal",
-     "interpreter_not_apply": "No aplica",
+     "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 6
     }
@@ -663,7 +663,7 @@
       "interpreter_st_yes": "La información del contenido facilita el uso de herramientas de autocontrol como las preguntas clave y/o auto instrucciones",
       "interpreter_st_no": "Podría mejorar su información para que facilite algún medio y/o herramienta de autocontrol",
       "interpreter_st_partially": "Una herramienta de autocontrol para su contenido se ve muy poco implementada",
-      "interpreter_not_apply": "No aplica",
+      "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 6
     }
@@ -678,7 +678,7 @@
       "interpreter_st_yes": "Su contenido emplea información sugerente y/o llamativa correctamente lo que suscita adecuadamente la curiosidad de a quienes esta dirijido",
       "interpreter_st_no": "Podría mejorar su contenido para que fomente adecuadamente la curiosidad de a quienes está dirigido",
       "interpreter_st_partially": "Su contenido emplea pocas veces información llamativa que suscite la curiosidad de sus destinatarios",
-      "interpreter_not_apply": "No aplica",
+      "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 7
     }
@@ -693,7 +693,7 @@
       "interpreter_st_yes": "La redaccion de la informacion utiliza correctamente un lenguaje comprensible y cercano al de los destinatarios",
       "interpreter_st_no": "Podría mejorar su redacción para que este acorde a un lenguaje comprensible y cercano de los destinatarios",
       "interpreter_st_partially": "La redacción de la información en algunas secciones no esta no es completamente cercano y/o comprensible al lenguaje de los destinatarios",
-       "interpreter_not_apply": "No aplica",
+       "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 7
     }
@@ -708,7 +708,7 @@
       "interpreter_st_yes": "Las metodologías del contenido contribuyen adecuadamente en el papel activo del usuario",
       "interpreter_st_no": "Podría mejorar sus metodologías que no están correctamente empleadas lo que priva del papel activo del usuarios",
       "interpreter_st_partially": "El papel activo del usuarios se ve afectado ya que su metodología no es completamente funcional en todo su contenido de información",
-       "interpreter_not_apply": "No aplica",
+       "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 8
     }
@@ -723,7 +723,7 @@
       "interpreter_st_yes": "La meta final de su objeto se divide en faces de menor a mayor complejidad lo que facilita un seguimiento comprensible para el usuario",
       "interpreter_st_no": "Podría mejorar el objetivo final del recurso para que cuente con un seguimiento correctamente estructurado para sus destinatarios",
       "interpreter_st_partially": "Una división de faces de menor a mayor información del contenido es poco estructurada y usada para llegar a sus objetivos",
-      "interpreter_not_apply": "No aplica",
+      "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 8
     }
@@ -738,7 +738,7 @@
       "interpreter_st_yes": "Dispone de opciones automáticas adecuadas que permiten la corrección de las actividades en caso de requerirse  ",
       "interpreter_st_no": "Podría mejorar con algún tipo opción y/o herramienta que permita la corrección de sus actividades",
       "interpreter_st_partially": "Existe pocas opciones que brinden una correccion de sus actividades cuando se requiere",
-       "interpreter_not_apply": "No aplica",
+       "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 8
     }
@@ -753,7 +753,7 @@
       "interpreter_st_yes": "Su contenido cuenta con múltiples formas de evaluación y con diferentes niveles de logros de quienes son evaluados.",
       "interpreter_st_no": "Podría mejorar con algunas formas de evaluación de su contenido de informacion",
       "interpreter_st_partially": "Su contenido hace muy poco uso de las multiples formas de valuacion",
-       "interpreter_not_apply": "No aplica",
+       "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 9
     }
@@ -768,7 +768,7 @@
       "interpreter_st_yes": "El objeto permite a sus destinatarios una correcta valoracion de sus conocimientos de la información presentada",
       "interpreter_st_no": "Podría mejorar su recurso para que permite a sus destinatarios una autoevaluación y/o coevaluación que valore sus conocimientos",
       "interpreter_st_partially": "Su contenido como tal emplea en pocas ocasiones medios de autoevaluación y/o coevaluación",
-       "interpreter_not_apply": "No aplica",
+       "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 9
     }
@@ -783,7 +783,7 @@
       "interpreter_st_yes": "Permite a sus destinatarios profundizar en su conocimiento de la información lo que ayuda a su organización y/o comprender si realmente entienden un tema principal.",
       "interpreter_st_no": "Podría mejorar su recurso para que permita que sus destinatarios reflexionen sobre su contenido de información, por lo cual podríamos saber si comprendieron realmente el tema.",
       "interpreter_st_partially": "El recurso emplea pocas veces una reflexión del destinatario sobre el aprendizaje",
-       "interpreter_not_apply": "No aplica",
+       "interpreter_st_not_apply": "No aplica",
       "value_st_importance": "0",
       "guideline": 9
     }
