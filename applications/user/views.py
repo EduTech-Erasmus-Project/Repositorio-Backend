@@ -1,5 +1,5 @@
 import json
-from applications.user.testMail import SendMail
+from applications.user.testMail import SendMail, SendEmailCreateUser, SendEmailCreateUserCheck, SendEmailConfirm
 from applications.user.utils import Util
 from rest_framework.generics import ListAPIView
 from rest_framework import viewsets
@@ -138,6 +138,8 @@ class UserAdminView(viewsets.ViewSet):
     def destroy(self, request, pk=None):
         return Response({"message": "Api not found"},status=HTTP_404_NOT_FOUND) 
 
+mail_create = SendEmailCreateUser()
+mail_create_check = SendEmailCreateUserCheck()
 class ManagementUserView(viewsets.ViewSet):
 
     def get_permissions(self):
@@ -169,6 +171,8 @@ class ManagementUserView(viewsets.ViewSet):
         new_student = Student()
         new_teacher = Teacher()
         new_expert = CollaboratingExpert()
+
+
         for role in role_serializer.validated_data['roles']:
             if role == 'student':
                 serializer = StudentCreateSerializer(data=request.data)
@@ -196,8 +200,10 @@ class ManagementUserView(viewsets.ViewSet):
 
                 if not ManagementUserView.checkEmail(request.data['email']):
                     value_active = False
+                    mail_create_check.sendMailCreateCheckAdmin(request.data['email'], request.data['first_name'])
                 else:
                     value_active = True
+                    mail_create.sendMailCreate(request.data['email'], request.data['first_name'])
 
                 new_student.is_active = value_active
 
@@ -209,8 +215,10 @@ class ManagementUserView(viewsets.ViewSet):
 
                 if not ManagementUserView.checkEmail(request.data['email']):
                     value_active = False
+                    mail_create_check.sendMailCreateCheckAdmin(request.data['email'], request.data['first_name'])
                 else:
                     value_active = True
+                    mail_create.sendMailCreate(request.data['email'], request.data['first_name'])
 
                 new_teacher = Teacher.objects.create(
                     is_active=value_active
@@ -232,8 +240,10 @@ class ManagementUserView(viewsets.ViewSet):
 
                 if not ManagementUserView.checkEmail(request.data['email']):
                     value_active = False
+                    mail_create_check.sendMailCreateCheckAdmin(request.data['email'], request.data['first_name'])
                 else:
                     value_active = True
+                    mail_create.sendMailCreate(request.data['email'], request.data['first_name'])
 
                 new_expert = CollaboratingExpert.objects.create(
                     expert_level= serializer.validated_data['expert_level'],
@@ -441,6 +451,7 @@ class ManagementUserView(viewsets.ViewSet):
         status_message =  Response({"message": "success"}, status=HTTP_200_OK)      
         return status_message
 
+mail_aproved = SendEmailConfirm()
 class AdminDisaprovedTeacherCollaboratingExpert(viewsets.ViewSet):
 
     permission_classes = [IsAuthenticated,IsAdministratorUser]
@@ -479,11 +490,15 @@ class AdminDisaprovedTeacherCollaboratingExpert(viewsets.ViewSet):
         if instance.teacher is not None and instance.teacher.is_active is False:
             teacher = get_object_or_404(Teacher, id=instance.teacher.id)
             teacher.is_active = serializer.validated_data['teacher_is_active']
+            mail_aproved.sendEmailConfirmAdmin(instance.email, instance.first_name);
             teacher.save()
+
         if instance.collaboratingExpert is not None and instance.collaboratingExpert.is_active is False:
             collaboratingExpert = get_object_or_404(CollaboratingExpert, id=instance.collaboratingExpert.id)
             collaboratingExpert.is_active = serializer.validated_data['expert_is_active']
+            mail_aproved.sendEmailConfirmAdmin(instance.email, instance.first_name);
             collaboratingExpert.save()
+
         status_message =  Response({"message": "success"}, status=HTTP_200_OK)      
         return status_message
 
@@ -526,10 +541,12 @@ class AdminAprovedTeacherCollaboratingExpert(viewsets.ViewSet):
             teacher = get_object_or_404(Teacher, id=instance.teacher.id)
             teacher.is_active = serializer.validated_data['teacher_is_active']
             teacher.save()
+
         if instance.collaboratingExpert is not None and instance.collaboratingExpert.is_active is True:
             collaboratingExpert = get_object_or_404(CollaboratingExpert, id=instance.collaboratingExpert.id)
             collaboratingExpert.is_active = serializer.validated_data['expert_is_active']
             collaboratingExpert.save()
+
         status_message =  Response({"message": "success"}, status=HTTP_200_OK)      
         return status_message
 

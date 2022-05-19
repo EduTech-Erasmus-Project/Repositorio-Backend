@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework import status
 from .models import LearningObjectFile
 from datetime import datetime, timedelta
 from . serializers import (
@@ -18,8 +19,13 @@ from rest_framework.status import (
     HTTP_200_OK
 ) 
 import xmltodict, json
+from unipath import Path
+from os import remove
+from shutil import rmtree
+from ..learning_object_metadata.models import LearningObjectMetadata
 
-    
+BASE_DIR = Path(__file__).ancestor(3)
+
 class LearningObjectModelViewSet(viewsets.ModelViewSet):
     # authentication_classes = (TokenAuthentication,)
     permission_classes = [IsAuthenticated,IsTeacherUser]
@@ -125,6 +131,7 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
                 learningObject.url= URL.replace('http://', 'https://', 1)
                 learningObject.file_name= nombre[0]
                 learningObject.file_size= zip_kb
+                learningObject.path_origin = os.path.join(BASE_DIR,'media','catalog',file_name)
                 learningObject.save()
             else:
                 return Response({"message": "No se encontro metadatos en el Objeto de Aprendizaje"}, status=HTTP_404_NOT_FOUND)
@@ -377,4 +384,32 @@ def folder_name(value):
         "Sectores desconocidos no especificados":"Otros"  
     }[value]
 
-    
+
+class DeleteLearningObjectViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated, IsTeacherUser]
+    def destroy(self, request, pk=None):
+        learning_object_instance =  LearningObjectFile.objects.get(pk=pk)
+        learning_object_metadata_instance = LearningObjectMetadata.objects.get(learning_object_file_id = learning_object_instance.id)
+
+        if(learning_object_metadata_instance and learning_object_instance):
+
+            avatar = str(learning_object_metadata_instance.avatar)
+            avatar_path = os.path.join(BASE_DIR, 'media',avatar.replace('/', '\\'))
+            zip_file = str(learning_object_instance.file)
+            zip_file_path = os.path.join(BASE_DIR,'media', zip_file.replace('/', '\\'))
+            path_origin = os.path.join(learning_object_instance.path_origin)
+
+            if(learning_object_instance.path_origin and avatar_path and zip_file_path ):
+                remove(str(avatar_path.replace('\\', '/')))
+                remove(str(zip_file_path.replace('\\', '/')))
+                rmtree(str(path_origin.replace('\\', '/')))
+                learning_object_instance.delete()
+
+                return Response({'message': 'Record deleted successfully', 'code': 200}, status=status.HTTP_200_OK)
+
+            else:
+                return Response({'message': 'Error loading routes'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'message':'Error trying to delete record not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+
