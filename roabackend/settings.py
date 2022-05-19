@@ -90,9 +90,9 @@ NOT_APPLY = -1
 
 # Variable de calificacion del experto
 CALIFICATION_OPTIONS = {
-    'YES':'Si',
-    'NO':'No',
-    'PARTIALLY':'Parcialmente',
+    'YES': 'Si',
+    'NO': 'No',
+    'PARTIALLY': 'Parcialmente',
     'NOT_APPLY': 'No aplica',
 }
 
@@ -134,7 +134,7 @@ WSGI_APPLICATION = 'roabackend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'roa5',
+        'NAME': 'roa2',
         'USER': 'postgres',
         'PASSWORD': 'manager',
         'HOST': 'localhost',

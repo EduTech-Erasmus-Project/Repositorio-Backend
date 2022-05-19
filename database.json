@@ -1116,7 +1116,7 @@
       "interpreter_yes": "Las imágenes implementan correctamente el texto alternativo",
       "interpreter_no": "Podría mejorar Las imágenes con algún texto alternativo adecuado",
       "interpreter_partially": "El texto alternativo es poco implementado dentro de las imágenes",
-       "interpreter_not_apply": "No aplica",
+      "interpreter_not_apply": "No aplica",
       "value_importance": "0",
       "code": "RDV1",
       "evaluation_concept": 1
