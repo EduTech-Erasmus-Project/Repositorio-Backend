@@ -31,6 +31,7 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated,IsTeacherUser]
     serializer_class = LearningObjectSerializer
     queryset = LearningObjectFile.objects.all()
+
     def create(self, request, *args, **kwargs):
         """
         Servicio para cargar un OA comprimido y obtener los metadatos correspontientes al Objeto de Aprendizaje.
@@ -39,6 +40,8 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
         data=any
         serializer = LearningObjectSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        #file_path = os.path.join(BASE_DIR,'media',str(serializer.validated_data['file']))
+
         learningObject = LearningObjectFile.objects.create(
             file = serializer.validated_data['file']
             # file_name = serializer.validated_data['file_name'],
@@ -118,16 +121,20 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
             PROJECT_ROOT = os.path.abspath(os.path.dirname(PROJECT_ROOT))
             XMLFILES_FOLDER = os.path.join(PROJECT_ROOT, filename)
             index = ""
+
             if get_index_imsmanisfest(XMLFILES_FOLDER)!='':
                 index=get_index_imsmanisfest(XMLFILES_FOLDER)
             elif get_index_file(filename_index)!='':
                 index= get_index_file(filename_index)
             else:
-                 return Response({"message": "Objeto de Aprendizaje aceptados por el repositorio es IMS y SCORM"}, status=HTTP_404_NOT_FOUND)
-            
+
+                return Response({"message": "Objeto de Aprendizaje aceptados por el repositorio es IMS y SCORM"}, status=HTTP_404_NOT_FOUND);
+
+
             data = get_metadata_imsmanisfest(XMLFILES_FOLDER)
+
             if XMLFILES_FOLDER is not None:
-                URL = url+index 
+                URL = url+index
                 learningObject.url= URL.replace('http://', 'https://', 1)
                 learningObject.file_name= nombre[0]
                 learningObject.file_size= zip_kb
@@ -139,6 +146,7 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
             print(e)
             print(e.args)
             return Response({"message":"Objetos de Aprendizaje aceptados por el repositorio es IMS y SCORM."},status=HTTP_404_NOT_FOUND)
+
         serializer = LearningObjectSerializer(learningObject)
         metadata ={
             "metadata": data,
@@ -342,29 +350,31 @@ def get_index_file(filepath):
     file=""
     index_path=""
     index_url=""
-    for file in os.listdir(filepath):
-        if file.endswith("index.html") or file.endswith("excursion.html"):
-            index_path=file
-    if index_path !="":
-        index_url=index_path
-    else:
-        return Response({"message": "Ocurrio un error al cargar el Objeto de Aprendizaje"})
+    if(filepath != ''):
+        for file in os.listdir(filepath):
+            if file.endswith("index.html") or file.endswith("excursion.html"):
+                index_path=file
+        if index_path !="":
+            index_url=index_path
+        else:
+            return Response({"message": "Ocurrio un error al cargar el Objeto de Aprendizaje"})
     return index_url
 
 def get_index_imsmanisfest(filename):
     content = []
     result = ""
     try:
-        with open(filename, "r") as file:
-            content = file.readlines()
-            content = "".join(content)
-            bs_content = bs(content, "lxml")
-            resource = bs_content.find_all("file")
-            if bs_content.find_all("file"):
-                result = resource[0]['href']
-            else:
-                result = ""
-    except ValueError:
+        if(filename[:-1] != BASE_DIR):
+            with open(filename, "r") as file:
+                content = file.readlines()
+                content = "".join(content)
+                bs_content = bs(content, "lxml")
+                resource = bs_content.find_all("file")
+                if bs_content.find_all("file"):
+                    result = resource[0]['href']
+                else:
+                    result = ""
+    except Exception as e:
         print("Error al leer el archivo")
     return result
 

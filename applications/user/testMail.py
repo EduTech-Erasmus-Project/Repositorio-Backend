@@ -46,7 +46,7 @@ class SendEmailCreateUser:
                 con nuestra aplicación de manera fácil y accesible.</p>
                <p>Saludos,</p>
                 <br />
-               <P style ="font-weight: bolder;"><a style="text-decoration: none;color: gray;" href ="https://repositorio.edutech-project.org/#/">Equipo ROA</a></P>
+               <P style ="font-weight: bolder;"><a style="color: gray;" href ="https://repositorio.edutech-project.org/#/">Equipo ROA</a></P>
                """.format(user=user))
         try:
             sg = SendGridAPIClient('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')
@@ -70,13 +70,65 @@ class SendEmailCreateUserCheck:
                 <p style="font-style: italic;"> Su cuenta se encuentra en revisión, espere hasta que el administrador la apruebe.</p>
                <p>Saludos,</p>
                 <br />
-               <P style =" font-weight: bolder;"><a style="text-decoration: none;color: gray;" href="https://repositorio.edutech-project.org/#/">Equipo ROA</a></P>
+               <P style =" font-weight: bolder;"><a style="color: gray;" href="https://repositorio.edutech-project.org/#/">Equipo ROA</a></P>
                """.format(user=user))
         try:
             sg = SendGridAPIClient('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')
             response = sg.send(message)
         except Exception as e:
             print(e)
+
+class SendEmailCreateUserCheck_Expert:
+    def sendMailCreate_Expert(self, to_email,user):
+        message = Mail(
+            from_email='repositorio@edutech-project.org',
+            to_emails=to_email,
+            subject='Bienvenido al repositorio de Objetos de Aprendizaje - ROA 🚀',
+            html_content="""
+               <strong>Hola {user}</strong>
+               <br />
+               <p>¡Grandes noticias! Te has registrado en nuestro repositorio de Objetos de Aprendizaje - ROA. 
+               Puedes revisar todos los objetos de aprendizaje que se encuentran 
+               en nuestro repositorio y además interactuar
+                con nuestra aplicación de manera fácil y accesible. 
+                Recuerda que puedes descargarte los objetos de aprendizaje y 
+                puedes llevar a cabo su evolución.</p>              
+               <p>Saludos,</p>
+                <br />
+               <P style =" font-weight: bolder;"><a style="color: gray;" href="https://repositorio.edutech-project.org/#/">Equipo ROA</a></P>
+               """.format(user=user))
+        try:
+            sg = SendGridAPIClient('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')
+            response = sg.send(message)
+        except Exception as e:
+            print(e)
+
+class SendEmailCreateUserCheck_Admin_to_Expert:
+    def sendMailCreate_Admin_to_Expert(self, to_email,user):
+        message = Mail(
+            from_email='repositorio@edutech-project.org',
+            to_emails=to_email,
+            subject='Bienvenido al repositorio de Objetos de Aprendizaje - ROA 🚀',
+            html_content="""
+               <strong>Hola {user}</strong>
+               <br />
+               <p>¡Grandes noticias! Te has registrado en nuestro repositorio de Objetos de Aprendizaje - ROA. 
+               Puedes revisar todos los objetos de aprendizaje que se encuentran 
+               en nuestro repositorio y además interactuar
+                con nuestra aplicación de manera fácil y accesible. 
+                Recuerda que puedes descargarte los objetos de aprendizaje y 
+                puedes llevar a cabo su evolución.</p>              
+               <p style="font-style: italic;"> Su cuenta se encuentra en revisión, espere hasta que el administrador la apruebe.</p>
+               <p>Saludos,</p>
+                <br />
+               <P style =" font-weight: bolder;"><a style="color: gray;" href="https://repositorio.edutech-project.org/#/">Equipo ROA</a></P>
+               """.format(user=user))
+        try:
+            sg = SendGridAPIClient('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')
+            response = sg.send(message)
+        except Exception as e:
+            print(e)
+
 class SendEmailConfirm:
     def sendEmailConfirmAdmin(self, to_email, user):
         message = Mail(
@@ -89,7 +141,7 @@ class SendEmailConfirm:
                        <p>¡Grandes noticias! Tu cuenta ya se encuentra activada <a href="https://repositorio.edutech-project.org/#/login">inicia sesión </a>ahora mismo.</p>
                        <p>Saludos,</p>
                         <br />
-                       <P style =" font-weight: bolder;"><a style="text-decoration: none;color: gray;" href="https://repositorio.edutech-project.org/#/">Equipo ROA</a></P>
+                       <P style =" font-weight: bolder;"><a style="color: gray;" href="https://repositorio.edutech-project.org/#/">Equipo ROA</a></P>
                        """.format(user=user))
         try:
             sg = SendGridAPIClient('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')

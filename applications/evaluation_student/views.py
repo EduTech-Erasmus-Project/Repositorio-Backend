@@ -143,26 +143,30 @@ class StudentEvaluationView(viewsets.ViewSet):
         totalprinciple=0
         ratingOBJ=0
         cont_not_apply = 0
-
+        cont_not_apply_principal = 0
         for i, qualification in zip(listEvaluationPrinciple, scores):
             contg=0
             for j in listEvaluationGuideine:
                 if i.id==j.principle_gl.id:
-                    totalprinciple+=j.average_guideline
-                    contg+=1
+                    if (qualification != -1):
+                        totalprinciple+=j.average_guideline
+                        contg+=1
+                    else:
+                        cont_not_apply_principal += 1
 
-            i.average_principle=totalprinciple/contg
+
+            i.average_principle=totalprinciple/(contg - cont_not_apply_principal)
             i.save()
 
-            if (qualification != -1):
-                ratingOBJ += i.average_principle
-            else:
-                cont_not_apply += 1
+            #if (qualification != -1):
+            ratingOBJ += i.average_principle
+            #else:
+             #   cont_not_apply += 1
 
             totalprinciple=0
             contg=0
 
-        evaluationStudent.rating=ratingOBJ/(len(Principle.objects.all()) - cont_not_apply)
+        evaluationStudent.rating=ratingOBJ/(len(Principle.objects.all()))
         evaluationStudent.save()  
         serializer = StudentEvaluationSerializer(evaluationStudent)
         #serializer = Evaluation_Student_Serializer(evaluationStudent)

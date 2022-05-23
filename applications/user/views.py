@@ -1,5 +1,5 @@
 import json
-from applications.user.testMail import SendMail, SendEmailCreateUser, SendEmailCreateUserCheck, SendEmailConfirm
+from applications.user.testMail import SendMail, SendEmailCreateUser, SendEmailCreateUserCheck, SendEmailConfirm, SendEmailCreateUserCheck_Expert, SendEmailCreateUserCheck_Admin_to_Expert
 from applications.user.utils import Util
 from rest_framework.generics import ListAPIView
 from rest_framework import viewsets
@@ -140,6 +140,9 @@ class UserAdminView(viewsets.ViewSet):
 
 mail_create = SendEmailCreateUser()
 mail_create_check = SendEmailCreateUserCheck()
+
+mail_create_expert = SendEmailCreateUserCheck_Expert()
+mail_create_check_expert = SendEmailCreateUserCheck_Admin_to_Expert()
 class ManagementUserView(viewsets.ViewSet):
 
     def get_permissions(self):
@@ -174,7 +177,8 @@ class ManagementUserView(viewsets.ViewSet):
 
 
         for role in role_serializer.validated_data['roles']:
-            if role == 'student':
+
+            if role == 'student' and role != 'teacher' and role != 'expert':
                 serializer = StudentCreateSerializer(data=request.data)
                 serializer.is_valid(raise_exception=True)
                 new_student = Student.objects.create(
@@ -209,7 +213,7 @@ class ManagementUserView(viewsets.ViewSet):
 
                 new_student.save()
 
-            if role == 'teacher':
+            if role == 'teacher' and role != 'student' and role != 'expert':
                 teacher_serializer = TeacherCreateSerializer(data=request.data)
                 teacher_serializer.is_valid(raise_exception=True)
 
@@ -234,16 +238,16 @@ class ManagementUserView(viewsets.ViewSet):
                 # post_save.connect(send_email1, sender=User)
                 # request_finished.connect(send_email1(role_serializer.validated_data['first_name'],role_serializer.validated_data['last_name'],role,role_serializer.validated_data['email']))
 
-            if role == 'expert':
+            if role == 'expert' and role != 'teacher' and role != 'student':
                 serializer = CollaboratingExpertCreateSerializer(data=request.data)
                 serializer.is_valid(raise_exception=True)
 
                 if not ManagementUserView.checkEmail(request.data['email']):
                     value_active = False
-                    mail_create_check.sendMailCreateCheckAdmin(request.data['email'], request.data['first_name'])
+                    mail_create_check_expert.sendMailCreate_Admin_to_Expert(request.data['email'], request.data['first_name'])
                 else:
                     value_active = True
-                    mail_create.sendMailCreate(request.data['email'], request.data['first_name'])
+                    mail_create_expert.sendMailCreate_Expert(request.data['email'], request.data['first_name'])
 
                 new_expert = CollaboratingExpert.objects.create(
                     expert_level= serializer.validated_data['expert_level'],
