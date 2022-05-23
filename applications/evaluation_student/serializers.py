@@ -126,12 +126,14 @@ class EvaluationPrincipleSerializer(serializers.ModelSerializer):
 class EvaluationSchemaListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
-        fields = ('id','question','metadata'
-        ,'description',
+        fields = ('id',
+        'question',
+        'metadata',
+        'description',
         'interpreter_st_yes',
         'interpreter_st_no',
         'interpreter_st_partially',
-        'interpreter_st_partially',
+        'interpreter_st_not_apply',
         'value_st_importance'
         )
 
@@ -161,6 +163,7 @@ class EvaluationQuestionListStudentSerializer(serializers.ModelSerializer):
             'interpreter_st_yes',
             'interpreter_st_no',
             'interpreter_st_partially',
+            'interpreter_st_not_apply',
             'value_st_importance')
 
 class EvaluationQuestionEstudentQualificationSerializer(serializers.ModelSerializer):

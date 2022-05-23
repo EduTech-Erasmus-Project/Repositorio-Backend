@@ -121,6 +121,7 @@ class EvaluationQuestionsViewSet(viewsets.ModelViewSet):
         instance.interpreter_yes = serializer.validated_data['interpreter_yes']
         instance.interpreter_no = serializer.validated_data['interpreter_no']
         instance.interpreter_partially = serializer.validated_data['interpreter_partially']
+        instance.interpreter_not_apply = serializer.validated_data['interpreter_not_apply']
         instance.value_importance = serializer.validated_data['value_importance']
         ###############################################################
         instance.save()
