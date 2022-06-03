@@ -9,7 +9,7 @@
 from collections import OrderedDict
 
 import xmltodict, json
-import untangle
+
 
 # import reflection_test
 from model import LOMModel

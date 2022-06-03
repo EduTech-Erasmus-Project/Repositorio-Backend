@@ -618,8 +618,6 @@ class ListOAEvaluatedToAutomaticAPIView(ListAPIView):
         return var1
 
 
-##############################################Interpreter
-
 
 
 
