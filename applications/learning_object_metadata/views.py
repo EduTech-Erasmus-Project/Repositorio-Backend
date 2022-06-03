@@ -888,12 +888,11 @@ def automaticEvaluation(id):
     for i in MetadataQualificationConcept.objects.all():
         for j in metadatos_schema:
             if (i.evaluation_automatic_evaluation.learning_object.id==objeto.learning_object.id):
-                
                 if (i.evaluation_concept == j.evaluation_concept):
                     if(j.schema.find('accessibilityHazard:')>=0):
                         for k in META.accesibility_hazard.lower().split(','):
-                            if (k.replace(' ','')==j.schema.lower().split(':')[1]):
-                                dato=1
+                            if (k.replace(' ','').lower()==j.schema.lower().split(':')[1]):
+                                dato = 1
                     if(j.schema.find('accessibilityFeature:')>=0):
                         if(META.accesibility_features.lower().find(j.schema.lower().split(':')[1])>=0):
                             dato=1
@@ -905,7 +904,7 @@ def automaticEvaluation(id):
                             dato=1
                     if(j.schema.find('accessModeSufficient:')>=0):
                         if(META.annotation_modeaccesssufficient.lower().find(j.schema.lower().split(':')[1])>=0):
-                            dato=1 
+                            dato=1
                     evaluaction=MetadataSchemaQualification.objects.create(
                     evaluation_metadata=i,
                     evaluation_schema=j,
@@ -913,7 +912,6 @@ def automaticEvaluation(id):
                     )
                     evaluaction.save()
                     dato=0
-    
 
     consult_evaluation=MetadataQualificationConcept.objects.filter(evaluation_automatic_evaluation__learning_object__id=objeto.learning_object.id)
     
@@ -929,10 +927,8 @@ def automaticEvaluation(id):
         i.save()
         ratingnew+=h
     objeto.rating_schema=ratingnew/len(EvaluationConcept.objects.all())
-    if(ratingnew >= 4.0):
+    #objeto.rating_schema = ratingnew
+    if( objeto.rating_schema >= 4.0):
         META.public = True
         META.save()
     objeto.save()
-
-
-    

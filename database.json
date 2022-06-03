@@ -1810,7 +1810,7 @@
     "model": "evaluation_collaborating_expert.evaluationmetadata",
     "pk": 21,
     "fields": {
-      "schema": "accessibilityfeature:annotations",
+      "schema": "accessibilityFeature:annotations",
       "description": "Anotaciones",
       "value_importance_schema": "0",
       "code": "R4",

@@ -50,7 +50,7 @@ class LearningObjectMetadata(TimeStampedModel):
     meta_metadata_description = models.TextField(blank=True, null=True)
     # Metadatos técnico
     technical_format = models.TextField(blank=True, null=True)
-    technical_size = models.IntegerField(blank=True, null=True)
+    technical_size = models.TextField(blank=True, null=True)
     technical_location = models.TextField(blank=True, null=True)
     technical_requirement_type = models.TextField(blank=True, null=True)
     technical_requirement_name = models.TextField(blank=True, null=True)
@@ -102,6 +102,7 @@ class LearningObjectMetadata(TimeStampedModel):
     accesibility_hazard = models.TextField(blank=True, null=True)
     accesibility_control = models.TextField(blank=True, null=True)
     accesibility_api = models.TextField(blank=True, null=True)
+
     # tags = models.TextField()
     education_levels = models.ForeignKey(EducationLevel,on_delete=models.CASCADE)
     knowledge_area = models.ForeignKey(
