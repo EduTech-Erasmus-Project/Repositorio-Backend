@@ -131,8 +131,9 @@ class StudentEvaluationView(viewsets.ViewSet):
             cont=0
             for b in listEvaluationQuestions:
                 if a.id==b.guideline_evaluations.id:
-                    totalguideline+=b.qualification
-                    cont+=1
+                    if(b.qualification != -1):
+                        totalguideline+=b.qualification
+                        cont+=1
 
             h=(totalguideline*5)/(2*cont)
             a.average_guideline=h
@@ -155,7 +156,7 @@ class StudentEvaluationView(viewsets.ViewSet):
                         cont_not_apply_principal += 1
 
 
-            i.average_principle=totalprinciple/(contg - cont_not_apply_principal)
+            i.average_principle=totalprinciple/(contg)
             i.save()
 
             #if (qualification != -1):
@@ -272,9 +273,9 @@ class StudentEvaluationView(viewsets.ViewSet):
                     #print("----->>>",i.id," sss",j.guideline_evaluations.id)
                  
                     if i.id==j.guideline_evaluations.id:
-                        #print("ifffffff")
-                        totalnewguidelie+=j.qualification
-                        cont2+=1
+                        if(j.qualification != -1):
+                            totalnewguidelie+=j.qualification
+                            cont2+=1
                 #print("--------1111",listquestions)
                         
                 #print("--------------------",i.id,totalnewguidelie,cont2)
@@ -312,7 +313,7 @@ class StudentEvaluationView(viewsets.ViewSet):
                 totalrating_new+=i.average_principle
                 totalprinciple_new=0
 
-            evaluation_student.rating=totalrating_new/(len(Principle.objects.all()) - cont_not_apply )
+            evaluation_student.rating=totalrating_new/(len(Principle.objects.all()))
 
             evaluation_student.save() 
             serializer = StudentEvaluationSerializer(evaluation_student)            
