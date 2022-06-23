@@ -131,14 +131,19 @@ class StudentEvaluationView(viewsets.ViewSet):
             cont=0
             for b in listEvaluationQuestions:
                 if a.id==b.guideline_evaluations.id:
-                    if(b.qualification != -1):
-                        totalguideline+=b.qualification
+                    if(b.qualification != -1 and b.evaluation_question_id != 1 and b.evaluation_question_id != 2 and b.evaluation_question_id != 3):
+                        #obtenemos el peso de la pregunta
+                        weight_question = Question.objects.get(pk=b.evaluation_question_id)
+                        # multiplicamos el peso con la calificacion de la evaluacion
+                        multiplicacion = b.qualification * weight_question.weight
+                        totalguideline = (totalguideline + multiplicacion)
                         cont+=1
 
-            h=(totalguideline*5)/(2*cont)
-            a.average_guideline=h
+            #Agreagmos la evaluacion sin el peso
+            h = (totalguideline) / (cont)
+            a.average_guideline=(h/2.4)
             a.save()
-            
+
             totalguideline=0
         
         totalprinciple=0
@@ -149,11 +154,11 @@ class StudentEvaluationView(viewsets.ViewSet):
             contg=0
             for j in listEvaluationGuideine:
                 if i.id==j.principle_gl.id:
-                    if (qualification != -1):
+                    #if (qualification != -1):
                         totalprinciple+=j.average_guideline
                         contg+=1
-                    else:
-                        cont_not_apply_principal += 1
+                    #else:
+                     #   cont_not_apply_principal += 1
 
 
             i.average_principle=totalprinciple/(contg)
@@ -200,8 +205,7 @@ class StudentEvaluationView(viewsets.ViewSet):
             Servicio para actuaizar una evalución
         """
         try:
-            print("entra en actualizar")
-            print(",,,,,,,,,,,,,,,,,,,,,,,,,",pk)
+
             serializer = EvaluationStudentCreateSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             user = User.objects.get(id=self.request.user.id)
@@ -254,34 +258,30 @@ class StudentEvaluationView(viewsets.ViewSet):
                 cont+=1
                 
                 listquestions.append(i)
-                #print("->>>>>>>>>>>>>>>>>>",i.evaluation_question.question,i.qualification)
-                #guideline=EvaluationGuidelineQualification.objects.get(
-                #    id=i.guideline_evaluations.id
-                #)
-                #listguideline.append(guideline)
-
             totalnewguidelie=0
             
             for i in EvaluationGuidelineQualification.objects.filter(
                 principle_gl__evaluation_student__id=pk
             ):
-                #guideline=EvaluationGuidelineQualification.objects.get(
-                #       id=i.guideline_evaluations.id
-                #)
                 cont2=0
                 for j in listquestions:
-                    #print("----->>>",i.id," sss",j.guideline_evaluations.id)
-                 
+
                     if i.id==j.guideline_evaluations.id:
-                        if(j.qualification != -1):
-                            totalnewguidelie+=j.qualification
+                        #Validamos para que no se agregue las calificaciones de informacion
+                        if(j.qualification != -1 and b.evaluation_question_id != 1 and b.evaluation_question_id != 2 and b.evaluation_question_id != 3):
+                            #calificaion con pero para a pregunta
+                            weight_question = Question.objects.get(pk=j.evaluation_question_id)
+                            # multiplicamos el peso con la calificacion de la evaluacion
+                            multiplicacion = j.qualification * weight_question.weight
+                            totalnewguidelie = (totalnewguidelie + multiplicacion)
                             cont2+=1
-                #print("--------1111",listquestions)
-                        
-                #print("--------------------",i.id,totalnewguidelie,cont2)
                 try:
-                    hnwe=(totalnewguidelie*5)/(2*cont2)
-                    i.average_guideline=hnwe
+                   #Las cifras que se multiplican sirven para redondear la respuesta
+                   #ya que al aplicar la formula de la media aritmetica. Su valor maximo siempre sera 2
+                   #y no 5 como valor primoridial de la Evaluacion
+                    hnwe = (totalnewguidelie)/(cont2)
+                    #2.4 Cifra para redondear la calificacion a 5
+                    i.average_guideline = (hnwe/2.4)
                     i.save()
                     listguideline.append(i)
                     totalnewguidelie=0
@@ -297,11 +297,11 @@ class StudentEvaluationView(viewsets.ViewSet):
                 cont3=0
                 for j in listguideline:
                     if i.id==j.principle_gl.id:
-                        if (qualification != -1):
-                            totalprinciple_new+=j.average_guideline
-                            cont3+=1
-                        else:
-                            cont_not_apply += 1
+                        #if (qualification != -1):
+                        totalprinciple_new+=j.average_guideline
+                        cont3+=1
+                        #else:
+                         #   cont_not_apply += 1
                 try:
 
                     i.average_principle=totalprinciple_new/cont3

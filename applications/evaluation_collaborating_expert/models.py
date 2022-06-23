@@ -22,6 +22,10 @@ class EvaluationQuestion(TimeStampedModel):
     interpreter_not_apply = models.TextField(blank=True, null=True)
     value_importance = models.FloatField(blank=True, null=True)
     #######################################################################
+    # Peso y relevancia para cada pregunta
+    relevance = models.CharField(max_length=50, blank=False, null=True)
+    weight = models.FloatField(blank=True, null=True)
+
     code = models.CharField(max_length=10, unique=True)
     evaluation_concept = models.ForeignKey(EvaluationConcept,on_delete=models.CASCADE, related_name='questions')
     def __str__(self):

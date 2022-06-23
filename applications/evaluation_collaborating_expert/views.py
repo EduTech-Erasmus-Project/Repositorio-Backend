@@ -248,15 +248,15 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
         for evaluation_question,qualification in zip(evaluation_questions,scores):
             for evaluationConceptQualification in evaluationConceptQualificationList:
                 if(evaluationConceptQualification.evaluation_concept==evaluation_question.evaluation_concept):
-
                     evaluationQuestionsQualification = EvaluationQuestionsQualification.objects.create(
                             concept_evaluations=evaluationConceptQualification,
                             evaluation_question=evaluation_question,
                             qualification=qualification
                             )
-                    if (qualification != -1):
-                        ratings=ratings+qualification
-
+                    if (qualification != -1 and evaluation_question.id != 1 and evaluation_question.id != 2 and evaluation_question.id != 3):
+                        #Multiplicamos por el peso de la pregunta
+                        multiplicacion = qualification * evaluation_question.weight
+                        ratings = ratings + multiplicacion
                     else:
                         cont_not_apply += 1
 
@@ -264,7 +264,7 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
 
         updateAverage(evaluationQuestionsQualificationList,evaluationConceptQualificationList)
 
-        evaluationCollaboratingExpert.rating=ratings/(len(evaluationQuestionsQualificationList) - cont_not_apply)
+        evaluationCollaboratingExpert.rating=(ratings/(len(evaluationQuestionsQualificationList) - cont_not_apply))/2.4
 
         evaluationCollaboratingExpert.save()
         serializer = EvaluationCollaboratingExpertSerializer(evaluationCollaboratingExpert)
@@ -337,12 +337,16 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
         cont_not_apply = 0
         for evaluationQuestionsQualification,qualification in zip(evaluationQuestionsQualifications,scores):
             evaluationQuestionsQualification.qualification=qualification
-            if (qualification != -1):
-                rating = rating+qualification
+            if (qualification != -1 and evaluationQuestionsQualification.evaluation_question_id !=1and evaluationQuestionsQualification.evaluation_question_id !=2and evaluationQuestionsQualification.evaluation_question_id !=3):
+                #Obtenemos el peso de la pregunta
+                wieght_question = EvaluationQuestion.objects.get(pk = evaluationQuestionsQualification.evaluation_question_id)
+                #Multiplicamos el peso con la calificacion de la evaluacion
+                multiplicacion = qualification * wieght_question.weight
+                rating = rating+multiplicacion
             else:
                 cont_not_apply += 1
 
-        evaluation_expert.rating=rating/(len(evaluationQuestionsQualifications) - cont_not_apply)
+        evaluation_expert.rating=(rating/(len(evaluationQuestionsQualifications) - cont_not_apply))/2.4
 
         evaluation_expert.save()
         updateAverage(evaluationQuestionsQualifications,evaluationConceptQualificationList)
