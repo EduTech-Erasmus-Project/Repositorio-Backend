@@ -928,7 +928,8 @@ def automaticEvaluation(id):
         ratingnew+=h
     objeto.rating_schema=ratingnew/len(EvaluationConcept.objects.all())
     #objeto.rating_schema = ratingnew
-    if( objeto.rating_schema >= 4.0):
+    #Si cumple con el 70% de los metadatos se habilita de forma automatica el objeto de aprendizaje
+    if(  objeto.rating_schema >= 3.5):
         META.public = True
         META.save()
     objeto.save()

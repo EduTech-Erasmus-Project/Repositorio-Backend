@@ -19,6 +19,8 @@ class LearningObjectMetadata(TimeStampedModel):
     # Metadatos complementarios
     avatar = models.ImageField(null=False, blank=False, upload_to = "avatar")
 
+    source_file = models.FileField(null=True, blank=True, upload_to="sourceFile")
+
     author = models.CharField(max_length=100, blank=True, null=True)
     package_type = models.CharField(max_length=50,blank=True, null=True)
 
