@@ -102,10 +102,11 @@ class EvaluationQuestionStSerializer(serializers.ModelSerializer):
         fields = ('__all__')
 
 class EvaluationQuestionStRegisterSerializer(serializers.Serializer):
-    question = serializers.CharField(required=True,validators=[
+    """question = serializers.CharField(required=True,validators=[
         UniqueValidator(queryset=Question.objects.all(), 
         message="Esta pregunta ya esta registrado.",
-        )])
+        )])"""
+    question = serializers.CharField(required=True)
     description = serializers.CharField(required=True)
     metadata = serializers.CharField(required=True)
     ###################################################
@@ -114,6 +115,9 @@ class EvaluationQuestionStRegisterSerializer(serializers.Serializer):
     interpreter_st_partially = serializers.CharField(required=True)
     interpreter_st_not_apply = serializers.CharField(required=True)
     value_st_importance = serializers.CharField(required=True)
+
+    weight = serializers.CharField(required=True)
+    relevance = serializers.CharField(required=True)
     ###################################################
 
 ###list
@@ -134,7 +138,9 @@ class EvaluationSchemaListSerializer(serializers.ModelSerializer):
         'interpreter_st_no',
         'interpreter_st_partially',
         'interpreter_st_not_apply',
-        'value_st_importance'
+        'value_st_importance',
+        'weight',
+        'relevance'
         )
 
 class EvaluationGuidelinesListSerializer(serializers.ModelSerializer):
@@ -368,7 +374,9 @@ class EvaluationPrincipleGuidelineRegSchemaListSerializer(serializers.ModelSeria
         'interpreter_st_no',
         'interpreter_st_partially',
         'interpreter_st_not_apply',
-        'value_st_importance'
+        'value_st_importance',
+        'weight',
+        'relevance'
         )
 
 class EvaluationPrincipleGuidelineRegListSerializer(serializers.ModelSerializer):
