@@ -489,7 +489,7 @@
     "model": "evaluation_student.question",
     "pk": 7,
     "fields": {
-      "question": "¿Incluye opciones para clarificar por ejemplo  video con audiodescripcion?",
+      "question": "¿Incluye opciones para clarificar recursos  por ejemplo  video con audiodescripcion?",
       "description": "Incluye opciones para clarificar el lenguaje oral, escrito y matemático. Por ejemplo, utilizando: glosario, traductor, conversor de texto a voz, imágenes, audiodescripciones, subtítulos en vídeos, calculadora, etc.",
       "metadata": "accessibilityFeature:audioDescription",
       "interpreter_st_yes": "Presenta opciones que ayudan en la comprension de videos como son las audiodescripciones",

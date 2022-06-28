@@ -123,6 +123,8 @@ class EvaluationQuestionsViewSet(viewsets.ModelViewSet):
         instance.interpreter_partially = serializer.validated_data['interpreter_partially']
         instance.interpreter_not_apply = serializer.validated_data['interpreter_not_apply']
         instance.value_importance = serializer.validated_data['value_importance']
+        instance.weight = serializer.validated_data['weight']
+        instance.relevance = serializer.validated_data['relevance']
         ###############################################################
         instance.save()
         return Response({"message": "success"},status=HTTP_200_OK)
@@ -245,6 +247,7 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
             evaluationConceptQualificationList.append(evaluationConceptQualification)
         evaluationQuestionsQualificationList = []
         cont_not_apply = 0
+        ref_total_calificaciones = 0
         for evaluation_question,qualification in zip(evaluation_questions,scores):
             for evaluationConceptQualification in evaluationConceptQualificationList:
                 if(evaluationConceptQualification.evaluation_concept==evaluation_question.evaluation_concept):
@@ -257,14 +260,18 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
                         #Multiplicamos por el peso de la pregunta
                         multiplicacion = qualification * evaluation_question.weight
                         ratings = ratings + multiplicacion
+                        ref_total_calificaciones = ref_total_calificaciones+(2*evaluation_question.weight)
                     else:
                         cont_not_apply += 1
 
                     evaluationQuestionsQualificationList.append(evaluationQuestionsQualification)
 
-        updateAverage(evaluationQuestionsQualificationList,evaluationConceptQualificationList)
+        #Sacamos el valor de la evaluacion preliminar
+        valor_Preliminar = ref_total_calificaciones/len(evaluationQuestionsQualificationList) - cont_not_apply
+        valor_Preliminar = valor_Preliminar/5
 
-        evaluationCollaboratingExpert.rating=(ratings/(len(evaluationQuestionsQualificationList) - cont_not_apply))/2.4
+        updateAverage(evaluationQuestionsQualificationList,evaluationConceptQualificationList)
+        evaluationCollaboratingExpert.rating=(ratings/(len(evaluationQuestionsQualificationList) - cont_not_apply))/valor_Preliminar
 
         evaluationCollaboratingExpert.save()
         serializer = EvaluationCollaboratingExpertSerializer(evaluationCollaboratingExpert)
@@ -335,6 +342,7 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
             evaluationConceptQualificationList.append(evaluationConceptQualification)
         rating=0.0
         cont_not_apply = 0
+        ref_total_calificaciones = 0
         for evaluationQuestionsQualification,qualification in zip(evaluationQuestionsQualifications,scores):
             evaluationQuestionsQualification.qualification=qualification
             if (qualification != -1 and evaluationQuestionsQualification.evaluation_question_id !=1and evaluationQuestionsQualification.evaluation_question_id !=2and evaluationQuestionsQualification.evaluation_question_id !=3):
@@ -342,11 +350,16 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
                 wieght_question = EvaluationQuestion.objects.get(pk = evaluationQuestionsQualification.evaluation_question_id)
                 #Multiplicamos el peso con la calificacion de la evaluacion
                 multiplicacion = qualification * wieght_question.weight
+                ref_total_calificaciones = ref_total_calificaciones + (2*wieght_question.weight)
                 rating = rating+multiplicacion
             else:
                 cont_not_apply += 1
 
-        evaluation_expert.rating=(rating/(len(evaluationQuestionsQualifications) - cont_not_apply))/2.4
+        # Sacamos el valor de la evaluacion preliminar
+        valor_Preliminar = ref_total_calificaciones / len(evaluationQuestionsQualifications) - cont_not_apply
+        valor_Preliminar = valor_Preliminar / 5
+
+        evaluation_expert.rating=(rating/(len(evaluationQuestionsQualifications) - cont_not_apply))/valor_Preliminar
 
         evaluation_expert.save()
         updateAverage(evaluationQuestionsQualifications,evaluationConceptQualificationList)
@@ -471,47 +484,79 @@ def updateAverage(scoreData:list,instances:list):
     tam2=0
     tam3=0
     tam4=0
+    val_pre1=0
+    val_pre2=0
+    val_pre3=0
+    val_pre4=0
 
     for concept in scoreData:
         if(str(concept.concept_evaluations.evaluation_concept))==concepts[0]:
             concept_1 = str(concept.concept_evaluations.evaluation_concept)
             if(concept.qualification != -1):
-                average1 = average1+concept.qualification
+                #average1 = average1+concept.qualification
+                weight_question = EvaluationQuestion.objects.get(pk=concept.evaluation_question_id)
+                multiplicacion = concept.qualification * weight_question.weight
+                average1 = average1+multiplicacion
+                val_pre1 = val_pre1 +(2*weight_question.weight)
                 tam1 = tam1+1
-                #print("---1",average1,"tam",tam1)
+
+                valor_preliminar = val_pre1 / tam1
+                valor_preliminar = valor_preliminar / 5
                 dicDta1 = {
-                    'average':average1/tam1,
+                    'average':(average1/tam1)/ valor_preliminar,
                     'concept':concept_1
                 }
 
         if(str(concept.concept_evaluations.evaluation_concept))==concepts[1]:
             concept_2 = str(concept.concept_evaluations.evaluation_concept)
             if (concept.qualification != -1):
-                average2 = average2+concept.qualification
+                #average2 = average2+concept.qualification
+                weight_question = EvaluationQuestion.objects.get(pk=concept.evaluation_question_id)
+                multiplicacion = concept.qualification * weight_question.weight
+                average2 = average2 + multiplicacion
+                val_pre2 = val_pre2 + (2 * weight_question.weight)
                 tam2 = tam2+1
-                #print("---2",average2,"tam",tam2)
+
+                valor_preliminar = val_pre2 / tam2
+                valor_preliminar = valor_preliminar / 5
                 dicDta2 = {
-                    'average':average2/tam2,
+                    'average':(average2/tam2)/valor_preliminar,
                     'concept':concept_2
                 }
+
         if(str(concept.concept_evaluations.evaluation_concept))==concepts[2]:
             concept_3 = str(concept.concept_evaluations.evaluation_concept)
+
             if (concept.qualification != -1):
-                average3 = average3+concept.qualification
+                #average3 = average3+concept.qualification
+                weight_question = EvaluationQuestion.objects.get(pk=concept.evaluation_question_id)
+                multiplicacion = concept.qualification * weight_question.weight
+                average3 = average3 + multiplicacion
+                val_pre3 = val_pre3 + (2 * weight_question.weight)
                 tam3 = tam3+1
-                #print("---3",average3,"tam",tam3)
+
+                valor_preliminar = val_pre3/tam3
+                valor_preliminar = valor_preliminar/5
                 dicDta3 = {
-                    'average':average3/tam3,
+                    'average':(average3/tam3)/ valor_preliminar,
                     'concept':concept_3
                 }
+
         if(str(concept.concept_evaluations.evaluation_concept))==concepts[3]:
             concept_4 = str(concept.concept_evaluations.evaluation_concept)
             if (concept.qualification != -1):
-                average4 = average4+concept.qualification
+                #average4 = average4+concept.qualification
+                weight_question = EvaluationQuestion.objects.get(pk=concept.evaluation_question_id)
+                multiplicacion = concept.qualification * weight_question.weight
+                average4 = average4 + multiplicacion
+                val_pre4 = val_pre4 + (2 * weight_question.weight)
                 tam4 = tam4+1
-                #print("---4",average4,"tam",tam4)
+
+                valor_preliminar = val_pre4 / tam4
+                valor_preliminar = valor_preliminar / 5
+
                 dicDta4 = {
-                    'average':average4/tam4,
+                    'average':(average4/tam4)/valor_preliminar,
                     'concept':concept_4
                 }
 

@@ -25,10 +25,11 @@ from applications.evaluation_collaborating_expert import models
 
 # Serializer class
 class EvaluationQuestionRegisterSerializer(serializers.Serializer):
-    question = serializers.CharField(required=True,validators=[
-        UniqueValidator(queryset=EvaluationQuestion.objects.all(), 
+    """question = serializers.CharField(required=True,validators=[
+        UniqueValidator(queryset=EvaluationQuestion.objects.all(),
         message="Esta pregunta ya esta registrado.",
-        )])
+        )])"""
+    question = serializers.CharField(required=True)
     description = serializers.CharField(required=True)
     schema = serializers.CharField(required=True)
     ###################################################
@@ -37,11 +38,15 @@ class EvaluationQuestionRegisterSerializer(serializers.Serializer):
     interpreter_partially = serializers.CharField(required=True)
     interpreter_not_apply = serializers.CharField(required=True)
     value_importance = serializers.CharField(required=True)
+
+    weight = serializers.CharField(required=True)
+    relevance = serializers.CharField(required=True)
     ###################################################
-    code = serializers.CharField(required=True,validators=[
-        UniqueValidator(queryset=EvaluationQuestion.objects.all(), 
+    """code = serializers.CharField(required=True,validators=[
+        UniqueValidator(queryset=EvaluationQuestion.objects.all(),
         message="Este código ya esta registrado.",
-        )])
+        )])"""
+    code = serializers.CharField(required=True)
     # evaluation_concept = serializers.IntegerField(required=True)
 
 class EvaluationQuestionSerializer(serializers.ModelSerializer):
@@ -63,7 +68,10 @@ class EvaluationQuestionListSerializer(serializers.ModelSerializer):
             'interpreter_no',
             'interpreter_partially',
             'interpreter_not_apply',
-            'value_importance')
+            'value_importance',
+            'relevance',
+            'weight'
+        )
 
 class EvaluationConceptSerializer(serializers.ModelSerializer):
     class Meta:

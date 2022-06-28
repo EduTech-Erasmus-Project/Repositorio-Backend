@@ -127,6 +127,7 @@ class StudentEvaluationView(viewsets.ViewSet):
                             evaluationquestions.save()
                             listEvaluationQuestions.append(evaluationquestions)
         totalguideline=0
+        ref_total_calificaciones = 0
         for a in listEvaluationGuideine:
             cont=0
             for b in listEvaluationQuestions:
@@ -137,11 +138,15 @@ class StudentEvaluationView(viewsets.ViewSet):
                         # multiplicamos el peso con la calificacion de la evaluacion
                         multiplicacion = b.qualification * weight_question.weight
                         totalguideline = (totalguideline + multiplicacion)
+                        ref_total_calificaciones = ref_total_calificaciones (2*weight_question.weight)
                         cont+=1
 
             #Agreagmos la evaluacion sin el peso
+            valor_preliminar = (ref_total_calificaciones) / (cont)
+            valor_preliminar = valor_preliminar / 5
+
             h = (totalguideline) / (cont)
-            a.average_guideline=(h/2.4)
+            a.average_guideline=(h/valor_preliminar)
             a.save()
 
             totalguideline=0
@@ -264,24 +269,35 @@ class StudentEvaluationView(viewsets.ViewSet):
                 principle_gl__evaluation_student__id=pk
             ):
                 cont2=0
+                ref_total_calificaciones=0
                 for j in listquestions:
 
                     if i.id==j.guideline_evaluations.id:
                         #Validamos para que no se agregue las calificaciones de informacion
-                        if(j.qualification != -1 and b.evaluation_question_id != 1 and b.evaluation_question_id != 2 and b.evaluation_question_id != 3):
+                        print(j.evaluation_question_id)
+                        print('Q',j.qualification)
+                        if(j.qualification != -1 and j.evaluation_question_id != 1 and j.evaluation_question_id != 2 and j.evaluation_question_id != 3):
                             #calificaion con pero para a pregunta
                             weight_question = Question.objects.get(pk=j.evaluation_question_id)
                             # multiplicamos el peso con la calificacion de la evaluacion
                             multiplicacion = j.qualification * weight_question.weight
+
                             totalnewguidelie = (totalnewguidelie + multiplicacion)
+                            #Se usa para rellenar los calculos de la refernecia
+                            ref_total_calificaciones = ref_total_calificaciones +(2 * weight_question.weight)
+
                             cont2+=1
+                            multiplicacion=0
+
                 try:
                    #Las cifras que se multiplican sirven para redondear la respuesta
                    #ya que al aplicar la formula de la media aritmetica. Su valor maximo siempre sera 2
                    #y no 5 como valor primoridial de la Evaluacion
+                    valor_preliminar = (ref_total_calificaciones)/(cont2)
+                    valor_preliminar = valor_preliminar/5
+
                     hnwe = (totalnewguidelie)/(cont2)
-                    #2.4 Cifra para redondear la calificacion a 5
-                    i.average_guideline = (hnwe/2.4)
+                    i.average_guideline = hnwe/valor_preliminar
                     i.save()
                     listguideline.append(i)
                     totalnewguidelie=0
@@ -434,6 +450,8 @@ class EvaluationQuestionsStudentViewSet(viewsets.ModelViewSet):
         instance.interpreter_st_partially = serializer.validated_data['interpreter_st_partially']
         instance.interpreter_st_not_apply = serializer.validated_data['interpreter_st_not_apply']
         instance.value_st_importance = serializer.validated_data['value_st_importance']
+        instance.weight = serializer.validated_data['weight']
+        instance.relevance = serializer.validated_data['relevance']
         ###############################################################
         instance.save()
         return Response({"message": "success"},status=HTTP_200_OK)
