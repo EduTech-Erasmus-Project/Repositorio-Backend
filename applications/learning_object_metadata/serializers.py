@@ -54,6 +54,7 @@ class LearningObjectMetadataAllSerializer(serializers.ModelSerializer):
         query = EvaluationCollaboratingExpert.objects.filter(
             learning_object__id=obj.id
         ).values('rating')
+        print('Rating', query)
         if query.exists():
             return get_rating_value(query[0]['rating'])
         else:

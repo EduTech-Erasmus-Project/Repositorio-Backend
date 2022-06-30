@@ -261,17 +261,18 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
                         multiplicacion = qualification * evaluation_question.weight
                         ratings = ratings + multiplicacion
                         ref_total_calificaciones = ref_total_calificaciones+(2*evaluation_question.weight)
-                    else:
+
                         cont_not_apply += 1
 
                     evaluationQuestionsQualificationList.append(evaluationQuestionsQualification)
 
         #Sacamos el valor de la evaluacion preliminar
-        valor_Preliminar = ref_total_calificaciones/len(evaluationQuestionsQualificationList) - cont_not_apply
+        valor_Preliminar = ref_total_calificaciones/ cont_not_apply
         valor_Preliminar = valor_Preliminar/5
 
         updateAverage(evaluationQuestionsQualificationList,evaluationConceptQualificationList)
-        evaluationCollaboratingExpert.rating=(ratings/(len(evaluationQuestionsQualificationList) - cont_not_apply))/valor_Preliminar
+        head_eva= ratings/ cont_not_apply
+        evaluationCollaboratingExpert.rating=head_eva/valor_Preliminar
 
         evaluationCollaboratingExpert.save()
         serializer = EvaluationCollaboratingExpertSerializer(evaluationCollaboratingExpert)
@@ -352,14 +353,14 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
                 multiplicacion = qualification * wieght_question.weight
                 ref_total_calificaciones = ref_total_calificaciones + (2*wieght_question.weight)
                 rating = rating+multiplicacion
-            else:
+
                 cont_not_apply += 1
 
         # Sacamos el valor de la evaluacion preliminar
-        valor_Preliminar = ref_total_calificaciones / len(evaluationQuestionsQualifications) - cont_not_apply
+        valor_Preliminar = ref_total_calificaciones /  cont_not_apply
         valor_Preliminar = valor_Preliminar / 5
 
-        evaluation_expert.rating=(rating/(len(evaluationQuestionsQualifications) - cont_not_apply))/valor_Preliminar
+        evaluation_expert.rating=(rating/cont_not_apply)/valor_Preliminar
 
         evaluation_expert.save()
         updateAverage(evaluationQuestionsQualifications,evaluationConceptQualificationList)

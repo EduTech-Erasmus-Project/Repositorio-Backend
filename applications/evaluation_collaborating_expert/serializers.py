@@ -229,7 +229,7 @@ class EvaluationConceptQualificationsValueSerializer(serializers.ModelSerializer
     #print("calificado----------------------")
     evaluation_concept = EvaluationConceptSerializer()
     question_evaluations = QuestionQualificationListSerializer(many=True,read_only=True)
-    average = serializers.SerializerMethodField()
+    #average = serializers.SerializerMethodField()
     class Meta:
         model = EvaluationConceptQualification
         fields = (
