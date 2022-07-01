@@ -12,4 +12,5 @@ urlpatterns = [
 
     path('api/v1/learning-objects/student/result-to-student/<pk>/', views.ListEvaluatedToStudentRetriveAPIView.as_view(), name='evaluated_to_student'),
     path('api/v1/learning-objects/student/result-to-public-student/<pk>/', views.ListEvaluatedToStudenPublicAPIView.as_view(), name='evaluated_to_public_student'),
+    path('api/v1/learning-objects/student/result-to-public-student-single/<pk>/', views.ListEvaluatedStudentSinglePublicAPIView.as_view(), name='evaluated_to_public_student_single'),
 ]

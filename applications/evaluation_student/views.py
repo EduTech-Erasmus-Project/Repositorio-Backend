@@ -415,7 +415,18 @@ class ListEvaluatedToStudenPublicAPIView(ListAPIView):
             learning_object__id=id,
         ).distinct('learning_object')
 
-
+class ListEvaluatedStudentSinglePublicAPIView(ListAPIView):
+    """
+    Listar resultados de evaluacion realizado por el estudiante
+    """
+    permission_classes = [AllowAny]
+    serializer_class = EvaluationStudentList_EvaluationSerializer
+    def get_queryset(self):
+        id = self.kwargs['pk']
+        return StudentEvaluation.objects.filter(
+            learning_object__id=id,
+            student_id=self.request.user.id
+        ).distinct('learning_object')
 
 #######################crear preguntas del estudiante post crear put actualizar get listar
 #revisar 
