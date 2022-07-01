@@ -202,12 +202,12 @@ class ManagementUserView(viewsets.ViewSet):
                 for preference in preferences:
                     new_student.preferences.add(preference)
 
-                if not ManagementUserView.checkEmail(request.data['email']):
-                    value_active = False
-                    mail_create_check.sendMailCreateCheckAdmin(request.data['email'], request.data['first_name'])
-                else:
-                    value_active = True
-                    mail_create.sendMailCreate(request.data['email'], request.data['first_name'])
+                #if not ManagementUserView.checkEmail(request.data['email']):
+                 #   value_active = False
+                  #  mail_create_check.sendMailCreateCheckAdmin(request.data['email'], request.data['first_name'])
+                #else:
+                value_active = True
+                mail_create.sendMailCreate(request.data['email'], request.data['first_name'])
 
                 new_student.is_active = value_active
 
