@@ -32,6 +32,8 @@ from applications.learning_object_metadata.serializers import (
     )
 from applications.user.mixins import IsAdministratorUser, IsCollaboratingExpertUser, IsStudentUser, IsTeacherUser
 from .models import Commentary, LearningObjectMetadata
+from applications.learning_object_metadata.testMailMetadata import SendEmailCreateOA_satisfay, SendEmailCreateOA_not_satisfy, SendEmailCreateOA_not_satisfy_User
+from applications.user.models import  User
 # Create your views here.
 
 class SlugView(RetrieveAPIView):
@@ -689,7 +691,6 @@ class UpdatePublicLearningObject(RetrieveUpdateAPIView):
     serializer_class = LearningObjectMetadataAllSerializer
     queryset = LearningObjectMetadata.objects.all()
 
-
 class TotalLearningObjectAproved(APIView):
     """
         Obtener el total de los Objetos de Aprendizaje aprobados y por aprobar
@@ -867,7 +868,11 @@ class LearningObjectTecherListAPIView(ListAPIView):
 
 
 
-#########METODO PARA CALIFICAR UN OAS automaticamente 
+mail_upload_OA_Satisfy = SendEmailCreateOA_satisfay()
+mail_upload_OA_Not_Satisfy = SendEmailCreateOA_not_satisfy()
+mail_upload_OA_Not_Satisfy_User = SendEmailCreateOA_not_satisfy_User()
+
+#########METODO PARA CALIFICAR UN OAS automaticamente
 def automaticEvaluation(id):
     META=LearningObjectMetadata.objects.get(id=id)
     objeto=MetadataAutomaticEvaluation.objects.create(
@@ -927,9 +932,28 @@ def automaticEvaluation(id):
         i.save()
         ratingnew+=h
     objeto.rating_schema=ratingnew/len(EvaluationConcept.objects.all())
+
+    #Buscar datos del administrador para enviar los correos de revision
+    user_admin = User.objects.get(is_superuser=True)
+    user_email = user_admin.email
+    user_name = user_admin.first_name + " "+user_admin.last_name
+
     #objeto.rating_schema = ratingnew
     #Si cumple con el 70% de los metadatos se habilita de forma automatica el objeto de aprendizaje
     if(  objeto.rating_schema >= 3.5):
         META.public = True
         META.save()
+        mail_upload_OA_Satisfy.sendMailCreateOA(user_email, user_name, META.general_title)
+
+    else:
+        #Buscamos al propietario del objeto de aprendizaje
+        user_id = META.user_created_id
+        user_te = User.objects.get(pk =user_id)
+        user_name_lastname = user_te.first_name +" "+user_te.last_name
+        user_email_Te = user_te.email
+
+        #Se llama al servicio de correo
+        mail_upload_OA_Not_Satisfy.sendMail_Not_Satisfay_Admin(user_email, user_name, META.general_title)
+        mail_upload_OA_Not_Satisfy_User.sendMail_Not_Satisfay_User(user_email_Te, user_name_lastname, META.general_title)
+
     objeto.save()

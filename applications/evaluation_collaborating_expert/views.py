@@ -440,7 +440,22 @@ class ListOAEvaluatedRetriveAPIView(ListAPIView):
         return EvaluationCollaboratingExpert.objects.filter(
             learning_object__id=id,
         ).distinct('learning_object')
-        
+
+class ListOAEvaluatedRetriveAPIViewSingleUser(ListAPIView):
+    """
+        Listar resultado de la evaluación realizado por el experto por id del OA.
+        El servicio está disponible para todos los usuarios.
+    """
+    permission_classes = [AllowAny]
+    serializer_class = EvaluationCollaboratingExpertEvaluationSerializer
+    def get_queryset(self):
+        id = self.kwargs['pk']
+        print("usuario",self.request.user.id)
+        return EvaluationCollaboratingExpert.objects.filter(
+            learning_object__id=id,
+            collaborating_expert__id=self.request.user.id,
+        ).distinct('learning_object')
+
 class ListOAEvaluatedToExpertRetriveAPIView(ListAPIView):
     """
         Listar resultado de la evaluación realizado por el experto por id del OA.
