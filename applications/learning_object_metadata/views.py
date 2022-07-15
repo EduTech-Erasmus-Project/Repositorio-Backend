@@ -57,7 +57,10 @@ class OAFilter(filters.FilterSet):
     education_levels__id = filters.CharFilter(lookup_expr='iexact')
     knowledge_area__id = filters.CharFilter(lookup_expr='iexact')
     license__value = filters.CharFilter(lookup_expr='iexact')
+    license__name_es = filters.CharFilter(field_name='license',lookup_expr='name_es')
     created__year = filters.CharFilter(lookup_expr='iexact')
+    knowledge_area__name_es = filters.CharFilter(field_name='education_levels',lookup_expr='name_es')
+    education_levels__name_es = filters.CharFilter(lookup_expr='iexact')
     accesibility_control = filters.CharFilter(method='accesibility_control_filter')
     annotation_modeaccess = filters.CharFilter(method='annotation_modeaccess_filter')
     accesibility_features = filters.CharFilter(method='accesibility_features_filter')
@@ -74,7 +77,10 @@ class OAFilter(filters.FilterSet):
             'education_levels__id',
             'knowledge_area__id',
             'license__value',
-            'created__year'
+            'created__year',
+            'education_levels',
+            'knowledge_area',
+            'license'
         ]
     def accesibility_control_filter(self, queryset, name, value):
         accesibility_control = self.request.GET.getlist('accesibility_control')
@@ -927,6 +933,7 @@ def automaticEvaluation(id):
         for j in MetadataSchemaQualification.objects.filter(evaluation_metadata=i.id):
             vartotal+=j.qualification
             cont+=1
+
         h=(vartotal*5)/(1*cont)
         i.average_schema=h
         i.save()

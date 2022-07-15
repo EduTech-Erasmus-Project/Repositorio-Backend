@@ -132,20 +132,23 @@ class StudentEvaluationView(viewsets.ViewSet):
             cont=0
             for b in listEvaluationQuestions:
                 if a.id==b.guideline_evaluations.id:
-                    if(b.qualification != -1 and b.evaluation_question_id != 1 and b.evaluation_question_id != 2 and b.evaluation_question_id != 3):
+                    #and b.evaluation_question_id != 1 and b.evaluation_question_id != 2 and b.evaluation_question_id != 3
+                    if(b.qualification != -1):
                         #obtenemos el peso de la pregunta
                         weight_question = Question.objects.get(pk=b.evaluation_question_id)
                         # multiplicamos el peso con la calificacion de la evaluacion
                         multiplicacion = b.qualification * weight_question.weight
                         totalguideline = (totalguideline + multiplicacion)
-                        ref_total_calificaciones = ref_total_calificaciones (2*weight_question.weight)
+                        ref_total_calificaciones = ref_total_calificaciones + (2*weight_question.weight)
+                        print(ref_total_calificaciones)
+                        print(multiplicacion)
                         cont+=1
-
             #Agreagmos la evaluacion sin el peso
-            valor_preliminar = (ref_total_calificaciones) / (cont)
+
+            valor_preliminar = ref_total_calificaciones / cont
             valor_preliminar = valor_preliminar / 5
 
-            h = (totalguideline) / (cont)
+            h = totalguideline / cont
             a.average_guideline=(h/valor_preliminar)
             a.save()
 
@@ -274,8 +277,6 @@ class StudentEvaluationView(viewsets.ViewSet):
 
                     if i.id==j.guideline_evaluations.id:
                         #Validamos para que no se agregue las calificaciones de informacion
-                        print(j.evaluation_question_id)
-                        print('Q',j.qualification)
                         if(j.qualification != -1 and j.evaluation_question_id != 1 and j.evaluation_question_id != 2 and j.evaluation_question_id != 3):
                             #calificaion con pero para a pregunta
                             weight_question = Question.objects.get(pk=j.evaluation_question_id)
