@@ -27,6 +27,7 @@ from shutil import rmtree
 from ..learning_object_metadata.models import LearningObjectMetadata
 from xml.dom import minidom
 BASE_DIR = Path(__file__).ancestor(3)
+from ..helpers_functions.beautiful_soup_data import  read_html_files
 
 booleanLomLomes=True #If booleanLomLomes is True represents a lom format, and
                      #if booleanLomLomes is False represents a lomes format.
@@ -160,10 +161,20 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
             print(e.args)
             return Response({"message":"Objetos de Aprendizaje aceptados por el repositorio es IMS y SCORM."},status=HTTP_404_NOT_FOUND)
 
+        count_general_paragaph, count_general_img, count_general_audio, count_general_video = read_html_files(learningObject.path_origin)
+
+        count_tag ={
+            'paragraph': count_general_paragaph,
+            'img':count_general_img,
+            'video':count_general_video,
+            'audio':count_general_audio
+        }
+
         serializer = LearningObjectSerializer(learningObject)
         metadata ={
             "metadata": data,
-            "oa_file": serializer.data
+            "oa_file": serializer.data,
+            "tag_count": count_tag,
         }
         return Response(metadata,status=HTTP_200_OK)
 
