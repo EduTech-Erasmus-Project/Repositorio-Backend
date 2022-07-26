@@ -21,6 +21,14 @@ class LearningObjectMetadata(TimeStampedModel):
 
     source_file = models.FileField(null=True, blank=True, upload_to="sourceFile")
 
+    #Items para guardar las respuestas de cada una de las preguntas
+    item_v1 = models.CharField(null=True, blank=True, max_length=40)
+    item_v2 = models.CharField(null=True, blank=True, max_length=40)
+    item_t3 = models.CharField(null=True, blank=True, max_length=40)
+    item_t4 = models.CharField(null=True, blank=True, max_length=40)
+    item_a5 = models.CharField(null=True, blank=True, max_length=40)
+    item_i6 = models.CharField(null=True, blank=True, max_length=40)
+
     author = models.CharField(max_length=100, blank=True, null=True)
     package_type = models.CharField(max_length=50,blank=True, null=True)
 

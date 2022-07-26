@@ -296,8 +296,10 @@ class StudentEvaluationView(viewsets.ViewSet):
                    #y no 5 como valor primoridial de la Evaluacion
                     valor_preliminar = (ref_total_calificaciones)/(cont2)
                     valor_preliminar = valor_preliminar/5
-
+                    print('valorProliminar', valor_preliminar)
+                    print('toatl', totalnewguidelie)
                     hnwe = (totalnewguidelie)/(cont2)
+                    print('respuesta', hnwe)
                     i.average_guideline = hnwe/valor_preliminar
                     i.save()
                     listguideline.append(i)

@@ -59,7 +59,7 @@ class OAFilter(filters.FilterSet):
     license__value = filters.CharFilter(lookup_expr='iexact')
     license__name_es = filters.CharFilter(field_name='license',lookup_expr='name_es')
     created__year = filters.CharFilter(lookup_expr='iexact')
-    knowledge_area__name_es = filters.CharFilter(field_name='education_levels',lookup_expr='name_es')
+    knowledge_area__name_es = filters.CharFilter(field_name='knowledge_area',lookup_expr='name_es')
     education_levels__name_es = filters.CharFilter(lookup_expr='iexact')
     accesibility_control = filters.CharFilter(method='accesibility_control_filter')
     annotation_modeaccess = filters.CharFilter(method='annotation_modeaccess_filter')
@@ -640,6 +640,7 @@ class LearningObjectMetadataViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsAuthenticated,IsTeacherUser]
         return [permission() for permission in permission_classes]
+
     serializer_class = LearningObjectMetadataSerializer
     queryset = LearningObjectMetadata.objects.all()
     
@@ -880,11 +881,14 @@ mail_upload_OA_Not_Satisfy_User = SendEmailCreateOA_not_satisfy_User()
 
 #########METODO PARA CALIFICAR UN OAS automaticamente
 def automaticEvaluation(id):
+
     META=LearningObjectMetadata.objects.get(id=id)
     objeto=MetadataAutomaticEvaluation.objects.create(
         learning_object=META,
         rating_schema=0.0
     )
+
+
     objeto.save()
     for i in EvaluationConcept.objects.all():
         concept=MetadataQualificationConcept.objects.create(
@@ -893,8 +897,46 @@ def automaticEvaluation(id):
             average_schema=0.0
         )
         concept.save()
-    
-    dato=0
+
+    #Recursos digitales visuales
+    item1 = META.item_v1
+    item2 = META.item_v2
+    #Recursos digitales textuales
+    item3 = META.item_t3
+    item4 = META.item_t4
+    #Recursos auditivos
+    item5 = META.item_a5
+    #Nivel de interactividad
+    item6 = META.item_i6
+
+    var_points_automatic = 0
+
+    if(item1 == "yes"):
+        var_points_automatic += 1
+
+    if (item2 == "yes"):
+        var_points_automatic += 1
+
+    if (item3 == "yes"):
+        var_points_automatic += 1
+
+    if (item4 == "yes"):
+        var_points_automatic += 1
+
+    if (item5 == "yes"):
+        var_points_automatic += 1
+
+    if (item6 == "yes"):
+        var_points_automatic += 1
+
+    #Regla de 3 para sacar el procentaje de manera manual
+    #Para sacar el valor proliminar dividimos n numero de preguntas, para 5
+    # 6 / 5 = 1,2
+    valor_preliminar = 1.2
+    rating = var_points_automatic/ valor_preliminar
+    rating_q = round(rating, 2)
+
+    """dato=0
     metadatos_schema=EvaluationMetadata.objects.all()
     for i in MetadataQualificationConcept.objects.all():
         for j in metadatos_schema:
@@ -922,12 +964,13 @@ def automaticEvaluation(id):
                     qualification=dato
                     )
                     evaluaction.save()
-                    dato=0
+                    dato=0"""
 
-    consult_evaluation=MetadataQualificationConcept.objects.filter(evaluation_automatic_evaluation__learning_object__id=objeto.learning_object.id)
+
+  #  consult_evaluation=MetadataQualificationConcept.objects.filter(evaluation_automatic_evaluation__learning_object__id=objeto.learning_object.id)
     
     ratingnew=0
-    for i in consult_evaluation:
+    """for i in consult_evaluation:
         vartotal=0
         cont=0
         for j in MetadataSchemaQualification.objects.filter(evaluation_metadata=i.id):
@@ -937,8 +980,8 @@ def automaticEvaluation(id):
         h=(vartotal*5)/(1*cont)
         i.average_schema=h
         i.save()
-        ratingnew+=h
-    objeto.rating_schema=ratingnew/len(EvaluationConcept.objects.all())
+        ratingnew+=h"""
+    objeto.rating_schema= rating_q
 
     #Buscar datos del administrador para enviar los correos de revision
     user_admin = User.objects.get(is_superuser=True)
@@ -947,7 +990,7 @@ def automaticEvaluation(id):
 
     #objeto.rating_schema = ratingnew
     #Si cumple con el 70% de los metadatos se habilita de forma automatica el objeto de aprendizaje
-    if(  objeto.rating_schema >= 3.5):
+    if(  objeto.rating_schema >= 2.5):
         META.public = True
         META.save()
         mail_upload_OA_Satisfy.sendMailCreateOA(user_email, user_name, META.general_title)
