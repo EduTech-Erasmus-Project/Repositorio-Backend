@@ -102,8 +102,10 @@ def web_scraping_img(aux_text):
 def web_scraping_video(aux_text):
 
     count_video_tag = aux_text.find_all("video");
+    count_iframe_tag = aux_text.find_all("iframe");
+    count_sum_iframe_video = len(count_video_tag) + len(count_iframe_tag)
 
-    return len(count_video_tag)
+    return count_sum_iframe_video
 
 def web_scraping_audio(aux_text):
 

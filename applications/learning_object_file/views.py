@@ -27,7 +27,7 @@ from shutil import rmtree
 from ..learning_object_metadata.models import LearningObjectMetadata
 from xml.dom import minidom
 BASE_DIR = Path(__file__).ancestor(3)
-from ..helpers_functions.beautiful_soup_data import  read_html_files
+from ..helpers_functions.beautiful_soup_data import read_html_files
 
 booleanLomLomes=True #If booleanLomLomes is True represents a lom format, and
                      #if booleanLomLomes is False represents a lomes format.
