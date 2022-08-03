@@ -127,7 +127,11 @@ class StudentEvaluationView(viewsets.ViewSet):
                             evaluationquestions.save()
                             listEvaluationQuestions.append(evaluationquestions)
         totalguideline=0
+        valor_preliminar = 0
+        h = 0
+        multiplicacion = 0
         ref_total_calificaciones = 0
+
         for a in listEvaluationGuideine:
             cont=0
             for b in listEvaluationQuestions:
@@ -139,20 +143,26 @@ class StudentEvaluationView(viewsets.ViewSet):
                         # multiplicamos el peso con la calificacion de la evaluacion
                         multiplicacion = b.qualification * weight_question.weight
                         totalguideline = (totalguideline + multiplicacion)
-                        ref_total_calificaciones = ref_total_calificaciones + (2*weight_question.weight)
-                        print(ref_total_calificaciones)
-                        print(multiplicacion)
-                        cont+=1
-            #Agreagmos la evaluacion sin el peso
 
+                        ref_total_calificaciones = ref_total_calificaciones + ( 2 * weight_question.weight)
+
+                        cont+=1
+
+            #Agreagmos la evaluacion sin el peso
             valor_preliminar = ref_total_calificaciones / cont
             valor_preliminar = valor_preliminar / 5
 
             h = totalguideline / cont
+
             a.average_guideline=(h/valor_preliminar)
             a.save()
 
-            totalguideline=0
+            totalguideline = 0
+            valor_preliminar = 0
+            h = 0
+            cont=0
+            multiplicacion=0
+            ref_total_calificaciones=0
         
         totalprinciple=0
         ratingOBJ=0
@@ -266,8 +276,14 @@ class StudentEvaluationView(viewsets.ViewSet):
                 cont+=1
                 
                 listquestions.append(i)
-            totalnewguidelie=0
-            
+
+            valor_preliminar = 0
+            totalnewguidelie = 0
+            multiplicacion = 0
+            ref_total_calificaciones = 0
+            hnwe = 0
+            cont2 = 0
+
             for i in EvaluationGuidelineQualification.objects.filter(
                 principle_gl__evaluation_student__id=pk
             ):
@@ -277,35 +293,36 @@ class StudentEvaluationView(viewsets.ViewSet):
 
                     if i.id==j.guideline_evaluations.id:
                         #Validamos para que no se agregue las calificaciones de informacion
-                        if(j.qualification != -1 and j.evaluation_question_id != 1 and j.evaluation_question_id != 2 and j.evaluation_question_id != 3):
+                        #and j.evaluation_question_id != 1 and j.evaluation_question_id != 2 and j.evaluation_question_id != 3
+                        if(j.qualification != -1 ):
                             #calificaion con pero para a pregunta
                             weight_question = Question.objects.get(pk=j.evaluation_question_id)
                             # multiplicamos el peso con la calificacion de la evaluacion
                             multiplicacion = j.qualification * weight_question.weight
-
                             totalnewguidelie = (totalnewguidelie + multiplicacion)
                             #Se usa para rellenar los calculos de la refernecia
                             ref_total_calificaciones = ref_total_calificaciones +(2 * weight_question.weight)
-
                             cont2+=1
-                            multiplicacion=0
 
-                try:
-                   #Las cifras que se multiplican sirven para redondear la respuesta
-                   #ya que al aplicar la formula de la media aritmetica. Su valor maximo siempre sera 2
-                   #y no 5 como valor primoridial de la Evaluacion
-                    valor_preliminar = (ref_total_calificaciones)/(cont2)
-                    valor_preliminar = valor_preliminar/5
-                    print('valorProliminar', valor_preliminar)
-                    print('toatl', totalnewguidelie)
-                    hnwe = (totalnewguidelie)/(cont2)
-                    print('respuesta', hnwe)
-                    i.average_guideline = hnwe/valor_preliminar
-                    i.save()
-                    listguideline.append(i)
-                    totalnewguidelie=0
-                except:
-                    hnwe=0
+               #Las cifras que se multiplican sirven para redondear la respuesta
+               #ya que al aplicar la formula de la media aritmetica. Su valor maximo siempre sera 2
+               #y no 5 como valor primoridial de la Evaluacion
+                valor_preliminar = (ref_total_calificaciones)/(cont2)
+                valor_preliminar = valor_preliminar/5
+
+                hnwe = (totalnewguidelie)/(cont2)
+
+                i.average_guideline = hnwe/valor_preliminar
+                i.save()
+                listguideline.append(i)
+
+                valor_preliminar=0
+                totalnewguidelie=0
+                multiplicacion = 0
+                ref_total_calificaciones=0
+                hnwe=0
+                cont =0
+
 
             totalprinciple_new=0
             totalrating_new=0
