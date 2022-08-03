@@ -504,8 +504,10 @@ def updateAverage(scoreData:list,instances:list):
     val_pre2=0
     val_pre3=0
     val_pre4=0
-
+    multiplicaion = 0
+    valor_preliminar=0
     for concept in scoreData:
+
         if(str(concept.concept_evaluations.evaluation_concept))==concepts[0]:
             concept_1 = str(concept.concept_evaluations.evaluation_concept)
             if(concept.qualification != -1):
@@ -575,6 +577,7 @@ def updateAverage(scoreData:list,instances:list):
                     'average':(average4/tam4)/valor_preliminar,
                     'concept':concept_4
                 }
+
 
     for instance in instances:
         instance_update = EvaluationConceptQualification.objects.get(id=instance.id)

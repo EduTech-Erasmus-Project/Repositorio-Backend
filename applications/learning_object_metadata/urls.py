@@ -22,5 +22,6 @@ urlpatterns = [
     path('api/v1/learning-objects/years/', views.ListLearningObjecYears.as_view()),
     path('api/v1/learning-objects/viewed/', views.LearningObjectMetadataViewedAPIView.as_view()),
     path('api/v1/learning-objects/observation/', views.LearningObjectTecherListAPIView.as_view()),
+    path('api/v1/learning-objects/my-qualification/', views.LearningObjectStudentQualificationAPIView.as_view()),
     path('api/v1/learning-objects-update-public/<int:pk>/', views.UpdatePublicLearningObject.as_view()),
 ]

@@ -34,6 +34,7 @@ from applications.user.mixins import IsAdministratorUser, IsCollaboratingExpertU
 from .models import Commentary, LearningObjectMetadata
 from applications.learning_object_metadata.testMailMetadata import SendEmailCreateOA_satisfay, SendEmailCreateOA_not_satisfy, SendEmailCreateOA_not_satisfy_User
 from applications.user.models import  User
+from applications.evaluation_student.serializers import StudentEvaluationSerializer
 # Create your views here.
 
 class SlugView(RetrieveAPIView):
@@ -871,6 +872,23 @@ class LearningObjectTecherListAPIView(ListAPIView):
         queryset = LearningObjectMetadata.objects.filter(
                 user_created = self.request.user
         ).order_by('-created')
+        return queryset
+
+class LearningObjectStudentQualificationAPIView(ListAPIView):
+    """
+    Listar objetos de aprendizaje calificados por un estudiante
+    """
+    permission_classes = [IsAuthenticated, IsStudentUser]
+    serializer_class = TeacherUploadListSerializer
+    pagination_class = ROANumberPaginationPopular
+
+    def get_queryset(self):
+        queryset = LearningObjectMetadata.objects.filter(
+            student_learning_objects__student_id= self.request.user.id
+        )
+        # student_evaluation
+        #student_learning_objects
+
         return queryset
 
 
