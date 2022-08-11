@@ -195,6 +195,7 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
         for result in serializer.validated_data['results']:
             evaluation_questions_.append(result['id'])
             qualifications.append(result['value'])
+
         user = User.objects.get(id=self.request.user.id)
         oa_is_evaluated = EvaluationCollaboratingExpert.objects.filter(
             learning_object__id=serializer.validated_data['learning_object'],
@@ -256,7 +257,7 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
                             evaluation_question=evaluation_question,
                             qualification=qualification
                             )
-                    if (qualification != -1 and evaluation_question.id != 1 and evaluation_question.id != 2 and evaluation_question.id != 3):
+                    if (qualification != -1 ):
                         #Multiplicamos por el peso de la pregunta
                         multiplicacion = qualification * evaluation_question.weight
                         ratings = ratings + multiplicacion
@@ -312,9 +313,13 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
         evaluation_questions_ =  []
         qualifications =  []
         for result in serializer.validated_data['results']:
+            print(str(result['id']))
+            print(str(result['value']))
             evaluation_questions_.append(result['id'])
             qualifications.append(result['value'])
+
         scores = []
+
         for qualification in qualifications:
             if(qualification==CALIFICATION_OPTIONS['YES']):
                 scores.append(YES)
@@ -346,7 +351,7 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
         ref_total_calificaciones = 0
         for evaluationQuestionsQualification,qualification in zip(evaluationQuestionsQualifications,scores):
             evaluationQuestionsQualification.qualification=qualification
-            if (qualification != -1 and evaluationQuestionsQualification.evaluation_question_id !=1and evaluationQuestionsQualification.evaluation_question_id !=2and evaluationQuestionsQualification.evaluation_question_id !=3):
+            if (qualification != -1):
                 #Obtenemos el peso de la pregunta
                 wieght_question = EvaluationQuestion.objects.get(pk = evaluationQuestionsQualification.evaluation_question_id)
                 #Multiplicamos el peso con la calificacion de la evaluacion
@@ -361,9 +366,11 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
         valor_Preliminar = valor_Preliminar / 5
 
         evaluation_expert.rating=(rating/cont_not_apply)/valor_Preliminar
-
         evaluation_expert.save()
+
         updateAverage(evaluationQuestionsQualifications,evaluationConceptQualificationList)
+        print(scores)
+        print(evaluationQuestionsQualifications)
         EvaluationQuestionsQualification.objects.bulk_update(evaluationQuestionsQualifications,['qualification'])
         serializer = EvaluationCollaboratingExpertSerializer(evaluation_expert)
         return Response(serializer.data ,status=HTTP_200_OK)
