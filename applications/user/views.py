@@ -153,7 +153,6 @@ class ManagementUserView(viewsets.ViewSet):
         return [permission() for permission in permission_classes]
 
     def checkEmail(email):
-        print(email)
         regex = '^([a-zA-Z0-9]+)@((?!hotmail|gmail|yahoo|outlook)(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$'
         if (re.search(regex, email)):
             #print("Valid Email")
