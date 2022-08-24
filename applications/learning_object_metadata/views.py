@@ -215,7 +215,7 @@ class OAFilter(filters.FilterSet):
             )
 
     def accesibility_features_filter(self, queryset, name, value):
-        access_preferences = self.request.GET.getlist('accesibility_features') 
+        access_preferences = self.request.GET.getlist('accesibility_features')
         if len(access_preferences)==1 and 'captions' in access_preferences:
             return queryset.filter(
                 accesibility_features__icontains =  'captions'

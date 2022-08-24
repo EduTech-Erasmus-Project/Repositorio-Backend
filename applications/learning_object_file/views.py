@@ -27,7 +27,7 @@ from shutil import rmtree
 from ..learning_object_metadata.models import LearningObjectMetadata
 from xml.dom import minidom
 BASE_DIR = Path(__file__).ancestor(3)
-from ..helpers_functions.beautiful_soup_data import read_html_files
+from ..helpers_functions.beautiful_soup_data import read_html_files, look_for_class_oeradap
 
 booleanLomLomes=True #If booleanLomLomes is True represents a lom format, and
                      #if booleanLomLomes is False represents a lomes format.
@@ -161,13 +161,26 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
             print(e.args)
             return Response({"message":"Objetos de Aprendizaje aceptados por el repositorio es IMS y SCORM."},status=HTTP_404_NOT_FOUND)
 
+        #pocedemos a leer los recursos que tiene el objeto de aprendizaje
         count_general_paragaph, count_general_img, count_general_audio, count_general_video = read_html_files(learningObject.path_origin)
+
+        #Lectura del archivo index para buscar si esta adaptado por la herramienta Oeradap
+        try:
+            with open(os.path.join(learningObject.path_origin,'index.html')) as file:
+                is_adapted_oer = look_for_class_oeradap(os.path.join(learningObject.path_origin, 'index.html'))
+            # No need to close the file
+        except FileNotFoundError:
+            print('Sorry the file we\'re looking for doesn\'t exist')
+            exit()
+
+        print(os.path.join(learningObject.path_origin,'index.html'))
 
         count_tag ={
             'paragraph': count_general_paragaph,
             'img':count_general_img,
             'video':count_general_video,
-            'audio':count_general_audio
+            'audio':count_general_audio,
+            'is_adapted_oer': is_adapted_oer
         }
 
         serializer = LearningObjectSerializer(learningObject)
