@@ -412,7 +412,7 @@ class ListEvaluatedToStudentRetriveAPIView(ListAPIView):
         El servicio requiere de la autenticación como experto.
     """
     #permission_classes = [IsAuthenticated,(IsStudentUser | IsTeacherUser)]
-    permission_classes = [IsAuthenticated,IsStudentUser]
+    permission_classes = [IsAuthenticated,(IsStudentUser)]
     serializer_class = EvaluationStudentList_EvaluationSerializer
     def get_queryset(self):
         id = self.kwargs['pk']

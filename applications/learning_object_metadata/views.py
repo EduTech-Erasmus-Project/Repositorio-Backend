@@ -2,6 +2,7 @@ import django_filters
 from applications.interaction.models import Interaction
 from applications.evaluation_collaborating_expert.serializers import QuestionQualificationSearchSerializer
 from applications.evaluation_student.models import StudentEvaluation
+from applications.evaluation_student.serializers import EvaluationStudentList_EvaluationSerializer
 from applications.evaluation_collaborating_expert.models import EvaluationCollaboratingExpert, EvaluationConcept, EvaluationMetadata, EvaluationQuestionsQualification, MetadataAutomaticEvaluation, MetadataQualificationConcept, MetadataSchemaQualification
 from rest_framework.permissions import IsAuthenticated ,AllowAny
 from rest_framework.response import Response
@@ -28,7 +29,9 @@ from applications.learning_object_metadata.serializers import (
     LearningObjectMetadataYears,
     ROANumberPagination,
     ROANumberPaginationPopular,
+    ROANumberPagination_Estudent_Qualification,
     TeacherUploadListSerializer,
+    LearningObjectMetadataByStudentQualification,
     )
 from applications.user.mixins import IsAdministratorUser, IsCollaboratingExpertUser, IsStudentUser, IsTeacherUser
 from .models import Commentary, LearningObjectMetadata
@@ -562,7 +565,7 @@ class SerachAPIViewExpert(ListAPIView):
         is_eval = self.request.GET.get('is_evaluated')
         if is_eval == 'True': 
             query = LearningObjectMetadata.objects.filter(
-                learning_objects__collaborating_expert__collaboratingExpert__id=self.request.user.collaboratingExpert.id
+                Q(learning_objects__collaborating_expert__collaboratingExpert__id=self.request.user.collaboratingExpert.id) | Q(is_adapted_oer=True)
             ).exclude(
                 public=False
             ).order_by('-id')
@@ -571,7 +574,7 @@ class SerachAPIViewExpert(ListAPIView):
             query= LearningObjectMetadata.objects.filter(
                 public = True
             ).exclude(
-                learning_objects__collaborating_expert__collaboratingExpert__id=self.request.user.collaboratingExpert.id
+                Q(learning_objects__collaborating_expert__collaboratingExpert__id=self.request.user.collaboratingExpert.id) and Q(is_adapted_oer=True)
             ).order_by('-id')
             return query
             
@@ -760,6 +763,19 @@ class ListLearningObjectEvaluatedByExpert(ListAPIView):
         ).order_by('-id')
         return query
 
+class ListLearningObjectEvaluatedByExpertQualifications(ListAPIView):
+    """
+        Listar los Objetos de Aprendizaje evaluados por un experto con el id del experto
+    """
+    permission_classes = [IsAuthenticated,IsAdministratorUser]
+    serializer_class = LearningObjectMetadataByExpet
+    pagination_class = ROANumberPagination
+    def get_queryset(self):
+
+        query = EvaluationCollaboratingExpert.objects.all().order_by('-id')
+        print('resuladto',query)
+        return query
+
 class ListLearningObjectEvaluatedByStudent(ListAPIView):
     """
         Listar los Objetos de Aprendizaje evaluados por un estudiante con el id del estudiante
@@ -773,6 +789,39 @@ class ListLearningObjectEvaluatedByStudent(ListAPIView):
             student__student__id=id
         ).order_by('-id')
         return query
+
+class ListLearningObjectEvaluatedByStudentQualification(ListAPIView):
+    """
+        Listar los Objetos de Aprendizaje evaluados por un estudiante con el id del estudiante
+    """
+    permission_classes = [IsAuthenticated,IsAdministratorUser]
+    serializer_class = LearningObjectMetadataByStudentQualification
+    pagination_class = ROANumberPagination_Estudent_Qualification
+    def get_queryset(self):
+        id = self.kwargs['id']
+        query = StudentEvaluation.objects.filter(
+            learning_object_id=id
+        ).order_by('-id')
+        return query
+
+class ListEvaluatedToStudentRetriveAPIView(ListAPIView):
+    """
+        Listar resultado de la evaluación realizado por el experto por id del OA.
+        El servicio requiere de la autenticación como experto.
+    """
+    #permission_classes = [IsAuthenticated,(IsStudentUser | IsTeacherUser)]
+    permission_classes = [IsAuthenticated,(IsAdministratorUser)]
+    serializer_class = EvaluationStudentList_EvaluationSerializer
+    def get_queryset(self):
+        id = self.kwargs['id']
+        user_id = self.kwargs['user']
+        print(id)
+        print(user_id)
+        return StudentEvaluation.objects.filter(
+            student__id=user_id,
+            learning_object__id=id,
+        ).distinct('learning_object')
+
 
 class ListLearningObjectUploadByTeacher(ListAPIView):
     """
@@ -891,8 +940,6 @@ class LearningObjectStudentQualificationAPIView(ListAPIView):
 
         return queryset
 
-
-
 mail_upload_OA_Satisfy = SendEmailCreateOA_satisfay()
 mail_upload_OA_Not_Satisfy = SendEmailCreateOA_not_satisfy()
 mail_upload_OA_Not_Satisfy_User = SendEmailCreateOA_not_satisfy_User()
@@ -905,9 +952,8 @@ def automaticEvaluation(id):
         learning_object=META,
         rating_schema=0.0
     )
-
-
     objeto.save()
+
     for i in EvaluationConcept.objects.all():
         concept=MetadataQualificationConcept.objects.create(
             evaluation_concept=i,
@@ -915,6 +961,85 @@ def automaticEvaluation(id):
             average_schema=0.0
         )
         concept.save()
+
+    # Buscar datos del administrador para enviar los correos de revision
+    user_admin = User.objects.get(is_superuser=True)
+    user_email = user_admin.email
+    user_name = user_admin.first_name + " " + user_admin.last_name
+
+    if META.is_adapted_oer == True:
+        automatic_evaluation_metadata_learning_object(objeto, META, user_email, user_name)
+    else:
+        manual_evaluation_metada_learning_object(objeto, META, user_email, user_name)
+
+def automatic_evaluation_metadata_learning_object(objeto,META, user_email, user_name ):
+    dato = 0
+    metadatos_schema = EvaluationMetadata.objects.all()
+    for i in MetadataQualificationConcept.objects.all():
+        for j in metadatos_schema:
+            if (i.evaluation_automatic_evaluation.learning_object.id == objeto.learning_object.id):
+                if (i.evaluation_concept == j.evaluation_concept):
+                    if (j.schema.find('accessibilityHazard:') >= 0):
+                        for k in META.accesibility_hazard.lower().split(','):
+                            if (k.replace(' ', '').lower() == j.schema.lower().split(':')[1]):
+                                dato = 1
+                    if (j.schema.find('accessibilityFeature:') >= 0):
+                        if (META.accesibility_features.lower().find(j.schema.lower().split(':')[1]) >= 0):
+                            dato = 1
+                    if (j.schema.find('accessibilityControl:') >= 0):
+                        if (META.accesibility_control.lower().find(j.schema.lower().split(':')[1]) >= 0):
+                            dato = 1
+                    if (j.schema.find('accessMode:') >= 0):
+                        if (META.annotation_modeaccess.lower().find(j.schema.lower().split(':')[1]) >= 0):
+                            dato = 1
+                    if (j.schema.find('accessModeSufficient:') >= 0):
+                        if (META.annotation_modeaccesssufficient.lower().find(j.schema.lower().split(':')[1]) >= 0):
+                            dato = 1
+                    if(j.schema.find('alignment_types:') >= 0):
+                        if (META.classification_purpose.lower().find(j.schema.lower().split(':')[1]) >= 0):
+                            dato = 1
+                    evaluaction = MetadataSchemaQualification.objects.create(
+                        evaluation_metadata=i,
+                        evaluation_schema=j,
+                        qualification=dato
+                    )
+                    evaluaction.save()
+                    dato = 0
+    consult_evaluation = MetadataQualificationConcept.objects.filter(
+        evaluation_automatic_evaluation__learning_object__id=objeto.learning_object.id)
+
+    ratingnew = 0
+    for i in consult_evaluation:
+        vartotal = 0
+        cont = 0
+        for j in MetadataSchemaQualification.objects.filter(evaluation_metadata=i.id):
+            vartotal += j.qualification
+            cont += 1
+
+        h = (vartotal * 5) / (1 * cont)
+        i.average_schema = h
+        i.save()
+        ratingnew += h
+    objeto.rating_schema = ratingnew / len(EvaluationConcept.objects.all())
+
+    if (objeto.rating_schema >= 4.0):
+        META.public = True
+        META.save()
+        mail_upload_OA_Satisfy.sendMailCreateOA(user_email, user_name, META.general_title)
+    else:
+        #Buscamos al propietario del objeto de aprendizaje
+        user_id = META.user_created_id
+        user_te = User.objects.get(pk =user_id)
+        user_name_lastname = user_te.first_name +" "+user_te.last_name
+        user_email_Te = user_te.email
+
+        #Se llama al servicio de correo
+        mail_upload_OA_Not_Satisfy.sendMail_Not_Satisfay_Admin(user_email, user_name, META.general_title)
+        mail_upload_OA_Not_Satisfy_User.sendMail_Not_Satisfay_User(user_email_Te, user_name_lastname, META.general_title)
+
+    objeto.save()
+
+def manual_evaluation_metada_learning_object(objeto, META,user_email ,user_name):
 
     #Recursos digitales visuales
     item1 = META.item_v1
@@ -954,59 +1079,10 @@ def automaticEvaluation(id):
     rating = var_points_automatic/ valor_preliminar
     rating_q = round(rating, 2)
 
-    """dato=0
-    metadatos_schema=EvaluationMetadata.objects.all()
-    for i in MetadataQualificationConcept.objects.all():
-        for j in metadatos_schema:
-            if (i.evaluation_automatic_evaluation.learning_object.id==objeto.learning_object.id):
-                if (i.evaluation_concept == j.evaluation_concept):
-                    if(j.schema.find('accessibilityHazard:')>=0):
-                        for k in META.accesibility_hazard.lower().split(','):
-                            if (k.replace(' ','').lower()==j.schema.lower().split(':')[1]):
-                                dato = 1
-                    if(j.schema.find('accessibilityFeature:')>=0):
-                        if(META.accesibility_features.lower().find(j.schema.lower().split(':')[1])>=0):
-                            dato=1
-                    if(j.schema.find('accessibilityControl:')>=0):
-                        if(META.accesibility_control.lower().find(j.schema.lower().split(':')[1])>=0):
-                            dato=1
-                    if(j.schema.find('accessMode:')>=0):
-                        if(META.annotation_modeaccess.lower().find(j.schema.lower().split(':')[1])>=0):
-                            dato=1
-                    if(j.schema.find('accessModeSufficient:')>=0):
-                        if(META.annotation_modeaccesssufficient.lower().find(j.schema.lower().split(':')[1])>=0):
-                            dato=1
-                    evaluaction=MetadataSchemaQualification.objects.create(
-                    evaluation_metadata=i,
-                    evaluation_schema=j,
-                    qualification=dato
-                    )
-                    evaluaction.save()
-                    dato=0"""
-
-
-  #  consult_evaluation=MetadataQualificationConcept.objects.filter(evaluation_automatic_evaluation__learning_object__id=objeto.learning_object.id)
-    
-    ratingnew=0
-    """for i in consult_evaluation:
-        vartotal=0
-        cont=0
-        for j in MetadataSchemaQualification.objects.filter(evaluation_metadata=i.id):
-            vartotal+=j.qualification
-            cont+=1
-
-        h=(vartotal*5)/(1*cont)
-        i.average_schema=h
-        i.save()
-        ratingnew+=h"""
     objeto.rating_schema= rating_q
 
-    #Buscar datos del administrador para enviar los correos de revision
-    user_admin = User.objects.get(is_superuser=True)
-    user_email = user_admin.email
-    user_name = user_admin.first_name + " "+user_admin.last_name
 
-    #objeto.rating_schema = ratingnew
+
     #Si cumple con el 70% de los metadatos se habilita de forma automatica el objeto de aprendizaje
     if(  objeto.rating_schema >= 2.5):
         META.public = True

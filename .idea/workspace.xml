@@ -3,12 +3,13 @@
   <component name="ChangeListManager">
     <list default="true" id="c905be6f-3721-4865-97e5-e49c8bdb4aff" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/applications/evaluation_collaborating_expert/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/evaluation_collaborating_expert/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/evaluation_student/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/evaluation_student/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/applications/helpers_functions/beautiful_soup_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/helpers_functions/beautiful_soup_data.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/applications/learning_object_file/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/learning_object_file/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/applications/learning_object_metadata/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/learning_object_metadata/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/learning_object_metadata/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/learning_object_metadata/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/learning_object_metadata/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/learning_object_metadata/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/applications/learning_object_metadata/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/learning_object_metadata/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/applications/user/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/user/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/user/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/user/serializers.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,7 +38,7 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../Universidad/AOS PRUEBAS/Oa-Arte" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../FACTY-EC/factyec-backend" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />

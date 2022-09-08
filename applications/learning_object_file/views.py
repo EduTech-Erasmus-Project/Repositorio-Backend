@@ -12,6 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 import zipfile36 as zipfile
 import zipfile
 import os
+import shortuuid
 from bs4 import BeautifulSoup as bs
 from applications.user.mixins import IsTeacherUser
 from roabackend import settings as _settings
@@ -19,7 +20,8 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
     HTTP_200_OK
-) 
+)
+import shutil
 import xmltodict, json
 from unipath import Path
 from os import remove
@@ -27,7 +29,7 @@ from shutil import rmtree
 from ..learning_object_metadata.models import LearningObjectMetadata
 from xml.dom import minidom
 BASE_DIR = Path(__file__).ancestor(3)
-from ..helpers_functions.beautiful_soup_data import read_html_files, look_for_class_oeradap
+from ..helpers_functions.beautiful_soup_data import read_html_files, look_for_class_oeradap, generaye_array_paths_img
 
 booleanLomLomes=True #If booleanLomLomes is True represents a lom format, and
                      #if booleanLomLomes is False represents a lomes format.
@@ -134,7 +136,6 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
 
             PROJECT_ROOT = os.path.abspath(os.path.dirname(PROJECT_ROOT))
             XMLFILES_FOLDER = os.path.join(PROJECT_ROOT, filename)
-            index = ""
 
             if get_index_imsmanisfest(XMLFILES_FOLDER)!='':
                 index=get_index_imsmanisfest(XMLFILES_FOLDER)
@@ -170,17 +171,36 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
                 is_adapted_oer = look_for_class_oeradap(os.path.join(learningObject.path_origin, 'index.html'))
             # No need to close the file
         except FileNotFoundError:
-            print('Sorry the file we\'re looking for doesn\'t exist')
-            exit()
+            print('Lo sentimos no existe el archivo index en la carpeta raiz')
+            #exit()
 
-        print(os.path.join(learningObject.path_origin,'index.html'))
+        url_img_prev = os.path.join(learningObject.path_origin,'img-prev.png')
+        url_request_host = os.path.join(url,'img-prev.png')
+        url_img_preview = os.path.exists(url_img_prev)
+
+        #Verificamos si existe la imagen de previsualizacion
+        if url_img_preview:
+            uuid = str(shortuuid.ShortUUID().random(length=8))
+            #name = str('img-prev-' + uuid + '.png')
+            name = str('img-prev.png')
+        else:
+            name = ''
+            url_request_host = ''
+        array_paths_img_view = []
+        array_paths_img_view = generaye_array_paths_img(learningObject.path_origin,url)
 
         count_tag ={
             'paragraph': count_general_paragaph,
             'img':count_general_img,
             'video':count_general_video,
             'audio':count_general_audio,
-            'is_adapted_oer': is_adapted_oer
+            'is_adapted_oer': is_adapted_oer,
+            "paths_img_preview": array_paths_img_view,
+            'img_prev':{
+                'exist':url_img_preview,
+                'url_img':url_request_host,
+                'name':name
+            },
         }
 
         serializer = LearningObjectSerializer(learningObject)

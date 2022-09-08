@@ -1,5 +1,5 @@
 from itertools import count
-
+from PIL import Image
 from bs4 import BeautifulSoup
 import os
 import magic
@@ -125,3 +125,91 @@ def look_for_class_oeradap(field_index_url):
     class_soup = soup_index.body.get('class', [])
     is_adapted = oeradapt_adapted(class_soup)
     return is_adapted
+
+def read_html_files_data(directory):
+    """Lectura de archivos html del objeto de aprendizaje
+    :param srt directory: Directorio raiz donde se encuentra los archivos del objeto de aprendizaje
+    :return : tuple(str[], str[], boolean)
+    """
+
+    files_vect = []
+    root_dirs = list()
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            if file.endswith(".html"):
+                root_dirs.append(root)
+                aux = os.path.join(root, file);
+                if aux.count('website_') != 1:
+                    files_vect.append(
+                        {
+                            "path_field": aux,
+                            "path_base":root
+                             }
+                    )
+    return files_vect
+
+def web_scraping_img_fields(aux_text, file, url_host):
+
+    tag_identify = "img"
+    attribute_img = "src"
+    attribute_alt = "alt"
+    text_alt=""
+    inf_array_img = []
+    object_img = {
+        "src": '',
+        "alt": '',
+    }
+    cont =0
+    for tag in aux_text.find_all(tag_identify):
+
+        if tag.get(attribute_img) != '':
+            object_img['src']= os.path.join(file['path_base'],tag.get(attribute_img))
+            img = Image.open(object_img['src'])
+            width = img.width
+            height = img.height
+
+            object_img['src'] = os.path.join(url_host, tag.get(attribute_img))
+
+            if tag.get(attribute_alt) is not None:
+                object_img[attribute_alt] = tag.get(attribute_alt)
+                if check_meets_the_width_height_filter_2(width, height):
+                    if exist_object_in_list(object_img, inf_array_img) == False:
+                        inf_array_img.append(object_img)
+            else:
+                object_img[attribute_alt] = text_alt
+                if check_meets_the_width_height_filter_2(width, height):
+                    if exist_object_in_list(object_img, inf_array_img) == False:
+                        inf_array_img.append(object_img)
+
+    return inf_array_img
+
+# mayor a 600
+def check_meets_the_width_height(witdh, height):
+    if (witdh > 250 and height >160) and (witdh< 600 and height<510):
+        return True
+    return False
+
+def check_meets_the_width_height_filter_2(witdh, height):
+    if (witdh > 400 and height >310) and (witdh < 600 and height<510):
+        return True
+    return False
+
+def exist_object_in_list(object,list):
+    if object in list:
+        return True
+    return False
+
+def generaye_array_paths_img(path_origin,url_host):
+    print(path_origin)
+    direcciones = read_html_files_data(path_origin)
+    array_paths = []
+    for file in direcciones:
+        aux_file = generateBeautifulSoupFile(file['path_field'])
+        array_paths_web_scraping = web_scraping_img_fields(aux_file, file, url_host)
+        if len(array_paths_web_scraping) > 0:
+            for object_paths in array_paths_web_scraping:
+                if len(array_paths) < 10:
+                    array_paths.append(object_paths)
+                else:
+                    break
+    return array_paths
