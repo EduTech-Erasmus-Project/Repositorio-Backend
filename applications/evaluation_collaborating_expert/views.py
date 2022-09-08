@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from django.db.models.signals import post_save
+from yaml import serialize
+
 from applications.learning_object_metadata.serializers import LearningObjectMetadataAllSerializer, \
     LearningObjectMetadataByExpet, ROANumberPagination
 from applications.learning_object_metadata.models import LearningObjectMetadata
@@ -231,6 +233,7 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
         evaluation_questions = EvaluationQuestion.objects.filter(
             id__in=evaluation_questions_
         )
+
         evaluation_concept_list = []
         for evaluation_question in evaluation_questions:
             evaluation_concept_list.append(evaluation_question.evaluation_concept.id)
@@ -266,16 +269,18 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
                 average=0.0
             )
             evaluationConceptQualificationList.append(evaluationConceptQualification)
+
         evaluationQuestionsQualificationList = []
         cont_not_apply = 0
         ref_total_calificaciones = 0
+        results_evaluation = serializer.validated_data['results']
         for evaluation_question, qualification in zip(evaluation_questions, scores):
             for evaluationConceptQualification in evaluationConceptQualificationList:
-                if (evaluationConceptQualification.evaluation_concept == evaluation_question.evaluation_concept):
+                if (evaluationConceptQualification.evaluation_concept_id == evaluation_question.evaluation_concept_id):
                     evaluationQuestionsQualification = EvaluationQuestionsQualification.objects.create(
                         concept_evaluations=evaluationConceptQualification,
                         evaluation_question=evaluation_question,
-                        qualification=qualification
+                        qualification=self.create_evaluation_order_qualification(evaluation_question.id, results_evaluation)
                     )
                     if (qualification != -1):
                         # Multiplicamos por el peso de la pregunta
@@ -298,6 +303,18 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
         evaluationCollaboratingExpert.save()
         serializer = EvaluationCollaboratingExpertSerializer(evaluationCollaboratingExpert)
         return Response(serializer.data, status=HTTP_200_OK)
+
+    def create_evaluation_order_qualification(self, id_question, request_data_qualifications):
+        for qualification_reslut in request_data_qualifications:
+            if id_question == qualification_reslut['id']:
+                if (qualification_reslut['value'] == CALIFICATION_OPTIONS['YES']):
+                    return YES
+                elif (qualification_reslut['value'] == CALIFICATION_OPTIONS['NO']):
+                    return NO
+                elif (qualification_reslut['value'] == CALIFICATION_OPTIONS['NOT_APPLY']):
+                    return NOT_APPLY
+                else:
+                    return PARTIALLY
 
     def list(self, request):
         """
@@ -507,7 +524,6 @@ class ListOAEvaluatedRetriveAPIViewSingleUser(ListAPIView):
 
     def get_queryset(self):
         id = self.kwargs['pk']
-        print("usuario", self.request.user.id)
         return EvaluationCollaboratingExpert.objects.filter(
             learning_object__id=id,
             collaborating_expert__id=self.request.user.id,
@@ -525,10 +541,7 @@ class ListOAEvaluatedToExpertRetriveAPIView(ListAPIView):
 
     def get_queryset(self):
         id = self.kwargs['pk']
-        print("----return", EvaluationCollaboratingExpert.objects.filter(
-            collaborating_expert__id=self.request.user.id,
-            learning_object__id=id,
-        ).distinct('learning_object'))
+
 
         return EvaluationCollaboratingExpert.objects.filter(
             collaborating_expert__id=self.request.user.id,
@@ -576,7 +589,7 @@ def updateAverage(scoreData: list, instances: list):
                 val_pre1 = val_pre1 + (2 * weight_question.weight)
 
                 tam1 = tam1 + 1
-                # print("---1",average1,"tam",tam1)
+
 
         if (str(concept.concept_evaluations.evaluation_concept)) == concepts[1]:
             concept_2 = str(concept.concept_evaluations.evaluation_concept)
@@ -588,7 +601,7 @@ def updateAverage(scoreData: list, instances: list):
                 val_pre2 = val_pre2 + (2 * weight_question.weight)
 
                 tam2 = tam2 + 1
-                # print("---2",average2,"tam",tam2)
+
 
         if (str(concept.concept_evaluations.evaluation_concept)) == concepts[2]:
             concept_3 = str(concept.concept_evaluations.evaluation_concept)
@@ -600,7 +613,7 @@ def updateAverage(scoreData: list, instances: list):
                 val_pre3 = val_pre3 + (2 * weight_question.weight)
 
                 tam3 = tam3 + 1
-                # print("---3",average3,"tam",tam3)
+
 
         if (str(concept.concept_evaluations.evaluation_concept)) == concepts[3]:
             concept_4 = str(concept.concept_evaluations.evaluation_concept)
@@ -612,7 +625,7 @@ def updateAverage(scoreData: list, instances: list):
                 val_pre4 = val_pre4 + (2 * weight_question.weight)
 
                 tam4 = tam4 + 1
-                # print("---4",average4,"tam",tam4)
+
 
     valor_preliminar_1 = round((val_pre1 / tam1), 2)
     valor_preliminar_1 = valor_preliminar_1/5

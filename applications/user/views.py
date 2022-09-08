@@ -406,9 +406,11 @@ class ManagementUserView(viewsets.ViewSet):
                     #     return Response({"message": "Debe tener un email institucional"}, status=HTTP_400_BAD_REQUEST)
 
                 if instance.collaboratingExpert is not None and role == 'expert':
+                    print(request.data)
                     serializer = CollaboratingExpertUpdateSerializer(data=request.data)
-                    serializer.is_valid(raise_exception=True)
+
                     collaboratingExpert_instance = CollaboratingExpert.objects.get(pk=instance.collaboratingExpert.id)
+
                     collaboratingExpert_instance.expert_level = serializer.validated_data['expert_level']
                     collaboratingExpert_instance.web = serializer.validated_data['web']
                     collaboratingExpert_instance.academic_profile = serializer.validated_data['academic_profile']

@@ -29,6 +29,9 @@ class LearningObjectMetadata(TimeStampedModel):
     item_a5 = models.CharField(null=True, blank=True, max_length=40)
     item_i6 = models.CharField(null=True, blank=True, max_length=40)
 
+    #Guarda una variable si el obejto de aprendizaje ya fue adaptado
+    is_adapted_oer = models.BooleanField(default=False)
+
     author = models.CharField(max_length=100, blank=True, null=True)
     package_type = models.CharField(max_length=50,blank=True, null=True)
 

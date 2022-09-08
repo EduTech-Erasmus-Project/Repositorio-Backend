@@ -300,6 +300,35 @@ class GeneralUserListSerializer(serializers.ModelSerializer):
             role_lis.append('expert')
         return role_lis
 
+class GeneralUserStudent_View_ListSerializer(serializers.ModelSerializer):
+    roles = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'roles',
+            'first_name',
+            'last_name',
+            'email',
+            'image',
+
+            'created',
+            'modified',
+        )
+    def get_image(self, obj):
+        if obj.image is not None:
+            return DOMAIN+obj.image.url
+    def get_roles(self,obj):
+        role_lis=[]
+        if obj.student is not None:
+            role_lis.append('student')
+        if obj.teacher is not None and obj.teacher.is_active:
+            role_lis.append('teacher')
+        if obj.collaboratingExpert is not None and obj.collaboratingExpert.is_active:
+            role_lis.append('expert')
+        return role_lis
+
 class UserLoginDataSerializer(serializers.ModelSerializer):
     roles = serializers.SerializerMethodField()
     class Meta:
@@ -329,6 +358,7 @@ class UserLoginDataSerializer(serializers.ModelSerializer):
         if obj.is_superuser:
             role_lis.append('superuser')
         return role_lis
+
 
 class AdminDisaprovedTeacherCollaboratingExpertSerializer(serializers.ModelSerializer):
     teacher=TeacherListSerializer()
