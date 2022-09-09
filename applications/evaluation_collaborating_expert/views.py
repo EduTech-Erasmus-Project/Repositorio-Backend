@@ -364,7 +364,6 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
             else:
                 scores.append(PARTIALLY)
 
-        # print("scores experto-->>>",scores)
         queryset = EvaluationCollaboratingExpert.objects.filter(
             collaborating_expert__collaboratingExpert__id=self.request.user.collaboratingExpert.id
         )

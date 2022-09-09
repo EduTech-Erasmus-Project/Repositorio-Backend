@@ -773,7 +773,6 @@ class ListLearningObjectEvaluatedByExpertQualifications(ListAPIView):
     def get_queryset(self):
 
         query = EvaluationCollaboratingExpert.objects.all().order_by('-id')
-        print('resuladto',query)
         return query
 
 class ListLearningObjectEvaluatedByStudent(ListAPIView):
@@ -815,8 +814,6 @@ class ListEvaluatedToStudentRetriveAPIView(ListAPIView):
     def get_queryset(self):
         id = self.kwargs['id']
         user_id = self.kwargs['user']
-        print(id)
-        print(user_id)
         return StudentEvaluation.objects.filter(
             student__id=user_id,
             learning_object__id=id,

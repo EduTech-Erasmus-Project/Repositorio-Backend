@@ -457,17 +457,15 @@ class ManagementUserView(viewsets.ViewSet):
         return status_message
 
 mail_aproved = SendEmailConfirm()
-class AdminDisaprovedTeacherCollaboratingExpert(viewsets.ViewSet):
+class AdminDisaprovedTeacher(viewsets.ViewSet):
 
     permission_classes = [IsAuthenticated,IsAdministratorUser]
 
     def list(self, request):
         """
-            Servicio para listar Docente y Experto Colaborador no aprobados. Se necesita autenticación como administrador
+            Servicio para listar Docente no aprobados. Se necesita autenticación como administrador
         """
-        queryset = User.objects.filter(
-                Q(teacher__is_active=False) | Q(collaboratingExpert__is_active=False)
-        )
+        queryset = User.objects.filter(teacher__is_active=False )
         paginator = PageNumberPagination()
         page = paginator.paginate_queryset(queryset, request)
         if page is not None:
@@ -479,7 +477,7 @@ class AdminDisaprovedTeacherCollaboratingExpert(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         """
-            Servicio para listar Dcente y Experto Colaborador no aprobados por id. Se necesita autenticación como administrador
+            Servicio para listar Dcente  no aprobados por id. Se necesita autenticación como administrador
         """
         queryset = User.objects.all()
         user = get_object_or_404(queryset, pk=pk)
@@ -487,7 +485,7 @@ class AdminDisaprovedTeacherCollaboratingExpert(viewsets.ViewSet):
         return Response(serializer.data, status=HTTP_200_OK)
     def update(self, request, pk=None, project_pk=None):
         """
-            Servicio para actualizar Dcente y Experto Colaborador no aprobados. Se necesita autenticación como administrador
+            Servicio para actualizar Dcente no aprobados. Se necesita autenticación como administrador
         """
         instance = User.objects.get(pk=pk)
         serializer = UpdateTecherCollaboratingExpertDisapprovedSerializer(data=request.data)
@@ -498,12 +496,6 @@ class AdminDisaprovedTeacherCollaboratingExpert(viewsets.ViewSet):
             mail_aproved.sendEmailConfirmAdmin(instance.email, instance.first_name);
             teacher.save()
 
-        if instance.collaboratingExpert is not None and instance.collaboratingExpert.is_active is False:
-            collaboratingExpert = get_object_or_404(CollaboratingExpert, id=instance.collaboratingExpert.id)
-            collaboratingExpert.is_active = serializer.validated_data['expert_is_active']
-            mail_aproved.sendEmailConfirmAdmin(instance.email, instance.first_name);
-            collaboratingExpert.save()
-
         status_message =  Response({"message": "success"}, status=HTTP_200_OK)      
         return status_message
 
@@ -513,7 +505,7 @@ class AdminDisaprovedCollaboratingExpert(viewsets.ViewSet):
 
     def list(self, request):
         """
-            Servicio para listar Docente y Experto Colaborador no aprobados. Se necesita autenticación como administrador
+            Servicio para listar Experto Colaborador no aprobados. Se necesita autenticación como administrador
         """
         queryset = User.objects.filter(collaboratingExpert__is_active=False)
         paginator = PageNumberPagination()
@@ -527,7 +519,7 @@ class AdminDisaprovedCollaboratingExpert(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         """
-            Servicio para listar Dcente y Experto Colaborador no aprobados por id. Se necesita autenticación como administrador
+            Servicio para listar Experto Colaborador no aprobados por id. Se necesita autenticación como administrador
         """
         queryset = User.objects.all()
         user = get_object_or_404(queryset, pk=pk)
@@ -535,7 +527,7 @@ class AdminDisaprovedCollaboratingExpert(viewsets.ViewSet):
         return Response(serializer.data, status=HTTP_200_OK)
     def update(self, request, pk=None, project_pk=None):
         """
-            Servicio para actualizar Dcente y Experto Colaborador no aprobados. Se necesita autenticación como administrador
+            Servicio para actualizar Experto Colaborador no aprobados. Se necesita autenticación como administrador
         """
         instance = User.objects.get(pk=pk)
         serializer = UpdateTecherCollaboratingExpertDisapprovedSerializer(data=request.data)
@@ -550,16 +542,14 @@ class AdminDisaprovedCollaboratingExpert(viewsets.ViewSet):
         return status_message
 
 
-class AdminAprovedTeacherCollaboratingExpert(viewsets.ViewSet):
+class AdminAprovedTeacher(viewsets.ViewSet):
 
     permission_classes = [IsAuthenticated,IsAdministratorUser]
     def list(self, request):
         """
-            Servicio para listar Dcente y Experto Colaborador no aprobados. Se necesita autenticación como administrador
+            Servicio para listar Dcente no aprobados. Se necesita autenticación como administrador
         """
-        queryset = User.objects.filter(
-                Q(teacher__is_active=True) | Q(collaboratingExpert__is_active=True)
-        )
+        queryset = User.objects.filter(teacher__is_active=True)
         paginator = PageNumberPagination()
         page = paginator.paginate_queryset(queryset, request)
         if page is not None:
@@ -570,17 +560,15 @@ class AdminAprovedTeacherCollaboratingExpert(viewsets.ViewSet):
         return Response(serializer.data,status=HTTP_200_OK)
     def retrieve(self, request, pk=None):
         """
-            Servicio para listar Dcente y Experto Colaborador no aprobados por id. Se necesita autenticación como administrador
+            Servicio para listar Dcente no aprobados por id. Se necesita autenticación como administrador
         """
-        queryset = User.objects.filter(
-                Q(teacher__is_active=True) | Q(collaboratingExpert__is_active=True)
-        )
+        queryset = User.objects.filter(teacher__is_active=True)
         user = get_object_or_404(queryset, pk=pk)
         serializer = AdminAprovedTeacherCollaboratingExpertSerializer(user)
         return Response(serializer.data, status=HTTP_200_OK)
     def update(self, request, pk=None, project_pk=None):
         """
-            Servicio para actualizar Dcente y Experto Colaborador no aprobados. Se necesita autenticación como administrador
+            Servicio para actualizar Dcente no aprobados. Se necesita autenticación como administrador
         """
         instance = User.objects.get(pk=pk)
         serializer = UpdateTecherCollaboratingExpertApproveedSerializer(data=request.data)
@@ -590,13 +578,49 @@ class AdminAprovedTeacherCollaboratingExpert(viewsets.ViewSet):
             teacher.is_active = serializer.validated_data['teacher_is_active']
             teacher.save()
 
+        status_message =  Response({"message": "success"}, status=HTTP_200_OK)      
+        return status_message
+
+
+class AdminAprovedCollaboratingExpert(viewsets.ViewSet):
+
+    permission_classes = [IsAuthenticated,IsAdministratorUser]
+    def list(self, request):
+        """
+            Servicio para listar Experto Colaborador no aprobados. Se necesita autenticación como administrador
+        """
+        queryset = User.objects.filter(collaboratingExpert__is_active=True)
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            serializer = AdminAprovedTeacherCollaboratingExpertSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        else:
+            serializer = AdminAprovedTeacherCollaboratingExpertSerializer(queryset, many=True)
+        return Response(serializer.data,status=HTTP_200_OK)
+    def retrieve(self, request, pk=None):
+        """
+            Servicio para listar Experto Colaborador no aprobados por id. Se necesita autenticación como administrador
+        """
+        queryset = User.objects.filter(collaboratingExpert__is_active=True)
+        user = get_object_or_404(queryset, pk=pk)
+        serializer = AdminAprovedTeacherCollaboratingExpertSerializer(user)
+        return Response(serializer.data, status=HTTP_200_OK)
+    def update(self, request, pk=None, project_pk=None):
+        """
+            Servicio para actualizar Experto Colaborador no aprobados. Se necesita autenticación como administrador
+        """
+        instance = User.objects.get(pk=pk)
+        serializer = UpdateTecherCollaboratingExpertApproveedSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         if instance.collaboratingExpert is not None and instance.collaboratingExpert.is_active is True:
             collaboratingExpert = get_object_or_404(CollaboratingExpert, id=instance.collaboratingExpert.id)
             collaboratingExpert.is_active = serializer.validated_data['expert_is_active']
             collaboratingExpert.save()
 
-        status_message =  Response({"message": "success"}, status=HTTP_200_OK)      
+        status_message =  Response({"message": "success"}, status=HTTP_200_OK)
         return status_message
+
 
 class AdminListStudent(viewsets.ViewSet):
     permission_classes = [IsAuthenticated,IsAdministratorUser]

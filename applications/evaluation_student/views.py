@@ -467,7 +467,6 @@ class EvaluationQuestionsStudentViewSet(viewsets.ModelViewSet):
         """
             Actualizar pregunta
         """
-        print("entro en el original")
         queryset = Question.objects.all()
         instance = get_object_or_404(queryset, pk=pk)
         serializer = EvaluationQuestionStRegisterSerializer(data=request.data)

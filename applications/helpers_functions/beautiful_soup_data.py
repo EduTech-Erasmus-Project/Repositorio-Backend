@@ -200,7 +200,6 @@ def exist_object_in_list(object,list):
     return False
 
 def generaye_array_paths_img(path_origin,url_host):
-    print(path_origin)
     direcciones = read_html_files_data(path_origin)
     array_paths = []
     for file in direcciones:

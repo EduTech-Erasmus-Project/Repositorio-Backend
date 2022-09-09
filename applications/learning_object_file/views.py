@@ -301,7 +301,6 @@ def read_file(filepath, profile):
         # print("Load: ",load)
         return load, xml_manifest
     else:
-        print("Termina 256")
         load = FileController.load_recursive_model(xml_manifest, filepath, is_lompad_exported=True)
         # print("Load: ",load)
         return load, xml_manifest
@@ -480,12 +479,7 @@ def get_metadata_imsmanisfest_normal(filename):
         data = jsondoc['manifest']
         # title = data.find('metadata').find('general').find('title').find('string')
         res = BeautifulSoup(jsondoc)
-        #print(res)
-        # print(od1)
-        # print(jsondoc['manifest']['metadata']);
-        # print(jsondoc['manifest']['organizations']);
-        # print(jsondoc['manifest']['resources']);
-        # print(jsondoc['manifest']['resources']);
+
     return jsondoc
     
 def validateData(data):
