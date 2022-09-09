@@ -507,6 +507,49 @@ class AdminDisaprovedTeacherCollaboratingExpert(viewsets.ViewSet):
         status_message =  Response({"message": "success"}, status=HTTP_200_OK)      
         return status_message
 
+class AdminDisaprovedCollaboratingExpert(viewsets.ViewSet):
+
+    permission_classes = [IsAuthenticated,IsAdministratorUser]
+
+    def list(self, request):
+        """
+            Servicio para listar Docente y Experto Colaborador no aprobados. Se necesita autenticación como administrador
+        """
+        queryset = User.objects.filter(collaboratingExpert__is_active=False)
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            serializer = AdminDisaprovedTeacherCollaboratingExpertSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        else:
+            serializer = AdminDisaprovedTeacherCollaboratingExpertSerializer(queryset, many=True)
+            return Response(serializer.data, status=HTTP_200_OK)
+
+    def retrieve(self, request, pk=None):
+        """
+            Servicio para listar Dcente y Experto Colaborador no aprobados por id. Se necesita autenticación como administrador
+        """
+        queryset = User.objects.all()
+        user = get_object_or_404(queryset, pk=pk)
+        serializer = AdminDisaprovedTeacherCollaboratingExpertSerializer(user)
+        return Response(serializer.data, status=HTTP_200_OK)
+    def update(self, request, pk=None, project_pk=None):
+        """
+            Servicio para actualizar Dcente y Experto Colaborador no aprobados. Se necesita autenticación como administrador
+        """
+        instance = User.objects.get(pk=pk)
+        serializer = UpdateTecherCollaboratingExpertDisapprovedSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        if instance.collaboratingExpert is not None and instance.collaboratingExpert.is_active is False:
+            collaboratingExpert = get_object_or_404(CollaboratingExpert, id=instance.collaboratingExpert.id)
+            collaboratingExpert.is_active = serializer.validated_data['expert_is_active']
+            mail_aproved.sendEmailConfirmAdmin(instance.email, instance.first_name);
+            collaboratingExpert.save()
+
+        status_message =  Response({"message": "success"}, status=HTTP_200_OK)
+        return status_message
+
+
 class AdminAprovedTeacherCollaboratingExpert(viewsets.ViewSet):
 
     permission_classes = [IsAuthenticated,IsAdministratorUser]
