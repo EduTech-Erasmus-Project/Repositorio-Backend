@@ -1,6 +1,6 @@
 import django_filters
 from applications.interaction.models import Interaction
-from applications.evaluation_collaborating_expert.serializers import QuestionQualificationSearchSerializer
+from applications.evaluation_collaborating_expert.serializers import QuestionQualificationSearchSerializer, EvaluationCollaboratingExpertEvaluationSerializer
 from applications.evaluation_student.models import StudentEvaluation
 from applications.evaluation_student.serializers import EvaluationStudentList_EvaluationSerializer
 from applications.evaluation_collaborating_expert.models import EvaluationCollaboratingExpert, EvaluationConcept, EvaluationMetadata, EvaluationQuestionsQualification, MetadataAutomaticEvaluation, MetadataQualificationConcept, MetadataSchemaQualification
@@ -765,14 +765,17 @@ class ListLearningObjectEvaluatedByExpert(ListAPIView):
 
 class ListLearningObjectEvaluatedByExpertQualifications(ListAPIView):
     """
-        Listar los Objetos de Aprendizaje evaluados por un experto con el id del experto
+        Listar los Objetos de Aprendizaje evaluados por un experto con el id del objeto de aprendizaje
     """
     permission_classes = [IsAuthenticated,IsAdministratorUser]
     serializer_class = LearningObjectMetadataByExpet
     pagination_class = ROANumberPagination
-    def get_queryset(self):
 
-        query = EvaluationCollaboratingExpert.objects.all().order_by('-id')
+    def get_queryset(self):
+        id = self.kwargs['id']
+        query = EvaluationCollaboratingExpert.objects.filter(
+            learning_object_id=id
+        ).order_by('-id')
         return query
 
 class ListLearningObjectEvaluatedByStudent(ListAPIView):
@@ -791,7 +794,7 @@ class ListLearningObjectEvaluatedByStudent(ListAPIView):
 
 class ListLearningObjectEvaluatedByStudentQualification(ListAPIView):
     """
-        Listar los Objetos de Aprendizaje evaluados por un estudiante con el id del estudiante
+        Listar los Objetos de Aprendizaje evaluados por un estudiante con el id del objeto de aprendizaje
     """
     permission_classes = [IsAuthenticated,IsAdministratorUser]
     serializer_class = LearningObjectMetadataByStudentQualification
@@ -819,6 +822,22 @@ class ListEvaluatedToStudentRetriveAPIView(ListAPIView):
             learning_object__id=id,
         ).distinct('learning_object')
 
+class ListOAEvaluatedToExpertRetriveAPIView(ListAPIView):
+    """
+        Listar resultado de la evaluación realizado por el experto por id del OA.
+        El servicio requiere de la autenticación como experto.
+    """
+
+    permission_classes = [IsAuthenticated, IsAdministratorUser]
+    serializer_class = EvaluationCollaboratingExpertEvaluationSerializer
+
+    def get_queryset(self):
+        id = self.kwargs['id']
+        user_id = self.kwargs['user']
+        return EvaluationCollaboratingExpert.objects.filter(
+            collaborating_expert__id=user_id,
+            learning_object__id=id,
+        ).distinct('learning_object')
 
 class ListLearningObjectUploadByTeacher(ListAPIView):
     """

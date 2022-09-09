@@ -140,6 +140,7 @@ class LearningObjectMetadataComment(serializers.ModelSerializer):
 class LearningObjectMetadataByExpet(serializers.ModelSerializer):
     learning_object = LearningObjectMetadataAllSerializer(read_only=True)
     concept_evaluations = EvaluationConceptQualificationSerializer(many=True,read_only=True)
+    collaborating_expert = GeneralUserStudent_View_ListSerializer(read_only=True)
     class Meta:
         model = EvaluationCollaboratingExpert
         fields = (
@@ -147,7 +148,8 @@ class LearningObjectMetadataByExpet(serializers.ModelSerializer):
             'rating',
             'observation',
             'learning_object',
-            'concept_evaluations'
+            'concept_evaluations',
+            'collaborating_expert'
             )
 
 class LearningObjectMetadataByStudent(serializers.ModelSerializer):
