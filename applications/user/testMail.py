@@ -36,7 +36,7 @@ class SendEmailCreateUser:
         message = Mail(
             from_email='repositorio@edutech-project.org',
             to_emails=to_email,
-            subject='Bienvenido al repositorio de Objetos de Aprendizaje - ROA 🚀',
+            subject='Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀',
             html_content="""
                <strong>Hola {user}</strong>
                <br />
@@ -59,7 +59,7 @@ class SendEmailCreateUserCheck:
         message = Mail(
             from_email='repositorio@edutech-project.org',
             to_emails=to_email,
-            subject='Bienvenido al repositorio de Objetos de Aprendizaje - ROA 🚀',
+            subject='Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀',
             html_content="""
                <strong>Hola {user}</strong>
                <br />
@@ -83,7 +83,7 @@ class SendEmailCreateUserCheck_Expert:
         message = Mail(
             from_email='repositorio@edutech-project.org',
             to_emails=to_email,
-            subject='Bienvenido al repositorio de Objetos de Aprendizaje - ROA 🚀',
+            subject='Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀',
             html_content="""
                <strong>Hola {user}</strong>
                <br />
@@ -108,7 +108,7 @@ class SendEmailCreateUserCheck_Admin_to_Expert:
         message = Mail(
             from_email='repositorio@edutech-project.org',
             to_emails=to_email,
-            subject='Bienvenido al repositorio de Objetos de Aprendizaje - ROA 🚀',
+            subject='Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀',
             html_content="""
                <strong>Hola {user}</strong>
                <br />
@@ -134,7 +134,7 @@ class SendEmailConfirm:
         message = Mail(
             from_email='repositorio@edutech-project.org',
             to_emails=to_email,
-            subject='Bienvenido al repositorio de Objetos de Aprendizaje - ROA 🚀',
+            subject='Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀',
             html_content="""
                        <strong>Hola {user}</strong>
                        <br />
@@ -143,6 +143,30 @@ class SendEmailConfirm:
                         <br />
                        <P style =" font-weight: bolder;"><a style="color: gray;" href="https://repositorio.edutech-project.org/#/">Equipo ROA</a></P>
                        """.format(user=user))
+        try:
+            sg = SendGridAPIClient('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')
+            response = sg.send(message)
+        except Exception as e:
+            print(e)
+
+class SendEmail_activation_email:
+    def send_email_confirm_email(self, to_email, user, request_host, token):
+        message = Mail(
+            from_email='repositorio@edutech-project.org',
+            to_emails=to_email,
+            subject='Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀',
+            html_content="""
+                               <strong>Hola {user}</strong>
+                               <br />
+                              <p><strong>¡Estas a un solo paso de activar tu cuenta en la plataforma ROA!</strong></p>
+                              <p>Por favor clic en el link para confirmar tu registro dentro de la plataforma ROA 🚀.</p>
+                              <a href="http://localhost:4200/#/emailVerify/{token}/{email}">http://localhost:4200/#/emailVerify/{token}/{email}</a>
+                              <br/>
+                              <p style="font-style: italic;">Si usted a recibido este mensaje por error, simplemente elimínelo.</p>
+                               <p>Saludos,</p>
+                                <br />
+                               <P style =" font-weight: bolder;"><a style="color: gray;" href="https://repositorio.edutech-project.org/#/">Equipo ROA</a></P>
+                               """.format(user=user, host=request_host, token=token, email=to_email))
         try:
             sg = SendGridAPIClient('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')
             response = sg.send(message)

@@ -3,9 +3,19 @@
   <component name="ChangeListManager">
     <list default="true" id="c905be6f-3721-4865-97e5-e49c8bdb4aff" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/evaluation_collaborating_expert/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/evaluation_collaborating_expert/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/evaluation_collaborating_expert/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/evaluation_collaborating_expert/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/evaluation_collaborating_expert/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/evaluation_collaborating_expert/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/evaluation_collaborating_expert/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/evaluation_collaborating_expert/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/evaluation_student/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/evaluation_student/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/applications/learning_object_metadata/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/learning_object_metadata/serializers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/applications/learning_object_metadata/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/learning_object_metadata/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/applications/learning_object_metadata/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/learning_object_metadata/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/user/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/user/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/user/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/user/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/user/testMail.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/user/testMail.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/user/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/user/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/user/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/user/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,5 +57,16 @@
       <updated>1659623354234</updated>
     </task>
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>

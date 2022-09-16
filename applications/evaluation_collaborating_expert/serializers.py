@@ -248,7 +248,7 @@ class EvaluationCollaboratingExpertEvaluationSerializer(serializers.ModelSeriali
             'id',
             'observation',
             'learning_object',
-            'concept_evaluations'
+            'concept_evaluations',
         )
 
 class ArrayIntegerSerializer(serializers.ListField):

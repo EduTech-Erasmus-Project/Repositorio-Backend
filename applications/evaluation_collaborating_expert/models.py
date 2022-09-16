@@ -34,6 +34,7 @@ class EvaluationQuestion(TimeStampedModel):
 class EvaluationCollaboratingExpert(TimeStampedModel):
     learning_object = models.ForeignKey(LearningObjectMetadata,on_delete=models.CASCADE, related_name='learning_objects')
     rating = models.FloatField()
+    is_priority = models.BooleanField(default=False)
     observation = models.TextField(blank=True, null=True)
     collaborating_expert = models.ForeignKey(
         User, 

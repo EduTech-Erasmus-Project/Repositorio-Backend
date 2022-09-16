@@ -260,12 +260,9 @@ class StudentEvaluationView(viewsets.ViewSet):
             evaluation_student.observation=serializer.validated_data['observation'] 
             #print("evaluation studetnt ........",evaluation_student)
 
-
             evaluationQuestionsQualifications = EvaluationQuestionQualification.objects.filter(
              guideline_evaluations__principle_gl__evaluation_student__id = pk).order_by("evaluation_question__id")
 
-            
-            
             #print(",,,,,,,,,,,,,,,,,,,,,,,,,",scores)
             listguideline=[]
             cont=0

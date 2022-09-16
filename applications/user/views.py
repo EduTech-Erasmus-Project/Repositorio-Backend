@@ -1,5 +1,7 @@
 import json
-from applications.user.testMail import SendMail, SendEmailCreateUser, SendEmailCreateUserCheck, SendEmailConfirm, SendEmailCreateUserCheck_Expert, SendEmailCreateUserCheck_Admin_to_Expert
+from webbrowser import get
+
+from applications.user.testMail import SendMail, SendEmailCreateUser, SendEmailCreateUserCheck, SendEmailConfirm, SendEmailCreateUserCheck_Expert, SendEmail_activation_email,SendEmailCreateUserCheck_Admin_to_Expert
 from applications.user.utils import Util
 from rest_framework.generics import ListAPIView
 from rest_framework import viewsets
@@ -19,8 +21,6 @@ from applications.preferences.models import Preferences
 from applications.profession.models import Profession
 import urllib3
 import re
-
-
 from .models import (
     User,
     Student,
@@ -61,6 +61,10 @@ from rest_framework.status import (
     HTTP_401_UNAUTHORIZED
 )
 from applications.user.mixins import IsAdministratorUser, IsCollaboratingExpertUser,IsGeneralUser, IsStudentUser, IsTeacherUser
+from roabackend.settings import DOMAIN
+import jwt
+from rest_framework import generics
+from datetime import datetime, timezone,timedelta
 # Create your views here.
 
 class UserAdminView(viewsets.ViewSet):
@@ -136,13 +140,15 @@ class UserAdminView(viewsets.ViewSet):
             return Response({"message": "User not found"},status=HTTP_404_NOT_FOUND)
 
     def destroy(self, request, pk=None):
-        return Response({"message": "Api not found"},status=HTTP_404_NOT_FOUND) 
+        return Response({"message": "Api not found"},status=HTTP_404_NOT_FOUND)
 
 mail_create = SendEmailCreateUser()
 mail_create_check = SendEmailCreateUserCheck()
 
 mail_create_expert = SendEmailCreateUserCheck_Expert()
 mail_create_check_expert = SendEmailCreateUserCheck_Admin_to_Expert()
+
+mail_confirm_email = SendEmail_activation_email()
 class ManagementUserView(viewsets.ViewSet):
 
     def get_permissions(self):
@@ -154,11 +160,9 @@ class ManagementUserView(viewsets.ViewSet):
 
     def checkEmail(email):
         regex = '^([a-zA-Z0-9]+)@((?!hotmail|gmail|yahoo|outlook)(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$'
-        if (re.search(regex, email)):
-            #print("Valid Email")
+        if re.search(regex, email):
             return True
         else:
-            #print("Invalid Email")
             return False
         return False
 
@@ -173,7 +177,6 @@ class ManagementUserView(viewsets.ViewSet):
         new_student = Student()
         new_teacher = Teacher()
         new_expert = CollaboratingExpert()
-
 
         for role in role_serializer.validated_data['roles']:
 
@@ -206,9 +209,12 @@ class ManagementUserView(viewsets.ViewSet):
                   #  mail_create_check.sendMailCreateCheckAdmin(request.data['email'], request.data['first_name'])
                 #else:
                 value_active = True
-                mail_create.sendMailCreate(request.data['email'], request.data['first_name'])
-
                 new_student.is_active = value_active
+                if serializer.validated_data['has_disability'] is False:
+                    self.set_email_conform(new_student.id, request,"student")
+                else :
+                    new_student.is_account_active = True
+                    mail_create.sendMailCreate(request.data['email'], request.data['first_name'])
 
                 new_student.save()
 
@@ -218,10 +224,10 @@ class ManagementUserView(viewsets.ViewSet):
 
                 if not ManagementUserView.checkEmail(request.data['email']):
                     value_active = False
-                    mail_create_check.sendMailCreateCheckAdmin(request.data['email'], request.data['first_name'])
+                    #mail_create_check.sendMailCreateCheckAdmin(request.data['email'], request.data['first_name'])
                 else:
                     value_active = True
-                    mail_create.sendMailCreate(request.data['email'], request.data['first_name'])
+                    #mail_create.sendMailCreate(request.data['email'], request.data['first_name'])
 
                 new_teacher = Teacher.objects.create(
                     is_active=value_active
@@ -232,7 +238,7 @@ class ManagementUserView(viewsets.ViewSet):
                 )
                 for profession in professions:
                     new_teacher.professions.add(profession)
-
+                self.set_email_conform(new_teacher.id, request,"teacher")
                 new_teacher.save()
                 # post_save.connect(send_email1, sender=User)
                 # request_finished.connect(send_email1(role_serializer.validated_data['first_name'],role_serializer.validated_data['last_name'],role,role_serializer.validated_data['email']))
@@ -243,10 +249,10 @@ class ManagementUserView(viewsets.ViewSet):
 
                 if not ManagementUserView.checkEmail(request.data['email']):
                     value_active = False
-                    mail_create_check_expert.sendMailCreate_Admin_to_Expert(request.data['email'], request.data['first_name'])
+                    #mail_create_check_expert.sendMailCreate_Admin_to_Expert(request.data['email'], request.data['first_name'])
                 else:
                     value_active = True
-                    mail_create_expert.sendMailCreate_Expert(request.data['email'], request.data['first_name'])
+                    #mail_create_expert.sendMailCreate_Expert(request.data['email'], request.data['first_name'])
 
                 new_expert = CollaboratingExpert.objects.create(
                     expert_level= serializer.validated_data['expert_level'],
@@ -254,6 +260,7 @@ class ManagementUserView(viewsets.ViewSet):
                     academic_profile= serializer.validated_data['academic_profile'],
                     is_active = value_active
                 )
+                self.set_email_conform(new_expert.id, request,"expert")
                 new_expert.save()
 
         new_user = User.objects.create_general_user(
@@ -275,6 +282,11 @@ class ManagementUserView(viewsets.ViewSet):
             new_user.save()
         serializer = GeneralUserListSerializer(new_user)
         return Response(serializer.data,status=HTTP_200_OK)
+
+    def set_email_conform(self, id_user, request,role):
+        token = jwt.encode({"id": id_user, "role":role,"exp": datetime.now(tz=timezone.utc)+timedelta(hours=24)}, "secreto", algorithm="HS256")
+        mail_confirm_email.send_email_confirm_email(request.data['email'], request.data['first_name'], DOMAIN,
+                                                    token=token)
 
     def list(self, request):
         """
@@ -387,7 +399,7 @@ class ManagementUserView(viewsets.ViewSet):
                     teacher_instance.save()
                     # else:
                     #     return Response({"message": "Debe tener un email institucional"}, status=HTTP_400_BAD_REQUEST)
-    
+
                 if instance.teacher is None and role == "teacher":
                     # if ".edu" in instance.email:
                     serializer = TeacherUpdateSerializer(data=request.data)
@@ -406,9 +418,7 @@ class ManagementUserView(viewsets.ViewSet):
                     #     return Response({"message": "Debe tener un email institucional"}, status=HTTP_400_BAD_REQUEST)
 
                 if instance.collaboratingExpert is not None and role == 'expert':
-                    print(request.data)
                     serializer = CollaboratingExpertUpdateSerializer(data=request.data)
-
                     collaboratingExpert_instance = CollaboratingExpert.objects.get(pk=instance.collaboratingExpert.id)
 
                     collaboratingExpert_instance.expert_level = serializer.validated_data['expert_level']
@@ -448,13 +458,103 @@ class ManagementUserView(viewsets.ViewSet):
                 teacher = get_object_or_404(Teacher, id=instance.teacher.id)
                 teacher.is_active = False
                 teacher.save()
-                
+
             if instance.collaboratingExpert is not None and role == 'expert':
                 collaboratingExpert = get_object_or_404(CollaboratingExpert, id=instance.collaboratingExpert.id)
                 collaboratingExpert.is_active = False
                 collaboratingExpert.save()
-        status_message =  Response({"message": "success"}, status=HTTP_200_OK)      
+        status_message =  Response({"message": "success"}, status=HTTP_200_OK)
         return status_message
+
+
+class set_new_token_verify(APIView):
+    permission_classes = []
+    def post(self, request):
+            try:
+                user = get_object_or_404(User,email=request.data['email'])
+            except:
+                return Response({"message": "Correo no registrado", "status": 400}, status=HTTP_400_BAD_REQUEST)
+            #print(user[0]['collaboratingExpert_id'])
+            if user:
+                user_id, user_role = self.role(user)
+                self.set_email_conform_new_token(user_id, request.data['email'], user.first_name,user_role)
+                return Response({"message": "Nuevo enlace creado","status":200}, status=HTTP_200_OK)
+            else:
+                return Response({"message": "Correo no registrado", "status":400}, status=HTTP_400_BAD_REQUEST)
+    def role(self,user):
+        if user.collaboratingExpert_id is not None:
+            return 'expert', user.collaboratingExpert_id
+        elif user.student_id is not None:
+            return 'student', user.student_id
+        elif user.teacher_id is not None:
+            return 'teacher', user.teacher_id
+
+    def set_email_conform_new_token(self, id_user, email_user,name_user,role):
+        token = jwt.encode({"id": id_user, "role":role,"exp": datetime.now(tz=timezone.utc)+timedelta(hours=24)}, "secreto", algorithm="HS256")
+        mail_confirm_email.send_email_confirm_email(email_user, name_user, DOMAIN,
+                                                    token=token)
+        ################################################################
+
+class VerifyEmail(generics.GenericAPIView):
+    permission_classes = []
+    def get(self,request,token):
+        try:
+            payload = jwt.decode(token,"secreto",algorithms=["HS256"])
+            role = payload['role']
+            id = payload['id']
+            if role == 'student':
+                try:
+                    student = Student.objects.get(pk=id);
+                    user = User.objects.get(student_id=student.id);
+                    if student.is_account_active is True:
+                        return Response({'error': 'Token invalido'}, status=HTTP_400_BAD_REQUEST)
+                except:
+                    return Response({'error': 'Token invalido'}, status=HTTP_400_BAD_REQUEST)
+
+                student.is_account_active = True
+                mail_create.sendMailCreate(user.email, user.first_name)
+                student.save()
+                return Response({'email': 'Activado satisfactoriamente'}, status=HTTP_200_OK)
+
+            if role == 'teacher':
+                try:
+                    teacher = Teacher.objects.get(pk=id);
+                    user = User.objects.get(teacher_id=teacher.id);
+                    if teacher.is_account_active is True:
+                        return Response({'error': 'Token invalido'}, status=HTTP_400_BAD_REQUEST)
+                    teacher.is_account_active = True
+                except:
+                    return Response({'error': 'Token invalido'}, status=HTTP_400_BAD_REQUEST)
+
+                if teacher.is_active is False:
+                    mail_create_check.sendMailCreateCheckAdmin(user.email, user.first_name)
+                else:
+                    mail_create.sendMailCreate(user.email, user.first_name)
+
+                teacher.save()
+                return Response({'email': 'Activado satisfactoriamente'}, status=HTTP_200_OK)
+
+            if role == 'expert':
+                try:
+                    expert = CollaboratingExpert.objects.get(pk=id);
+                    user = User.objects.get(collaboratingExpert_id=expert.id);
+                    if expert.is_account_active is True:
+                        return Response({'error': 'Token invalido'}, status=HTTP_400_BAD_REQUEST)
+                except:
+                    return Response({'error': 'Token invalido'}, status=HTTP_400_BAD_REQUEST)
+
+                expert.is_account_active = True
+                if expert.is_active is False:
+                    mail_create_check_expert.sendMailCreate_Admin_to_Expert(user.email, user.first_name)
+                else:
+                    mail_create_expert.sendMailCreate_Expert(user.email, user.first_name)
+                expert.save()
+                return Response({'email': 'Activado satisfactoriamente'}, status=HTTP_200_OK)
+
+        except jwt.ExpiredSignatureError as identifier:
+            return Response({'error':'Activacion expirada'}, status=HTTP_400_BAD_REQUEST)
+        except jwt.InvalidTokenError as error:
+            return Response({'error': 'Token invalido'}, status=HTTP_400_BAD_REQUEST)
 
 mail_aproved = SendEmailConfirm()
 class AdminDisaprovedTeacher(viewsets.ViewSet):
@@ -496,7 +596,7 @@ class AdminDisaprovedTeacher(viewsets.ViewSet):
             mail_aproved.sendEmailConfirmAdmin(instance.email, instance.first_name);
             teacher.save()
 
-        status_message =  Response({"message": "success"}, status=HTTP_200_OK)      
+        status_message =  Response({"message": "success"}, status=HTTP_200_OK)
         return status_message
 
 class AdminDisaprovedCollaboratingExpert(viewsets.ViewSet):
@@ -578,7 +678,7 @@ class AdminAprovedTeacher(viewsets.ViewSet):
             teacher.is_active = serializer.validated_data['teacher_is_active']
             teacher.save()
 
-        status_message =  Response({"message": "success"}, status=HTTP_200_OK)      
+        status_message =  Response({"message": "success"}, status=HTTP_200_OK)
         return status_message
 
 
@@ -654,7 +754,7 @@ class AdminListStudent(viewsets.ViewSet):
             student = get_object_or_404(Student, id=instance.student.id)
             student.is_active = serializer.validated_data['student_is_active']
             student.save()
-        status_message =  Response({"message": "success"}, status=HTTP_200_OK)      
+        status_message =  Response({"message": "success"}, status=HTTP_200_OK)
         return status_message
 
 class AdminListTeacher(viewsets.ViewSet):
@@ -689,7 +789,7 @@ class AdminListTeacher(viewsets.ViewSet):
             teacher = get_object_or_404(Teacher, id=instance.teacher.id)
             teacher.is_active = serializer.validated_data['teacher_is_active']
             teacher.save()
-        status_message =  Response({"message": "success"}, status=HTTP_200_OK)      
+        status_message =  Response({"message": "success"}, status=HTTP_200_OK)
         return status_message
 
 class AdminListCollaboratingExpert(viewsets.ViewSet):
@@ -724,7 +824,7 @@ class AdminListCollaboratingExpert(viewsets.ViewSet):
             collaboratingExpert = get_object_or_404(CollaboratingExpert, id=instance.collaboratingExpert.id)
             collaboratingExpert.is_active = serializer.validated_data['expert_is_active']
             collaboratingExpert.save()
-        status_message =  Response({"message": "success"}, status=HTTP_200_OK)      
+        status_message =  Response({"message": "success"}, status=HTTP_200_OK)
         return status_message
 
 class AdminListAdministrador(viewsets.ViewSet):
@@ -759,7 +859,7 @@ class AdminListAdministrador(viewsets.ViewSet):
             administrator = get_object_or_404(Administrator, id=instance.administrator.id)
             administrator.is_active = serializer.validated_data['administrator_is_active']
             administrator.save()
-        status_message =  Response({"message": "success"}, status=HTTP_200_OK)      
+        status_message =  Response({"message": "success"}, status=HTTP_200_OK)
         return status_message
 
 class UserCountView(APIView):
@@ -796,7 +896,6 @@ class VerifyOrcid(APIView):
         opener = urllib.request.FancyURLopener({})
         f = opener.open(url)
         content = f.read()
-        print(content)
         # http = urllib3.PoolManager()
         # response = http.request('GET', url)
         # data = response.data.decode("utf-8")
@@ -808,7 +907,7 @@ class VerifyOrcid(APIView):
         # print(r.headers.get('content-type'))
         # print(tags)
         # html_tables = data.find("body")
-        
+
         # print(data)
         # print(r.status)
         # print(r.data)
@@ -845,7 +944,7 @@ class TotalExpertTeacher(APIView):
         total_student= User.objects.filter(
             student__isnull=False,
             ).count()
-  
+
         result = {
             "total_expert_approved": total_expert_approved,
             "total_expert_disapproved": total_expert_disapproved,
@@ -910,6 +1009,9 @@ class RequestPasswordResetEmail(GenericAPIView):
         email = request.data['email']
         get_object_or_404(User, email=email)
         user = User.objects.get(email=email)
+        if user.student_id is not None:
+            print('Usuario is student')
+
         uidb64 = urlsafe_base64_encode(smart_bytes(user.id))
         token= PasswordResetTokenGenerator().make_token(user)
         absurl = 'https://repositorio.edutech-project.org/#/password-resed/'+uidb64+'/'+token+'/'

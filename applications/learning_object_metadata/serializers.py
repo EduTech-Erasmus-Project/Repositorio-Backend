@@ -71,9 +71,13 @@ class LearningObjectMetadataAllSerializer(serializers.ModelSerializer):
 
     def get_rating(self, obj):
         query = EvaluationCollaboratingExpert.objects.filter(
-            learning_object__id=obj.id
+            learning_object__id=obj.id,
+            is_priority=True
         ).values('rating')
-        #print('Rating', query)
+        if len(query) == 0:
+            query = EvaluationCollaboratingExpert.objects.filter(
+                learning_object__id=obj.id,
+            ).distinct('learning_object').values('rating')
         if query.exists():
             return get_rating_value(query[0]['rating'])
         else:
@@ -148,6 +152,7 @@ class LearningObjectMetadataByExpet(serializers.ModelSerializer):
             'rating',
             'observation',
             'learning_object',
+            'is_priority',
             'concept_evaluations',
             'collaborating_expert'
             )

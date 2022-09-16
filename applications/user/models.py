@@ -21,12 +21,14 @@ class Student(TimeStampedModel):
     has_disability = models.BooleanField(default=False)
     disability_description = models.TextField(blank=True,null=True)
     is_active = models.BooleanField(default=False)
+    is_account_active = models.BooleanField(default=False)
     def __str__(self):
         return str(self.id)
 
 class Teacher(TimeStampedModel):
     professions = models.ManyToManyField(Profession)
     is_active = models.BooleanField(default=False)
+    is_account_active = models.BooleanField(default=False)
     def __str__(self):
         return str(self.id)
 
@@ -40,6 +42,7 @@ class CollaboratingExpert(TimeStampedModel):
     web = models.URLField(max_length=300, blank=True, null=True)
     academic_profile = models.CharField(max_length=100, blank=True, null=True)
     is_active = models.BooleanField(default=False)
+    is_account_active = models.BooleanField(default=False)
     def __str__(self):
         return str(self.id)+' '+self.expert_level
 

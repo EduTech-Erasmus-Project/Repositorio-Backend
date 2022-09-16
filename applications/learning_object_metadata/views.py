@@ -1,6 +1,6 @@
 import django_filters
 from applications.interaction.models import Interaction
-from applications.evaluation_collaborating_expert.serializers import QuestionQualificationSearchSerializer, EvaluationCollaboratingExpertEvaluationSerializer
+from applications.evaluation_collaborating_expert.serializers import QuestionQualificationSearchSerializer, EvaluationCollaboratingExpertEvaluationSerializer, EvaluationCollaboratingExpertAllSerializer
 from applications.evaluation_student.models import StudentEvaluation
 from applications.evaluation_student.serializers import EvaluationStudentList_EvaluationSerializer
 from applications.evaluation_collaborating_expert.models import EvaluationCollaboratingExpert, EvaluationConcept, EvaluationMetadata, EvaluationQuestionsQualification, MetadataAutomaticEvaluation, MetadataQualificationConcept, MetadataSchemaQualification
@@ -15,7 +15,7 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
     HTTP_200_OK
-) 
+)
 from django_filters import rest_framework as filters
 from django.shortcuts import get_object_or_404
 from applications.learning_object_metadata.serializers import (
@@ -23,7 +23,7 @@ from applications.learning_object_metadata.serializers import (
     CommentarySerializer,
     LearningObjectMetadataByExpet,
     LearningObjectMetadataByStudent,
-    LearningObjectMetadataPopularSerializer, 
+    LearningObjectMetadataPopularSerializer,
     LearningObjectMetadataSerializer,
     LearningObjectMetadataAllSerializer,
     LearningObjectMetadataYears,
@@ -37,6 +37,7 @@ from applications.user.mixins import IsAdministratorUser, IsCollaboratingExpertU
 from .models import Commentary, LearningObjectMetadata
 from applications.learning_object_metadata.testMailMetadata import SendEmailCreateOA_satisfay, SendEmailCreateOA_not_satisfy, SendEmailCreateOA_not_satisfy_User
 from applications.user.models import  User
+from rest_framework import generics
 from applications.evaluation_student.serializers import StudentEvaluationSerializer
 # Create your views here.
 
@@ -100,10 +101,10 @@ class OAFilter(filters.FilterSet):
             return queryset.filter(
                 Q(accesibility_control__icontains =  'fullkeyboardcontrol') |
                 Q(accesibility_control__icontains =  'fullMouseControl')
-            
+
             )
     def annotation_modeaccess_filter(self, queryset, name, value):
-        access_preferences = self.request.GET.getlist('annotation_modeaccess') 
+        access_preferences = self.request.GET.getlist('annotation_modeaccess')
         if len(access_preferences)==1 and 'Visual' in access_preferences:
             return queryset.filter(
                 annotation_modeaccess__icontains =  'Visual'
@@ -182,7 +183,7 @@ class OAFilter(filters.FilterSet):
                Q(annotation_modeaccess__icontains =  'Auditory')
             )
     def accesibility_hazard_filter(self, queryset, name, value):
-        hazard_preferences = self.request.GET.getlist('accesibility_hazard') 
+        hazard_preferences = self.request.GET.getlist('accesibility_hazard')
         if len(hazard_preferences)==1 and 'noFlashingHazard' in hazard_preferences:
             return queryset.filter(
                accesibility_hazard__icontains =  'noFlashingHazard'
@@ -345,10 +346,10 @@ class OAFilterExpert(filters.FilterSet):
             return queryset.filter(
                 Q(accesibility_control__icontains =  'fullkeyboardcontrol') |
                 Q(accesibility_control__icontains =  'fullMouseControl')
-            
+
             )
     def annotation_modeaccess_filter(self, queryset, name, value):
-        access_preferences = self.request.GET.getlist('annotation_modeaccess') 
+        access_preferences = self.request.GET.getlist('annotation_modeaccess')
         if len(access_preferences)==1 and 'Visual' in access_preferences:
             return queryset.filter(
                 annotation_modeaccess__icontains =  'Visual'
@@ -427,7 +428,7 @@ class OAFilterExpert(filters.FilterSet):
                Q(annotation_modeaccess__icontains =  'Auditory')
             )
     def accesibility_hazard_filter(self, queryset, name, value):
-        hazard_preferences = self.request.GET.getlist('accesibility_hazard') 
+        hazard_preferences = self.request.GET.getlist('accesibility_hazard')
         if len(hazard_preferences)==1 and 'noFlashingHazard' in hazard_preferences:
             return queryset.filter(
                accesibility_hazard__icontains =  'noFlashingHazard'
@@ -463,7 +464,7 @@ class OAFilterExpert(filters.FilterSet):
             )
 
     def accesibility_features_filter(self, queryset, name, value):
-        access_preferences = self.request.GET.getlist('accesibility_features') 
+        access_preferences = self.request.GET.getlist('accesibility_features')
         if len(access_preferences)==1 and 'captions' in access_preferences:
             return queryset.filter(
                 accesibility_features__icontains =  'captions'
@@ -563,7 +564,7 @@ class SerachAPIViewExpert(ListAPIView):
     filter_class = OAFilterExpert
     def get_queryset(self):
         is_eval = self.request.GET.get('is_evaluated')
-        if is_eval == 'True': 
+        if is_eval == 'True':
             query = LearningObjectMetadata.objects.filter(
                 Q(learning_objects__collaborating_expert__collaboratingExpert__id=self.request.user.collaboratingExpert.id) | Q(is_adapted_oer=True)
             ).exclude(
@@ -572,12 +573,13 @@ class SerachAPIViewExpert(ListAPIView):
             return query
         elif is_eval == 'False':
             query= LearningObjectMetadata.objects.filter(
-                public = True
+               # public = True
+                 is_adapted_oer=False
             ).exclude(
-                Q(learning_objects__collaborating_expert__collaboratingExpert__id=self.request.user.collaboratingExpert.id) and Q(is_adapted_oer=True)
+                Q(public=False) and Q(learning_objects__collaborating_expert__collaboratingExpert__id=self.request.user.collaboratingExpert.id)
             ).order_by('-id')
             return query
-            
+
 
 class OAEvaluadedFilter(django_filters.FilterSet):
     permission_classes = [AllowAny]
@@ -647,7 +649,7 @@ class LearningObjectMetadataViewSet(viewsets.ModelViewSet):
 
     serializer_class = LearningObjectMetadataSerializer
     queryset = LearningObjectMetadata.objects.all()
-    
+
     def perform_create(self, serializer):
         """
             Crear los metadadtos de los OA. API acesible para usurio docentes
@@ -656,7 +658,7 @@ class LearningObjectMetadataViewSet(viewsets.ModelViewSet):
             user_created=self.request.user
         )
         automaticEvaluation(serializer.data['id'])
-        
+
     def list(self, request):
         """
             Listado de metadatos de los Objetos deaprendizaje. API acesible para todos los usurios
@@ -778,6 +780,33 @@ class ListLearningObjectEvaluatedByExpertQualifications(ListAPIView):
         ).order_by('-id')
         return query
 
+class ListLearningObjectExpertQualificationsUpdate(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated, IsAdministratorUser]
+
+    def update(self, request, pk=None):
+        query_old_priority = EvaluationCollaboratingExpert.objects.filter(
+            is_priority=True
+        )
+        print(query_old_priority)
+
+        if len(query_old_priority) == 1:
+            query_old_priority[0].is_priority = False
+            query_old_priority[0].save()
+            get_new_query = EvaluationCollaboratingExpert.objects.get(id=pk)
+            if request.data['is_priority'] == "True":
+                get_new_query.is_priority = True
+                get_new_query.save()
+                return Response({"message": "success", "status": 200}, status=HTTP_200_OK)
+            return Response({"message": "error", "status": 400}, status=HTTP_400_BAD_REQUEST)
+
+        if len(query_old_priority) == 0:
+            get_new_query = EvaluationCollaboratingExpert.objects.get(id=pk)
+            if request.data['is_priority'] == "True":
+                get_new_query.is_priority = True
+                get_new_query.save()
+                return Response({"message": "success", "status": 200}, status=HTTP_200_OK)
+            return Response({"message": "error", "status": 400}, status=HTTP_400_BAD_REQUEST)
+
 class ListLearningObjectEvaluatedByStudent(ListAPIView):
     """
         Listar los Objetos de Aprendizaje evaluados por un estudiante con el id del estudiante
@@ -827,17 +856,16 @@ class ListOAEvaluatedToExpertRetriveAPIView(ListAPIView):
         Listar resultado de la evaluación realizado por el experto por id del OA.
         El servicio requiere de la autenticación como experto.
     """
-
     permission_classes = [IsAuthenticated, IsAdministratorUser]
     serializer_class = EvaluationCollaboratingExpertEvaluationSerializer
-
     def get_queryset(self):
         id = self.kwargs['id']
         user_id = self.kwargs['user']
-        return EvaluationCollaboratingExpert.objects.filter(
+        query = EvaluationCollaboratingExpert.objects.filter(
             collaborating_expert__id=user_id,
             learning_object__id=id,
         ).distinct('learning_object')
+        return query
 
 class ListLearningObjectUploadByTeacher(ListAPIView):
     """

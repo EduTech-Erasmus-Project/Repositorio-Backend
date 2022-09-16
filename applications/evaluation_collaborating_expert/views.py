@@ -222,6 +222,7 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
             learning_object__id=serializer.validated_data['learning_object'],
             collaborating_expert__id=user.id
         )
+
         if oa_is_evaluated:
             return Response({"message": "Learning Object is already evaluated by this expert"},
                             status=HTTP_400_BAD_REQUEST)
@@ -254,12 +255,23 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
             else:
                 scores.append(NOT_APPLY)
 
-        evaluationCollaboratingExpert = EvaluationCollaboratingExpert.objects.create(
-            learning_object=learningObjectMetadata,
-            rating=0.0,
-            observation=serializer.validated_data['observation'],
-            collaborating_expert=user
-        )
+        existe_priority = self.filter_is_priority_exits()
+        if existe_priority is True:
+            evaluationCollaboratingExpert = EvaluationCollaboratingExpert.objects.create(
+                learning_object=learningObjectMetadata,
+                rating=0.0,
+                observation=serializer.validated_data['observation'],
+                collaborating_expert=user,
+            )
+        else:
+            evaluationCollaboratingExpert = EvaluationCollaboratingExpert.objects.create(
+                learning_object=learningObjectMetadata,
+                rating=0.0,
+                observation=serializer.validated_data['observation'],
+                collaborating_expert=user,
+                is_priority=True
+            )
+
         ratings = 0.0
         evaluationConceptQualificationList = []
         for evaluation_concept in evaluation_concepts:
@@ -280,7 +292,8 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
                     evaluationQuestionsQualification = EvaluationQuestionsQualification.objects.create(
                         concept_evaluations=evaluationConceptQualification,
                         evaluation_question=evaluation_question,
-                        qualification=self.create_evaluation_order_qualification(evaluation_question.id, results_evaluation)
+                        qualification=self.create_evaluation_order_qualification(evaluation_question.id,
+                                                                                 results_evaluation)
                     )
                     if (qualification != -1):
                         # Multiplicamos por el peso de la pregunta
@@ -315,6 +328,12 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
                     return NOT_APPLY
                 else:
                     return PARTIALLY
+
+    def filter_is_priority_exits(self):
+        collaborating_expert = EvaluationCollaboratingExpert.objects.filter(is_priority=True)
+        if len(collaborating_expert) > 0:
+            return True
+        return False
 
     def list(self, request):
         """
@@ -418,10 +437,10 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
         serializer = EvaluationCollaboratingExpertSerializer(evaluation_expert)
         return Response(serializer.data, status=HTTP_200_OK)
 
-    def return_qualification_question(self,id_evaluations ,array_qualifications):
+    def return_qualification_question(self, id_evaluations, array_qualifications):
         for value in array_qualifications:
-            if(value['id'] == id_evaluations):
-                if(value['value']== CALIFICATION_OPTIONS['YES']):
+            if (value['id'] == id_evaluations):
+                if (value['value'] == CALIFICATION_OPTIONS['YES']):
                     return YES
                 elif (value['value'] == CALIFICATION_OPTIONS['NO']):
                     return NO
@@ -508,9 +527,47 @@ class ListOAEvaluatedRetriveAPIView(ListAPIView):
 
     def get_queryset(self):
         id = self.kwargs['pk']
-        return EvaluationCollaboratingExpert.objects.filter(
+        query = EvaluationCollaboratingExpert.objects.filter(
             learning_object__id=id,
         ).distinct('learning_object')
+        return query
+
+
+class ListOAEvaluatedPriorityRetriveAPIView(ListAPIView):
+    """
+        Listar resultado de la evaluación realizado por el experto por id del OA.
+        El servicio está disponible para todos los usuarios.
+    """
+    permission_classes = [AllowAny]
+    serializer_class = EvaluationCollaboratingExpertEvaluationSerializer
+
+    def get_queryset(self):
+        id = self.kwargs['pk']
+        query = EvaluationCollaboratingExpert.objects.filter(
+            learning_object__id=id,
+            is_priority=True
+        )
+        if len(query) == 0:
+            query = EvaluationCollaboratingExpert.objects.filter(
+                learning_object__id=id,
+            ).distinct('learning_object')
+        return query
+
+
+class ListOAEvaluatedPrincipalRetriveAPIView(ListAPIView):
+    """
+        Listar resultado de la evaluación realizado por el experto por id del OA.
+        El servicio está disponible para todos los usuarios.
+    """
+    permission_classes = [AllowAny]
+    serializer_class = EvaluationCollaboratingExpertEvaluationSerializer
+
+    def get_queryset(self):
+        id = self.kwargs['pk']
+        query = EvaluationCollaboratingExpert.objects.filter(
+            learning_object__id=id,
+        ).distinct('learning_object')
+        return query
 
 
 class ListOAEvaluatedRetriveAPIViewSingleUser(ListAPIView):
@@ -540,8 +597,6 @@ class ListOAEvaluatedToExpertRetriveAPIView(ListAPIView):
 
     def get_queryset(self):
         id = self.kwargs['pk']
-
-
         return EvaluationCollaboratingExpert.objects.filter(
             collaborating_expert__id=self.request.user.id,
             learning_object__id=id,
@@ -589,7 +644,6 @@ def updateAverage(scoreData: list, instances: list):
 
                 tam1 = tam1 + 1
 
-
         if (str(concept.concept_evaluations.evaluation_concept)) == concepts[1]:
             concept_2 = str(concept.concept_evaluations.evaluation_concept)
             if concept.qualification != -1:
@@ -600,7 +654,6 @@ def updateAverage(scoreData: list, instances: list):
                 val_pre2 = val_pre2 + (2 * weight_question.weight)
 
                 tam2 = tam2 + 1
-
 
         if (str(concept.concept_evaluations.evaluation_concept)) == concepts[2]:
             concept_3 = str(concept.concept_evaluations.evaluation_concept)
@@ -613,7 +666,6 @@ def updateAverage(scoreData: list, instances: list):
 
                 tam3 = tam3 + 1
 
-
         if (str(concept.concept_evaluations.evaluation_concept)) == concepts[3]:
             concept_4 = str(concept.concept_evaluations.evaluation_concept)
             if concept.qualification != -1:
@@ -625,12 +677,11 @@ def updateAverage(scoreData: list, instances: list):
 
                 tam4 = tam4 + 1
 
-
     valor_preliminar_1 = round((val_pre1 / tam1), 2)
-    valor_preliminar_1 = valor_preliminar_1/5
-    result_concept_1 = average1/tam1
+    valor_preliminar_1 = valor_preliminar_1 / 5
+    result_concept_1 = average1 / tam1
     dicDta1 = {
-        'average': round((result_concept_1/valor_preliminar_1), 2),
+        'average': round((result_concept_1 / valor_preliminar_1), 2),
         'concept': concept_1
     }
 
@@ -638,7 +689,7 @@ def updateAverage(scoreData: list, instances: list):
     valor_preliminar_2 = valor_preliminar_2 / 5
     result_concept_2 = average2 / tam2
     dicDta2 = {
-        'average': round((result_concept_2/valor_preliminar_2), 2),
+        'average': round((result_concept_2 / valor_preliminar_2), 2),
         'concept': concept_2
     }
 
@@ -646,7 +697,7 @@ def updateAverage(scoreData: list, instances: list):
     valor_preliminar_3 = valor_preliminar_3 / 5
     result_concept_3 = average3 / tam3
     dicDta3 = {
-        'average': round((result_concept_3/valor_preliminar_3), 2),
+        'average': round((result_concept_3 / valor_preliminar_3), 2),
         'concept': concept_3
     }
 
@@ -654,7 +705,7 @@ def updateAverage(scoreData: list, instances: list):
     valor_preliminar_4 = valor_preliminar_4 / 5
     result_concept_4 = average4 / tam4
     dicDta4 = {
-        'average': round((result_concept_4/valor_preliminar_4), 2),
+        'average': round((result_concept_4 / valor_preliminar_4), 2),
         'concept': concept_4
     }
 
@@ -662,19 +713,19 @@ def updateAverage(scoreData: list, instances: list):
         instance_update = EvaluationConceptQualification.objects.get(id=instance.id)
         if instance_update.evaluation_concept.concept == concepts[0]:
             instance_update.average = dicDta1['average']
-            #print("---1.1",dicDta1['average'])
+            # print("---1.1",dicDta1['average'])
             instance_update.save()
         if instance_update.evaluation_concept.concept == concepts[1]:
             instance_update.average = dicDta2['average']
-            #print("---2.1",dicDta2['average'])
+            # print("---2.1",dicDta2['average'])
             instance_update.save()
         if instance_update.evaluation_concept.concept == concepts[2]:
             instance_update.average = dicDta3['average']
-            #print("---3.1",dicDta3['average'])
+            # print("---3.1",dicDta3['average'])
             instance_update.save()
         if instance_update.evaluation_concept.concept == concepts[3]:
             instance_update.average = dicDta4['average']
-            #print("---4.1",dicDta4['average'])
+            # print("---4.1",dicDta4['average'])
             instance_update.save()
 
 
