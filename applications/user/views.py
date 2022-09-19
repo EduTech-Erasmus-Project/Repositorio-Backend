@@ -285,8 +285,7 @@ class ManagementUserView(viewsets.ViewSet):
 
     def set_email_conform(self, id_user, request,role):
         token = jwt.encode({"id": id_user, "role":role,"exp": datetime.now(tz=timezone.utc)+timedelta(hours=24)}, "secreto", algorithm="HS256")
-        mail_confirm_email.send_email_confirm_email(request.data['email'], request.data['first_name'], DOMAIN,
-                                                    token=token)
+        mail_confirm_email.send_email_confirm_email(request.data['email'], request.data['first_name'], DOMAIN, token=token)
 
     def list(self, request):
         """
@@ -1010,7 +1009,14 @@ class RequestPasswordResetEmail(GenericAPIView):
         get_object_or_404(User, email=email)
         user = User.objects.get(email=email)
         if user.student_id is not None:
-            print('Usuario is student')
+            student = Student.objects.get(id=user.student_id)
+            if student.has_disability is True:
+                date_birthday = student.birthday
+                email = user.email
+                email_name = email.split("@")
+                user.set_password(str(email_name[0])+str(date_birthday))
+                user.save()
+                return Response({"message":" Reset password successful","status":201}, status = HTTP_200_OK)
 
         uidb64 = urlsafe_base64_encode(smart_bytes(user.id))
         token= PasswordResetTokenGenerator().make_token(user)
