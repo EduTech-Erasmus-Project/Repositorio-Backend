@@ -81,6 +81,21 @@ Psql roaTest
 ALTER USER roaTestUser WITH PASSWORD 'contraseña';
 ```
 
+### Configuración en el archivo settings.py
+
+```
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'roaTestDB',
+        'USER': 'roaTestUser',
+        'PASSWORD': 'contraseña',
+        'HOST': 'localhost',
+        'PORT': '5434',
+    }
+}
+```
+
 ## Ejecución de proyecto 
 
 Para la ejecucucion del proyecto situarse a la altura del archivo manage.py
