@@ -35,4 +35,10 @@ python3 -V
 
    https://www.python.org/downloads/
 
+Entorno virtual 
+
+```
+python3 -m venv example-env
+```
+
 
