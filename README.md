@@ -23,7 +23,7 @@ sudo apt-get install python3-pip
 
 ```
 
-ver la version de python que se instalo
+   Observar la version de python que se instalo
 
 ```
 python3 -V
@@ -31,8 +31,8 @@ python3 -V
 
 - Windows
 
-Descargar del siguiente enlace
+   Descargar del siguiente enlace
 
-https://www.python.org/downloads/
+   https://www.python.org/downloads/
 
 
