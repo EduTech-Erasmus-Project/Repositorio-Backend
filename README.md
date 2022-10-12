@@ -38,7 +38,30 @@ python3 -V
 Entorno virtual 
 
 ```
-python3 -m venv example-env
+python3 -m venv ejemplo-env
 ```
 
+## Instalación 🔧
+
+- Instalar requerimientos 
+
+```
+pip install –r requirements.txt 
+``` 
+
+## Ejecución de proyecto 
+
+Para la ejecucucion del proyecto situarse a la altura del archivo manage.py
+
+```console
+> python manage.py makemigrations
+```
+
+```console
+> python manage.py migrate
+```
+
+```console
+> python manage.py runserver
+```
 
