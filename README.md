@@ -63,6 +63,24 @@ PostgreSQL
 sudo apt-get -y install postgresql
 ```
 
+Creación de usuario y base de datos en postgresql 
+
+```
+CREATEDB roaTestDB
+```
+
+```
+CREATEUSER roaTestUser
+```
+
+```
+Psql roaTest
+```
+
+```
+ALTER USER roaTestUser WITH PASSWORD 'contraseña';
+```
+
 ## Ejecución de proyecto 
 
 Para la ejecucucion del proyecto situarse a la altura del archivo manage.py
