@@ -49,19 +49,33 @@ python3 -m venv ejemplo-env
 pip install –r requirements.txt 
 ``` 
 
+### Configuracion de la base de datos
+
+PostgreSQL
+
+- Instalación Windows
+
+  https://www.postgresql.org/
+  
+ - Instalación Linux
+
+```
+sudo apt-get -y install postgresql
+```
+
 ## Ejecución de proyecto 
 
 Para la ejecucucion del proyecto situarse a la altura del archivo manage.py
 
-```console
-> python manage.py makemigrations
+```
+python manage.py makemigrations
 ```
 
-```console
-> python manage.py migrate
+```
+python manage.py migrate
 ```
 
-```console
-> python manage.py runserver
+```
+python manage.py runserver
 ```
 
