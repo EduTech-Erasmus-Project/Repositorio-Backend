@@ -8,7 +8,7 @@ Estas instrucciones te permitirán obtener una copia del proyecto en funcionamie
 
 <ul>
  <li>
-  <a href="https://github.com/EduTech-Erasmus-Project/Repositorio-Backend.git">Frontend repositorio de objetos de aprendizaje (ROA)</a>
+  <a href="https://github.com/EduTech-Erasmus-Project/Repositorio-Frontend.git">Frontend repositorio de objetos de aprendizaje (ROA)</a>
  </li>
 </ul>
 
@@ -28,3 +28,11 @@ ver la version de python que se instalo
 ```
 python3 -V
 ```
+
+- Windows
+
+Descargar del siguiente enlace
+
+https://www.python.org/downloads/
+
+
