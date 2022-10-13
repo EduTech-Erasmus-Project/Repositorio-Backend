@@ -188,9 +188,9 @@ python manage.py runserver
 
 ## Configuración del servidor de correo 📪
 
-_<a href="https://sendgrid.com/">SendGrid</a> es una plataforma estadounidense para la gestión de correos electrónicos transaccionales y comerciales._
+<a href="https://sendgrid.com/">SendGrid</a> es una plataforma estadounidense para la gestión de correos electrónicos transaccionales y comerciales.
 
-_Se usa el servicio de correo <a href="https://sendgrid.com/">SendGrid</a> para notificar a los usuarios, enviar mensajes de alerta, de verificación de cuenta, confirmar si sus objetos de aprendizaje se subieron correctamente o necesitan pasar por revisión etc._
+Se usa el servicio de correo <a href="https://sendgrid.com/">SendGrid</a> para notificar a los usuarios, enviar mensajes de alerta, de verificación de cuenta, confirmar si sus objetos de aprendizaje se subieron correctamente o necesitan pasar por revisión etc.
 
 <p>La configuración del servidor de correos está definido dentro del archivo settings.py de la siguiente manera.</p>
 
