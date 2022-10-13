@@ -186,6 +186,22 @@ python manage.py runserver
  
 - La documentación del API-REST es generada por la herramienta `swagger`, para visualizar la documentación en el servidor local diríjase a la siguiente dirección `http://localhost:8000/api-view`. Para ver la documentación de la aplicacion de producción visite la siguiente dirección <a  href="https://repositorio.edutech-project.org/api-view">https://repositorio.edutech-project.org/api-view</a>
 
-## Confiuracion del servidor de correo 📪
+## Configuración del servidor de correo 📪
 
 _<a href="https://sendgrid.com/">SendGrid</a> es una plataforma estadounidense para la gestión de correos electrónicos transaccionales y comerciales._
+
+_Se usa el servicio de correo <a href="https://sendgrid.com/">SendGrid</a> para notificar a los usuarios, enviar mensajes de alerta, de verificación de cuenta, confirmar si sus objetos de aprendizaje se subieron correctamente o necesitan pasar por revisión etc._
+
+<p>La configuración del servidor de correos está definido dentro del archivo settings.py de la siguiente manera.</p>
+
+- Variables de configuración 
+
+```
+EMAIL_HOST = 'smtp.sendgrid.net' #Direccion del host
+EMAIL_HOST_USER = 'testuser' #Nombre del usuario
+EMAIL_HOST_PASSWORD = 'clave_del_host'
+EMAIL_PORT = 123  #Puerto por el cual se va a consumir el servicio
+EMAIL_USE_TLS = True
+```
+
+
