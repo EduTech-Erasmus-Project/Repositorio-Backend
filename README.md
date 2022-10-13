@@ -51,7 +51,7 @@ pip install –r requirements.txt
 
 ## Diagrama de la base de datos 📊
 
-<img alt="Diagrama de la base de datos" src="ROABD.png" style="width:200px; height:100%">
+<img alt="Diagrama de la base de datos" src="ROABD.png" style="width:50%; height:100%">
 
 ### Configuracion de la base de datos
 
