@@ -49,11 +49,15 @@ python3 -m venv ejemplo-env
 pip install –r requirements.txt 
 ``` 
 
-## Aplicaciones dentro del proyecto  
+## Aplicaciones dentro del proyecto 📂
 
 <p align="center">
 <img alt="Aplicaciones dentro del proyecto de django rest framework" src="AplicacionesDjango.JPG" style="width:50; height:100%;margin-left: 15%;">
 </p>
+
+- Education_Level
+
+_En esta aplicación `education_level` se trabajan temas relacionados con los niveles de educación, que pueden ser, por ejemplo, educación primaria, educación secundaria entro otros_
 
 ## Diagrama de la base de datos 📊
 
