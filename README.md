@@ -118,3 +118,6 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+# Documentación 📋
+
+- Las documentación del API-REST es generada por la herramienta `swagger`, para visualizar la documentación en el servidor local diríjase a la siguiente dirección `http://localhost:8000/api-view`. Para ver la documentacion en la aplicacion de produccion digite `https://repositorio.edutech-project.org/api-view`
