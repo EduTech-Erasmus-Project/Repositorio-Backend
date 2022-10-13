@@ -23,7 +23,7 @@ sudo apt-get install python3-pip
 
 ```
 
-   Observar la version de python que se instalo
+   Observar la version de python
 
 ```
 python3 -V
