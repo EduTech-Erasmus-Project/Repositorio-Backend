@@ -186,5 +186,6 @@ python manage.py runserver
  
 - La documentación del API-REST es generada por la herramienta `swagger`, para visualizar la documentación en el servidor local diríjase a la siguiente dirección `http://localhost:8000/api-view`. Para ver la documentación de la aplicacion de producción visite la siguiente dirección <a  href="https://repositorio.edutech-project.org/api-view">https://repositorio.edutech-project.org/api-view</a>
 
-## Confiuracion del servidor de correo 
+## Confiuracion del servidor de correo 📪
 
+_<a href="https://sendgrid.com/">SendGrid</a> es una plataforma estadounidense para la gestión de correos electrónicos transaccionales y comerciales._
