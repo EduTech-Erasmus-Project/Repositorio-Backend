@@ -53,7 +53,7 @@ pip install –r requirements.txt
 
 - Ver en pantalla completa <a href="https://github.com/EduTech-Erasmus-Project/Repositorio-Backend/blob/main/ROABD.png">clic aqui.</a>
 
-<img alt="Diagrama de la base de datos" src="ROABD.png" style="width:75%; height:100%;">
+<img alt="Diagrama de la base de datos" src="ROABD.png" style="width:75%; height:100%;margin-left: 15%;">
 
 ### Configuracion de la base de datos
 
@@ -120,6 +120,6 @@ python manage.py runserver
 
 # Documentación API-REST 📋
 
-<img alt="Documentacion api rest con swagger" src="swagger.JPG" style="width:75%; height:100%;margin-left:25%">
+<img alt="Documentacion api rest con swagger" src="swagger.JPG" style="width:75%; height:100%;margin-left: 15%;">
 
 - Las documentación del API-REST es generada por la herramienta `swagger`, para visualizar la documentación en el servidor local diríjase a la siguiente dirección `http://localhost:8000/api-view`. Para ver la documentacion en la aplicacion de produccion digite `https://repositorio.edutech-project.org/api-view`
