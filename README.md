@@ -51,6 +51,8 @@ pip install –r requirements.txt
 
 ## Diagrama de la base de datos 📊
 
+- Ver en pantalla completa <a href="https://github.com/EduTech-Erasmus-Project/Repositorio-Backend/blob/main/ROABD.png">clic aqui.</a>
+
 <img alt="Diagrama de la base de datos" src="ROABD.png" style="width:75%; height:100%;">
 
 ### Configuracion de la base de datos
