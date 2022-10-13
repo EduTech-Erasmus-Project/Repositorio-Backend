@@ -31,7 +31,7 @@ python3 -V
 
 - Windows
 
-   Descargar del siguiente enlace
+   Puedes descargarlo del siguiente enlace
 
    https://www.python.org/downloads/
 
