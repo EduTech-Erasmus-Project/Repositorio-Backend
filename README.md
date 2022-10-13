@@ -52,7 +52,7 @@ pip install –r requirements.txt
 ## Aplicaciones dentro del proyecto  
 
 <p align="center">
-<img alt="Aplicaciones dentro del proyecto de django rest framework" src="AplicacionesDjango.JPG" style="width:75%; height:100%;margin-left: 15%;">
+<img alt="Aplicaciones dentro del proyecto de django rest framework" src="AplicacionesDjango.JPG" style="width:50; height:100%;margin-left: 15%;">
 </p>
 
 ## Diagrama de la base de datos 📊
