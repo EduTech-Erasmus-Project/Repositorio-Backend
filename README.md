@@ -204,4 +204,4 @@ EMAIL_PORT = 123  #Puerto por el cual se va a consumir el servicio
 EMAIL_USE_TLS = True
 ```
 
-
+- Ver codigo <a href="https://github.com/EduTech-Erasmus-Project/Repositorio-Backend/blob/dev/applications/user/testMail.py">clic aqui.</a>
