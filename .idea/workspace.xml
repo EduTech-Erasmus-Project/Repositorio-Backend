@@ -3,8 +3,14 @@
   <component name="ChangeListManager">
     <list default="true" id="c905be6f-3721-4865-97e5-e49c8bdb4aff" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/applications/user/testMail.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/user/testMail.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/education_level/tests.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/education_level/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/education_level/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/evaluation_collaborating_expert/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/evaluation_collaborating_expert/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/evaluation_collaborating_expert/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/evaluation_collaborating_expert/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/evaluation_student/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/evaluation_student/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/preferences/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/preferences/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/applications/user/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/applications/user/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/roabackend/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/roabackend/settings.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -57,5 +63,15 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/venv/Lib/site-packages/rest_framework_simplejwt/views.py</url>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

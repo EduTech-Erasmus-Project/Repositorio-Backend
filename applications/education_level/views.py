@@ -23,11 +23,13 @@ class EducationLevelView(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
     serializer_class = EducationLevelListSerializer
     queryset = EducationLevel.objects.all()
+
     def list(self, request):
         if self.request.META.get('HTTP_ACCEPT_LANGUAGE') is None:
             return Response({"message":"Accept Language in header is required"},status=HTTP_200_OK)
         """
-        Listado de niveles de eduación registrados.
+             Listado de niveles de eduación registrados.
+            
         """
         queryset = EducationLevel.objects.all().order_by('id')
         serializer_en = EducationLevelEnSerializer(queryset,many=True)

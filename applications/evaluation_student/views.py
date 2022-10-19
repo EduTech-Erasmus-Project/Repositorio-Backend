@@ -503,7 +503,7 @@ class EvaluationQuestionsStudentViewSet(viewsets.ModelViewSet):
 #al pelo
 class EvaluationPrincipleGuidelienViewSet(viewsets.ModelViewSet):
     """
-       
+       Lista  las preguntas de sus linea directriz y principios
     """
     def get_permissions(self):
         if(self.action=='list'):

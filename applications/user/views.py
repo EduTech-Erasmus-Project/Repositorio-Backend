@@ -467,13 +467,15 @@ class ManagementUserView(viewsets.ViewSet):
 
 
 class set_new_token_verify(APIView):
+    """
+    Enviar nuevo enlace con el token para confirmar el correo electrónico
+    """
     permission_classes = []
     def post(self, request):
             try:
                 user = get_object_or_404(User,email=request.data['email'])
             except:
                 return Response({"message": "Correo no registrado", "status": 400}, status=HTTP_400_BAD_REQUEST)
-            #print(user[0]['collaboratingExpert_id'])
             if user:
                 user_id, user_role = self.role(user)
                 self.set_email_conform_new_token(user_id, request.data['email'], user.first_name,user_role)
@@ -492,9 +494,11 @@ class set_new_token_verify(APIView):
         token = jwt.encode({"id": id_user, "role":role,"exp": datetime.now(tz=timezone.utc)+timedelta(hours=24)}, "secreto", algorithm="HS256")
         mail_confirm_email.send_email_confirm_email(email_user, name_user, DOMAIN,
                                                     token=token)
-        ################################################################
 
 class VerifyEmail(generics.GenericAPIView):
+    """
+    Verificación de correo electrónico, en esta función enviamos el token al correo electrónico
+    """
     permission_classes = []
     def get(self,request,token):
         try:
