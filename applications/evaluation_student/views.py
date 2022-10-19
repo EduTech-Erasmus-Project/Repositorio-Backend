@@ -260,12 +260,9 @@ class StudentEvaluationView(viewsets.ViewSet):
             evaluation_student.observation=serializer.validated_data['observation'] 
             #print("evaluation studetnt ........",evaluation_student)
 
-
             evaluationQuestionsQualifications = EvaluationQuestionQualification.objects.filter(
              guideline_evaluations__principle_gl__evaluation_student__id = pk).order_by("evaluation_question__id")
 
-            
-            
             #print(",,,,,,,,,,,,,,,,,,,,,,,,,",scores)
             listguideline=[]
             cont=0
@@ -467,7 +464,6 @@ class EvaluationQuestionsStudentViewSet(viewsets.ModelViewSet):
         """
             Actualizar pregunta
         """
-        print("entro en el original")
         queryset = Question.objects.all()
         instance = get_object_or_404(queryset, pk=pk)
         serializer = EvaluationQuestionStRegisterSerializer(data=request.data)
@@ -507,7 +503,7 @@ class EvaluationQuestionsStudentViewSet(viewsets.ModelViewSet):
 #al pelo
 class EvaluationPrincipleGuidelienViewSet(viewsets.ModelViewSet):
     """
-       
+       Lista  las preguntas de sus linea directriz y principios
     """
     def get_permissions(self):
         if(self.action=='list'):

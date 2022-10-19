@@ -516,7 +516,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         # token = super(MyTokenObtainPairSerializer, cls).get_token(user)
         # token['email'] = user.email
-        if ((user.student is not None and user.student.is_active) or (user.teacher is not None and user.teacher.is_active) or (user.collaboratingExpert is not None and user.collaboratingExpert.is_active)) or user.is_superuser or (user.administrator is not None and user.administrator.is_active):
+        if ((user.student is not None and user.student.is_active and user.student.is_account_active) or (user.teacher is not None and user.teacher.is_active and user.teacher.is_account_active) or (user.collaboratingExpert is not None and user.collaboratingExpert.is_active and user.collaboratingExpert.is_account_active)) or user.is_superuser or (user.administrator is not None and user.administrator.is_active):
             token = super().get_token(user)
             return token
         else:
@@ -536,7 +536,6 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"password": "Password fields didn't match."})
         if attrs['password'] == attrs['old_password']:
             raise serializers.ValidationError({"password": "New password cannot be the same as above."})
-
         return attrs
     def validate_old_password(self, value):
         user = self.context['request'].user

@@ -5,7 +5,7 @@ from rest_framework_simplejwt import views as jwt_views
 
 app_name = 'user_app'
 urlpatterns = [
-    path('api/v1/login/', views.MyObtainTokenPairView.as_view(), name='token_obtain_pair'),
+   # path('api/v1/login/', views.MyObtainTokenPairView.as_view(), name='token_obtain_pair'),
     path('api/v1/login/', views.MyObtainTokenPairView.as_view(), name='token_obtain_pair'),
     path('api/v1/user/', views.UserAPIView.as_view(), name='user'),
     path('api/v1/user-count/', views.UserCountView.as_view()),
@@ -16,4 +16,6 @@ urlpatterns = [
     path('api/v1/user/change_password/<int:pk>/', views.ChangePasswordView.as_view(), name='auth_change_password'),
     path('api/v1/orcid-verify/', views.VerifyOrcid.as_view(),name='orcid_verify'),
     path('api/v1/total-expert-teacher-approved-and-disapproved/', views.TotalExpertTeacher.as_view()),
+    path('api/v1/email-verify/<token>', views.VerifyEmail.as_view(), name="email-verify"),
+    path('api/v1/set-verify/', views.set_new_token_verify.as_view(), name="set-verify"),
 ]

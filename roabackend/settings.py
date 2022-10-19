@@ -161,9 +161,6 @@ AUTH_USER_MODEL = 'user.User'
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-#Esta la psue yo recomendable dejarla el false o comentar
-#CORS_ALLOW_CREDENTIALS = True
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -192,6 +189,3 @@ EMAIL_HOST_USER = 'apikey'
 EMAIL_HOST_PASSWORD = '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'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-
-#Esto tambien fui yo
-#X_FRAME_OPTIONS = 'ALLOW'
