@@ -189,7 +189,6 @@ MEDIA_URL = '/media/'  #Base URL to serve the media files uploaded
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')  # local path where the media files reside
 
 
-# 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
 EMAIL_HOST = env('EMAIL_HOST')
 EMAIL_HOST_USER = env('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
