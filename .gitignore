@@ -7,4 +7,4 @@ media/profile
 media/sourceFile
 !media/img
 !media/maplompad
-.env
+*.env
