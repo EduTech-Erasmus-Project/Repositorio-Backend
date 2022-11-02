@@ -7,4 +7,15 @@ media/profile
 media/sourceFile
 !media/img
 !media/maplompad
-*.env
+
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+lvenv/
