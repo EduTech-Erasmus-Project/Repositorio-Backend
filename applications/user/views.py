@@ -1,7 +1,7 @@
 import json
 from webbrowser import get
 
-from applications.user.testMail import SendMail, SendEmailCreateUser, SendEmailCreateUserCheck, SendEmailConfirm, SendEmailCreateUserCheck_Expert, SendEmail_activation_email,SendEmailCreateUserCheck_Admin_to_Expert
+from applications.user.testMail import SendMail, SendEmailCreateUser, SendEmailCreateUserCheck, SendEmailConfirm, SendEmailCreateUserCheck_Expert, SendEmail_activation_email,SendEmailCreateUserCheck_Admin_to_Expert,SendEmailAdminCreateUser
 from applications.user.utils import Util
 from rest_framework.generics import ListAPIView
 from rest_framework import viewsets
@@ -149,6 +149,9 @@ mail_create_expert = SendEmailCreateUserCheck_Expert()
 mail_create_check_expert = SendEmailCreateUserCheck_Admin_to_Expert()
 
 mail_confirm_email = SendEmail_activation_email()
+
+mail_account_not_active = SendEmailAdminCreateUser()
+
 class ManagementUserView(viewsets.ViewSet):
 
     def get_permissions(self):
@@ -224,6 +227,12 @@ class ManagementUserView(viewsets.ViewSet):
 
                 if not ManagementUserView.checkEmail(request.data['email']):
                     value_active = False
+                    # Buscar datos del administrador para enviar los correos de revision
+                    user_admin = User.objects.get(is_superuser=True)
+                    user_email = user_admin.email
+                    user_name = user_admin.first_name + " " + user_admin.last_name
+                    name_user_account = role_serializer.validated_data['first_name'] + " " + role_serializer.validated_data['last_name']
+                    mail_account_not_active.sendMail_validate_account_teacher_Admin(user_email,user_name,name_user_account)
                     #mail_create_check.sendMailCreateCheckAdmin(request.data['email'], request.data['first_name'])
                 else:
                     value_active = True
@@ -249,6 +258,11 @@ class ManagementUserView(viewsets.ViewSet):
 
                 if not ManagementUserView.checkEmail(request.data['email']):
                     value_active = False
+                    user_admin = User.objects.get(is_superuser=True)
+                    user_email = user_admin.email
+                    user_name = user_admin.first_name + " " + user_admin.last_name
+                    name_user_account = role_serializer.validated_data['first_name'] +" "+role_serializer.validated_data['last_name']
+                    mail_account_not_active.sendMail_validate_account_expert_Admin(user_email, user_name,name_user_account)
                     #mail_create_check_expert.sendMailCreate_Admin_to_Expert(request.data['email'], request.data['first_name'])
                 else:
                     value_active = True

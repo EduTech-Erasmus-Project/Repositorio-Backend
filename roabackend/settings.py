@@ -8,18 +8,24 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 from datetime import timedelta
 from pathlib import Path
+import environ
 import os
 
+env = environ.Env()
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+#Set the project base directory
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'l=7$@=!muo8kj*j+6nq!wl2n$8pn*m^kza*=g60g536#rtb%__'
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG')
 
 # ALLOWED_HOSTS=[]
 if DEBUG:
@@ -83,10 +89,10 @@ else:
     DOMAIN = 'http://localhost:8000'
 # Puntajes de calificacion del experto
 
-YES=2
-NO=0
-PARTIALLY = 1
-NOT_APPLY = -1
+YES = env('YES')
+NO = env('NO')
+PARTIALLY = env('PARTIALLY')
+NOT_APPLY = env('NOT_APPLY')
 
 # Variable de calificacion del experto
 CALIFICATION_OPTIONS = {
@@ -184,8 +190,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')  # local path where the media file
 
 
 # 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
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_HOST_USER = 'apikey'
-EMAIL_HOST_PASSWORD = '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'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+EMAIL_HOST = env('EMAIL_HOST')
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = env('EMAIL_PORT')
+EMAIL_USE_TLS = env('EMAIL_USE_TLS')
