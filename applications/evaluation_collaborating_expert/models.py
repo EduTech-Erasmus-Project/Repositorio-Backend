@@ -19,8 +19,13 @@ class EvaluationQuestion(TimeStampedModel):
     interpreter_yes = models.TextField(blank=True, null=True)
     interpreter_no = models.TextField(blank=True, null=True)
     interpreter_partially = models.TextField(blank=True, null=True)
+    interpreter_not_apply = models.TextField(blank=True, null=True)
     value_importance = models.FloatField(blank=True, null=True)
     #######################################################################
+    # Peso y relevancia para cada pregunta
+    relevance = models.CharField(max_length=50, blank=False, null=True)
+    weight = models.FloatField(blank=True, null=True)
+
     code = models.CharField(max_length=10, unique=True)
     evaluation_concept = models.ForeignKey(EvaluationConcept,on_delete=models.CASCADE, related_name='questions')
     def __str__(self):
@@ -29,6 +34,7 @@ class EvaluationQuestion(TimeStampedModel):
 class EvaluationCollaboratingExpert(TimeStampedModel):
     learning_object = models.ForeignKey(LearningObjectMetadata,on_delete=models.CASCADE, related_name='learning_objects')
     rating = models.FloatField()
+    is_priority = models.BooleanField(default=False)
     observation = models.TextField(blank=True, null=True)
     collaborating_expert = models.ForeignKey(
         User, 

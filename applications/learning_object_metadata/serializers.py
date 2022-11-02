@@ -1,13 +1,13 @@
 from rest_framework.response import Response
 from applications.learning_object_metadata.utils import get_rating_value
-from applications.evaluation_student.serializers import EvaluationQuestionQualificationSerializer
+from applications.evaluation_student.serializers import EvaluationQuestionQualificationSerializer,EvaluationPrinciple_QualificationsValueSerializer
 from applications.evaluation_student.models import StudentEvaluation
 from applications.evaluation_collaborating_expert.serializers import EvaluationConceptQualificationSerializer
 from applications.license.serializers import LicenseSerializer
 from applications.education_level.serializers import EducationLevelListSerializer, EducationLevelSerializer
 from applications.knowledge_area.serializers import KnowledgeAreaListSerializer, KnowledgeAreaListSerializers, KnowledgeAreaNameSerializer
 from applications.learning_object_file.serializers import LearningObjectSerializer
-from applications.user.serializers import UserCommentSerializer, UserFullName
+from applications.user.serializers import UserCommentSerializer, UserFullName, GeneralUserStudent_View_ListSerializer
 from applications.evaluation_collaborating_expert.models import EvaluationCollaboratingExpert
 from roabackend.settings import DOMAIN
 from rest_framework import serializers,pagination
@@ -35,6 +35,22 @@ class ROANumberPagination(pagination.PageNumberPagination):
             'results': data
         })
 
+class ROANumberPagination_Estudent_Qualification(pagination.PageNumberPagination):
+    page_size = 15
+    max_page_size = 50
+    def get_paginated_response(self, data):
+
+        #data['results'].average =
+
+        return Response({
+            'count': self.page.paginator.count,
+            'links': {
+               'next': self.get_next_link(),
+               'previous': self.get_previous_link()
+            },
+            'pages': self.page.paginator.num_pages,
+            'results': data
+        })
 class ROANumberPaginationPopular(pagination.PageNumberPagination):
     page_size = 8
     max_page_size = 50
@@ -46,18 +62,44 @@ class LearningObjectMetadataAllSerializer(serializers.ModelSerializer):
     knowledge_area = KnowledgeAreaListSerializers()
     user_created=UserCommentSerializer(read_only=True)
     rating = serializers.SerializerMethodField()
+    qualification_student = serializers.SerializerMethodField()
+    qualification_expert = serializers.SerializerMethodField()
     class Meta:
         model = LearningObjectMetadata
         fields = ('__all__')
-        extra_fields = ['rating']
+        extra_fields = ['rating','qualification_student','qualification_expert']
+
     def get_rating(self, obj):
         query = EvaluationCollaboratingExpert.objects.filter(
-            learning_object__id=obj.id
+            learning_object__id=obj.id,
+            is_priority=True
         ).values('rating')
+        if len(query) == 0:
+            query = EvaluationCollaboratingExpert.objects.filter(
+                learning_object__id=obj.id,
+            ).distinct('learning_object').values('rating')
         if query.exists():
             return get_rating_value(query[0]['rating'])
         else:
             return 0
+
+    def get_qualification_student(self,obj):
+        query = StudentEvaluation.objects.filter(
+            learning_object_id=obj.id
+        )
+        if query.exists():
+            return True
+        else:
+            return False
+    def get_qualification_expert(self,obj):
+        query = EvaluationCollaboratingExpert.objects.filter(
+            learning_object_id=obj.id
+        )
+        if query.exists():
+            return True
+        else:
+            return False
+
 
 class LearningObjectMetadataYears(serializers.ModelSerializer):
     class Meta:
@@ -102,6 +144,7 @@ class LearningObjectMetadataComment(serializers.ModelSerializer):
 class LearningObjectMetadataByExpet(serializers.ModelSerializer):
     learning_object = LearningObjectMetadataAllSerializer(read_only=True)
     concept_evaluations = EvaluationConceptQualificationSerializer(many=True,read_only=True)
+    collaborating_expert = GeneralUserStudent_View_ListSerializer(read_only=True)
     class Meta:
         model = EvaluationCollaboratingExpert
         fields = (
@@ -109,12 +152,15 @@ class LearningObjectMetadataByExpet(serializers.ModelSerializer):
             'rating',
             'observation',
             'learning_object',
-            'concept_evaluations'
+            'is_priority',
+            'concept_evaluations',
+            'collaborating_expert'
             )
 
 class LearningObjectMetadataByStudent(serializers.ModelSerializer):
     learning_object = LearningObjectMetadataAllSerializer(read_only=True)
     studentevaluations = EvaluationQuestionQualificationSerializer(many=True,read_only=True)
+
     class Meta:
         model = StudentEvaluation
         fields = (
@@ -125,6 +171,21 @@ class LearningObjectMetadataByStudent(serializers.ModelSerializer):
             'studentevaluations',
             )
 
+
+class LearningObjectMetadataByStudentQualification(serializers.ModelSerializer):
+    learning_object = LearningObjectMetadataAllSerializer(read_only=True)
+    studentevaluations = EvaluationQuestionQualificationSerializer(many=True, read_only=True)
+    student = GeneralUserStudent_View_ListSerializer(read_only=True)
+    class Meta:
+        model = StudentEvaluation
+        fields = (
+            'id',
+            'observation',
+            'rating',
+            'learning_object',
+            'student',
+            'studentevaluations'
+        )
 
 class AdminLearningObjectMetadataPublicUpdateSerializer(serializers.Serializer):
     public = serializers.BooleanField(required=True)
@@ -163,7 +224,8 @@ class TeacherUploadListSerializer(serializers.ModelSerializer):
             'avatar', 
             'rating',
             'slug',
-            'observation'
+            'observation',
+            'is_adapted_oer'
             ]
     def get_rating(self, obj):
         query = EvaluationCollaboratingExpert.objects.filter(

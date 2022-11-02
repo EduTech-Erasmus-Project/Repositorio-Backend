@@ -1,5 +1,5 @@
 from rest_framework.validators import UniqueValidator
-from roabackend.settings import CALIFICATION_OPTIONS, YES,NO
+from roabackend.settings import CALIFICATION_OPTIONS, YES,NO, NOT_APPLY
 from applications.learning_object_metadata.models import LearningObjectMetadata
 from applications.evaluation_student.models import EvaluationGuidelineQualification, EvaluationPrincipleQualification, EvaluationQuestionQualification, Guideline, Principle, Question, StudentEvaluation
 from rest_framework import serializers
@@ -16,6 +16,7 @@ class StudentQuestionSerializer(serializers.ModelSerializer):
             'interpreter_st_yes',
             'interpreter_st_no',
             'interpreter_st_partially',
+            'interpreter_st_not_apply',
             'value_st_importance'
             )
 
@@ -89,8 +90,8 @@ class EvaluationStudentCreateSerializer(serializers.Serializer):
             if len(Question.objects.filter(pk=value['id']))==0:
                  raise serializers.ValidationError(f"Not exist question with pk {value['id']}")
         for option in data['results']:
-            if option['value'] != CALIFICATION_OPTIONS['YES'] and option['value'] != CALIFICATION_OPTIONS['NO'] and option['value'] != CALIFICATION_OPTIONS['PARTIALLY']:
-                raise serializers.ValidationError(f"Options are Si, No and Parcialmente")
+            if option['value'] != CALIFICATION_OPTIONS['YES'] and option['value'] != CALIFICATION_OPTIONS['NO'] and option['value'] != CALIFICATION_OPTIONS['PARTIALLY'] and option['value'] != CALIFICATION_OPTIONS['NOT_APPLY']:
+                raise serializers.ValidationError(f"Options are Si, No, No aplica and Parcialmente")
         return data
 
 #############################CRUD PREGUNTAS
@@ -101,17 +102,22 @@ class EvaluationQuestionStSerializer(serializers.ModelSerializer):
         fields = ('__all__')
 
 class EvaluationQuestionStRegisterSerializer(serializers.Serializer):
-    question = serializers.CharField(required=True,validators=[
+    """question = serializers.CharField(required=True,validators=[
         UniqueValidator(queryset=Question.objects.all(), 
         message="Esta pregunta ya esta registrado.",
-        )])
+        )])"""
+    question = serializers.CharField(required=True)
     description = serializers.CharField(required=True)
     metadata = serializers.CharField(required=True)
     ###################################################
     interpreter_st_yes = serializers.CharField(required=True)
     interpreter_st_no = serializers.CharField(required=True)
     interpreter_st_partially = serializers.CharField(required=True)
+    interpreter_st_not_apply = serializers.CharField(required=True)
     value_st_importance = serializers.CharField(required=True)
+
+    weight = serializers.CharField(required=True)
+    relevance = serializers.CharField(required=True)
     ###################################################
 
 ###list
@@ -124,13 +130,17 @@ class EvaluationPrincipleSerializer(serializers.ModelSerializer):
 class EvaluationSchemaListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
-        fields = ('id','question','metadata'
-        ,'description',
+        fields = ('id',
+        'question',
+        'metadata',
+        'description',
         'interpreter_st_yes',
         'interpreter_st_no',
         'interpreter_st_partially',
-        'interpreter_st_partially',
-        'value_st_importance'
+        'interpreter_st_not_apply',
+        'value_st_importance',
+        'weight',
+        'relevance'
         )
 
 class EvaluationGuidelinesListSerializer(serializers.ModelSerializer):
@@ -159,6 +169,7 @@ class EvaluationQuestionListStudentSerializer(serializers.ModelSerializer):
             'interpreter_st_yes',
             'interpreter_st_no',
             'interpreter_st_partially',
+            'interpreter_st_not_apply',
             'value_st_importance')
 
 class EvaluationQuestionEstudentQualificationSerializer(serializers.ModelSerializer):
@@ -176,6 +187,8 @@ class EvaluationQuestionEstudentQualificationSerializer(serializers.ModelSeriali
             return CALIFICATION_OPTIONS['YES']
         elif obj.qualification is not None and obj.qualification==NO:
             return CALIFICATION_OPTIONS['NO']
+        elif obj.qualification is not None and obj.qualification == NOT_APPLY:
+            return CALIFICATION_OPTIONS['NOT_APPLY']
         else:
             return CALIFICATION_OPTIONS['PARTIALLY']
 
@@ -224,6 +237,8 @@ class QuestionSerializer(serializers.ModelSerializer):
     metadata = serializers.SerializerMethodField()
     interpreter_st_no = serializers.SerializerMethodField()
     interpreter_st_partially = serializers.SerializerMethodField()
+    interpreter_st_not_apply = serializers.SerializerMethodField()
+
     class Meta:
         model = EvaluationQuestionQualification
         fields = (
@@ -235,6 +250,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             'interpreter_st_yes',
             'interpreter_st_no',
             'interpreter_st_partially',
+            'interpreter_st_not_apply',
         )
     def get_interpreter_st_no(self, obj):
         query = Question.objects.filter(pk = obj.evaluation_question.id).values('interpreter_st_no')
@@ -260,6 +276,14 @@ class QuestionSerializer(serializers.ModelSerializer):
             return query[0]['interpreter_st_yes']
         else:
             return ""
+
+    def get_interpreter_st_not_apply(self, obj):
+        query = Question.objects.filter(pk=obj.evaluation_question.id).values('interpreter_st_not_apply')
+        if query.exists():
+            return query[0]['interpreter_st_not_apply']
+        else:
+            return ""
+
     def get_question(self, obj):
         query = Question.objects.filter(pk = obj.evaluation_question.id).values('question')
         if query.exists():
@@ -268,11 +292,14 @@ class QuestionSerializer(serializers.ModelSerializer):
             return ""
     def get_question_id(self, obj):
         return obj.evaluation_question.id
+
     def get_qualification(self,obj):
         if obj.qualification is not None and obj.qualification==YES:
             return CALIFICATION_OPTIONS['YES']
         elif obj.qualification is not None and obj.qualification==NO:
             return CALIFICATION_OPTIONS['NO']
+        elif obj.qualification is not None and obj.qualification == NOT_APPLY:
+            return CALIFICATION_OPTIONS['NOT_APPLY']
         else:
             return CALIFICATION_OPTIONS['PARTIALLY']
 
@@ -346,8 +373,10 @@ class EvaluationPrincipleGuidelineRegSchemaListSerializer(serializers.ModelSeria
         'interpreter_st_yes',
         'interpreter_st_no',
         'interpreter_st_partially',
-        'interpreter_st_partially',
-        'value_st_importance'
+        'interpreter_st_not_apply',
+        'value_st_importance',
+        'weight',
+        'relevance'
         )
 
 class EvaluationPrincipleGuidelineRegListSerializer(serializers.ModelSerializer):

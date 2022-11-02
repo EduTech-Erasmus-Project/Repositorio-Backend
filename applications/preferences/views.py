@@ -40,6 +40,7 @@ class PrefrencesAreaView(viewsets.ModelViewSet):
         return super(PrefrencesAreaView, self).get_serializer_class()
 
 class AreaFilters(ListAPIView):
+    """Lista las todas las areas de preferencias"""
     permission_classes = [AllowAny]
     pagination_class=None
     serializer_class = PreferencesAreaFilterSerializer

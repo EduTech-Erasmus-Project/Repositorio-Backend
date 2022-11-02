@@ -1,4 +1,7 @@
 from rest_framework import viewsets
+from rest_framework import status
+
+from media.maplompad.controller import FileController
 from .models import LearningObjectFile
 from datetime import datetime, timedelta
 from . serializers import (
@@ -9,6 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 import zipfile36 as zipfile
 import zipfile
 import os
+import shortuuid
 from bs4 import BeautifulSoup as bs
 from applications.user.mixins import IsTeacherUser
 from roabackend import settings as _settings
@@ -16,16 +20,30 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
     HTTP_200_OK
-) 
+)
+import shutil
 import xmltodict, json
+from unipath import Path
+from os import remove
+from shutil import rmtree
+from ..learning_object_metadata.models import LearningObjectMetadata
+from xml.dom import minidom
+BASE_DIR = Path(__file__).ancestor(3)
+from ..helpers_functions.beautiful_soup_data import read_html_files, look_for_class_oeradap, generaye_array_paths_img
+from roabackend.settings import DEBUG
+booleanLomLomes=True #If booleanLomLomes is True represents a lom format, and
+                     #if booleanLomLomes is False represents a lomes format.
 
-    
+
+
 class LearningObjectModelViewSet(viewsets.ModelViewSet):
     # authentication_classes = (TokenAuthentication,)
     permission_classes = [IsAuthenticated,IsTeacherUser]
     serializer_class = LearningObjectSerializer
     queryset = LearningObjectFile.objects.all()
+
     def create(self, request, *args, **kwargs):
+        global booleanLomLomes
         """
         Servicio para cargar un OA comprimido y obtener los metadatos correspontientes al Objeto de Aprendizaje.
         Se necesita estar autenticado como docente.
@@ -33,6 +51,8 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
         data=any
         serializer = LearningObjectSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        #file_path = os.path.join(BASE_DIR,'media',str(serializer.validated_data['file']))
+
         learningObject = LearningObjectFile.objects.create(
             file = serializer.validated_data['file']
             # file_name = serializer.validated_data['file_name'],
@@ -85,46 +105,55 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
             for fileName in files:
                 if fileName in listNames and fileName in listNames:
                     filename_index = "media/"+folder_area+"/"+file_name
-                    filename = "media/"+folder_area+"/"+file_name+"/"+files[0]
+                    #filename = "media/"+folder_area+"/"+file_name+"/"+files[0]
+                    filename = os.path.join('media', folder_area, file_name, files[0])
                     url=self.request._current_scheme_host+"/media/"+folder_area+"/"+file_name+"/"
                     break
                 if files[0] in listNames and files[1] not in listNames and files[2] not in listNames and files[3] not in listNames:
                     filename_index = "media/"+folder_area+"/"+file_name
-                    filename = "media/"+folder_area+"/"+file_name+"/"+files[0]
+                    #filename = "media/"+folder_area+"/"+file_name+"/"+files[0]
+                    filename = os.path.join('media', folder_area, file_name, files[0])
                     url=self.request._current_scheme_host+"/media/"+folder_area+"/"+file_name+"/"
                     break
                 if files[0] not in listNames and files[1] in listNames and files[2] not in listNames and files[3] not in listNames:
                     filename_index = "media/"+folder_area+"/"+file_name
-                    filename = "media/"+folder_area+"/"+file_name+"/"+files[1]
+                    #filename = "media/"+folder_area+"/"+file_name+"/"+files[1]
+                    filename = os.path.join('media', folder_area, file_name, files[1])
                     url=self.request._current_scheme_host+"/media/"+folder_area+"/"+file_name+"/"
                     break
                 if files[0] not in listNames and files[1] not in listNames and files[2] in listNames and files[3] not in listNames:
                     filename_index = "media/"+folder_area+"/"+file_name
-                    filename = "media/"+folder_area+"/"+file_name+"/"+files[2]
+                    #filename = "media/"+folder_area+"/"+file_name+"/"+files[2]
+                    filename = os.path.join('media', folder_area, file_name, files[2])
                     url=self.request._current_scheme_host+"/media/"+folder_area+"/"+file_name+"/"
                     break
                 if files[0] not in listNames and files[1] not in listNames and files[2] not in listNames and files[3] in listNames:
                     filename_index = "media/"+folder_area+"/"+file_name
-                    filename = "media/"+folder_area+"/"+file_name+"/"+files[3]
+                    #filename = "media/"+folder_area+"/"+file_name+"/"+files[3]
+                    filename = os.path.join('media',folder_area,file_name,files[3])
                     url=self.request._current_scheme_host+"/media/"+folder_area+"/"+file_name+"/"
                     break
 
             PROJECT_ROOT = os.path.abspath(os.path.dirname(PROJECT_ROOT))
             XMLFILES_FOLDER = os.path.join(PROJECT_ROOT, filename)
-            index = ""
+
             if get_index_imsmanisfest(XMLFILES_FOLDER)!='':
                 index=get_index_imsmanisfest(XMLFILES_FOLDER)
             elif get_index_file(filename_index)!='':
                 index= get_index_file(filename_index)
             else:
-                 return Response({"message": "Objeto de Aprendizaje aceptados por el repositorio es IMS y SCORM"}, status=HTTP_404_NOT_FOUND)
-            
+                return Response({"message": "Objeto de Aprendizaje aceptados por el repositorio es IMS y SCORM"}, status=HTTP_404_NOT_FOUND);
+
+            #Condicion para saber si el archivo de metadatos es lom o lomes
+
             data = get_metadata_imsmanisfest(XMLFILES_FOLDER)
+
             if XMLFILES_FOLDER is not None:
-                URL = url+index 
+                URL = url+index
                 learningObject.url= URL.replace('http://', 'https://', 1)
                 learningObject.file_name= nombre[0]
                 learningObject.file_size= zip_kb
+                learningObject.path_origin = os.path.join(BASE_DIR,'media','catalog',file_name)
                 learningObject.save()
             else:
                 return Response({"message": "No se encontro metadatos en el Objeto de Aprendizaje"}, status=HTTP_404_NOT_FOUND)
@@ -132,17 +161,159 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
             print(e)
             print(e.args)
             return Response({"message":"Objetos de Aprendizaje aceptados por el repositorio es IMS y SCORM."},status=HTTP_404_NOT_FOUND)
+
+        #pocedemos a leer los recursos que tiene el objeto de aprendizaje
+        count_general_paragaph, count_general_img, count_general_audio, count_general_video = read_html_files(learningObject.path_origin)
+
+        #Lectura del archivo index para buscar si esta adaptado por la herramienta Oeradap
+        try:
+            with open(os.path.join(learningObject.path_origin,'index.html')) as file:
+                is_adapted_oer = look_for_class_oeradap(os.path.join(learningObject.path_origin, 'index.html'))
+            # No need to close the file
+        except FileNotFoundError:
+            print('Lo sentimos no existe el archivo index en la carpeta raiz')
+            #exit()
+
+        url_img_prev = os.path.join(learningObject.path_origin,'img-prev.png')
+        url_request_host = os.path.join(url,'img-prev.png')
+        url_img_preview = os.path.exists(url_img_prev)
+
+        #Verificamos si existe la imagen de previsualizacion
+        if url_img_preview:
+            uuid = str(shortuuid.ShortUUID().random(length=8))
+            #name = str('img-prev-' + uuid + '.png')
+            name = str('img-prev.png')
+        else:
+            name = ''
+            url_request_host = ''
+        array_paths_img_view = []
+        array_paths_img_view = generaye_array_paths_img(learningObject.path_origin,url)
+
+        count_tag ={
+            'paragraph': count_general_paragaph,
+            'img':count_general_img,
+            'video':count_general_video,
+            'audio':count_general_audio,
+            'is_adapted_oer': is_adapted_oer,
+            "paths_img_preview": array_paths_img_view,
+            'img_prev':{
+                'exist':url_img_preview,
+                'url_img':url_request_host,
+                'name':name
+            },
+        }
+
         serializer = LearningObjectSerializer(learningObject)
         metadata ={
             "metadata": data,
-            "oa_file": serializer.data
+            "oa_file": serializer.data,
+            "tag_count": count_tag,
         }
         return Response(metadata,status=HTTP_200_OK)
 
+#Funciones para leer los metadatos
+
+def upload_file(_filepath):
+    global booleanLomLomes
+
+    _profile = None
+    xml_manifest = None
+
+    redundant_elements = [' uniqueElementName="general"', ' uniqueElementName="catalog"', ' uniqueElementName="entry"',
+                          ' uniqueElementName="aggregationLevel"', ' uniqueElementName="role"',
+                          ' uniqueElementName="dateTime"',
+                          ' uniqueElementName="source"', ' uniqueElementName="value"',
+                          ' uniqueElementName="metaMetadata"',
+                          ' uniqueElementName="rights"', ' uniqueElementName="access"',
+                          ' uniqueElementName="accessType"',
+                          ' uniqueElementName="source"', ' uniqueElementName="value"', 'uniqueElementName="lifeCycle"',
+                          'uniqueElementName="technical"']
+
+    xml_manifest = FileController.read_manifest(_filepath)
+    for redundant in redundant_elements:
+        xml_manifest = xml_manifest.replace(redundant, '')
+    doc = minidom.parse(_filepath)
+    childTag = doc.firstChild.tagName
+    if (childTag == "lom"):
+        booleanLomLomes = True
+    elif (childTag == "lomes:lom"):
+        booleanLomLomes = False
+    else:
+        print('Error, the file does not contain metadata')
+
+    if xml_manifest == -1:
+        _profile = 'IMS'
+    elif xml_manifest != -1:
+        _profile = 'SCORM'
+    else:
+        return print('Error, the file does not contain imslrm.xml nor imsmanifest.xml files.')
+    if xml_manifest is not None:
+        print("Manifest con datos")
+    else:
+        print('Error trying to parse the imsmanifest.xml')
+
+    #print("profile: ", _profile, " filepath: ", _filepath)
+    return _profile, _filepath, booleanLomLomes, xml_manifest
+
+
+def read_file(filepath, profile):
+    redundant_elements = [' uniqueElementName="general"', ' uniqueElementName="catalog"', ' uniqueElementName="entry"',
+                          ' uniqueElementName="aggregationLevel"', ' uniqueElementName="role"',
+                          ' uniqueElementName="dateTime"',
+                          ' uniqueElementName="source"', ' uniqueElementName="value"',
+                          ' uniqueElementName="metaMetadata"',
+                          ' uniqueElementName="rights"', ' uniqueElementName="access"',
+                          ' uniqueElementName="accessType"',
+                          ' uniqueElementName="source"', ' uniqueElementName="value"', 'uniqueElementName="lifeCycle"',
+                          'uniqueElementName="technical"']
+
+    from_lompad = False
+    #print("Profile: ", profile)
+    if profile == 'SCORM':
+        # print("SCORM #227")
+        xml_manifest = FileController.read_manifest(filepath)
+        # print(xml_manifest)
+        for redundant in redundant_elements:
+            xml_manifest = xml_manifest.replace(redundant, '')
+        xml_manifest = xml_manifest.replace('lom:', '')
+        print("xml correcto")
+        # print(xml_manifest)
+    else:
+        xml_manifest = FileController.read_manifest(filepath)
+        for redundant in redundant_elements:
+            xml_manifest = xml_manifest.replace(redundant, '')
+        xml_manifest = xml_manifest.replace('lom:', '')
+
+    if xml_manifest == -1:
+        xml_manifest = FileController.read_manifest(filepath)
+        for redundant in redundant_elements:
+            xml_manifest = xml_manifest.replace(redundant, '')
+        xml_manifest = xml_manifest.replace('lom:', '')
+        from_lompad = True
+
+    if xml_manifest == -1:
+        print('Error, file not found or corrupted.')
+
+    # print("xml_manifest: ",xml_manifest)
+
+    if not from_lompad:
+        load = FileController.load_recursive_model(xml_manifest, booleanLomLomes, filepath)
+        # print("Load: ",load)
+        return load, xml_manifest
+    else:
+        load = FileController.load_recursive_model(xml_manifest, filepath, is_lompad_exported=True)
+        # print("Load: ",load)
+        return load, xml_manifest
+#Se terminan las funciones
 def get_metadata_imsmanisfest(filename):
-    with open(filename, 'r',encoding="utf-8") as myfile:
-        jsondoc = xmltodict.parse(myfile.read())
-    return jsondoc
+    global booleanLomLomes
+    #with open(filename, 'r',encoding="utf-8") as myfile:
+    #    jsondoc = xmltodict.parse(myfile.read())
+    profile, filepath, booleanLomLomes, xml_manifest = upload_file(filename.replace('\\','/'))
+    load, xml_manifest = read_file(filepath, profile)
+    import json
+    json_object = json.dumps(load, indent=4, ensure_ascii=False)
+    return json_object
 
 
 def get_metadata_imsmanisfest1(filename):
@@ -308,12 +479,7 @@ def get_metadata_imsmanisfest_normal(filename):
         data = jsondoc['manifest']
         # title = data.find('metadata').find('general').find('title').find('string')
         res = BeautifulSoup(jsondoc)
-        print(res)
-        # print(od1)
-        # print(jsondoc['manifest']['metadata']);
-        # print(jsondoc['manifest']['organizations']);
-        # print(jsondoc['manifest']['resources']);
-        # print(jsondoc['manifest']['resources']);
+
     return jsondoc
     
 def validateData(data):
@@ -335,29 +501,31 @@ def get_index_file(filepath):
     file=""
     index_path=""
     index_url=""
-    for file in os.listdir(filepath):
-        if file.endswith("index.html") or file.endswith("excursion.html"):
-            index_path=file
-    if index_path !="":
-        index_url=index_path
-    else:
-        return Response({"message": "Ocurrio un error al cargar el Objeto de Aprendizaje"})
+    if(filepath != ''):
+        for file in os.listdir(filepath):
+            if file.endswith("index.html") or file.endswith("excursion.html"):
+                index_path=file
+        if index_path !="":
+            index_url=index_path
+        else:
+            return Response({"message": "Ocurrio un error al cargar el Objeto de Aprendizaje"})
     return index_url
 
 def get_index_imsmanisfest(filename):
     content = []
     result = ""
     try:
-        with open(filename, "r") as file:
-            content = file.readlines()
-            content = "".join(content)
-            bs_content = bs(content, "lxml")
-            resource = bs_content.find_all("file")
-            if bs_content.find_all("file"):
-                result = resource[0]['href']
-            else:
-                result = ""
-    except ValueError:
+        if(filename[:-1] != BASE_DIR):
+            with open(filename, "r") as file:
+                content = file.readlines()
+                content = "".join(content)
+                bs_content = bs(content, "lxml")
+                resource = bs_content.find_all("file")
+                if bs_content.find_all("file"):
+                    result = resource[0]['href']
+                else:
+                    result = ""
+    except Exception as e:
         print("Error al leer el archivo")
     return result
 
@@ -377,4 +545,32 @@ def folder_name(value):
         "Sectores desconocidos no especificados":"Otros"  
     }[value]
 
-    
+
+class DeleteLearningObjectViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated, IsTeacherUser]
+    def destroy(self, request, pk=None):
+        learning_object_instance =  LearningObjectFile.objects.get(pk=pk)
+        learning_object_metadata_instance = LearningObjectMetadata.objects.get(learning_object_file_id = learning_object_instance.id)
+
+        if(learning_object_metadata_instance and learning_object_instance):
+
+            avatar = str(learning_object_metadata_instance.avatar)
+            avatar_path = os.path.join(BASE_DIR, 'media',avatar.replace('/', '\\'))
+            zip_file = str(learning_object_instance.file)
+            zip_file_path = os.path.join(BASE_DIR,'media', zip_file.replace('/', '\\'))
+            path_origin = os.path.join(learning_object_instance.path_origin)
+
+            if(learning_object_instance.path_origin and avatar_path and zip_file_path ):
+                remove(str(avatar_path.replace('\\', '/')))
+                remove(str(zip_file_path.replace('\\', '/')))
+                rmtree(str(path_origin.replace('\\', '/')))
+                learning_object_instance.delete()
+
+                return Response({'message': 'Record deleted successfully', 'code': 200}, status=status.HTTP_200_OK)
+
+            else:
+                return Response({'message': 'Error loading routes'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'message':'Error trying to delete record not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+
