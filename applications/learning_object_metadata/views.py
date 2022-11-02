@@ -967,6 +967,7 @@ class LearningObjectTecherListAPIView(ListAPIView):
         ).order_by('-created')
         return queryset
 
+
 class LearningObjectStudentQualificationAPIView(ListAPIView):
     """
     Listar objetos de aprendizaje calificados por un estudiante

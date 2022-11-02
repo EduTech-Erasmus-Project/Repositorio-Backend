@@ -178,3 +178,44 @@ class SendEmail_activation_email:
             response = sg.send(message)
         except Exception as e:
             print(e)
+
+class SendEmailAdminCreateUser:
+    def sendMail_validate_account_teacher_Admin(self, to_email,user,name_oa):
+        message = Mail(
+            from_email='repositorio@edutech-project.org',
+            to_emails=to_email,
+            subject='Repositorio de Objetos de Aprendizaje - ROA 🚀',
+            html_content="""
+               <strong>Hola querido administrador {user}</strong>
+               <br />
+               <p>¡Se registro una nueva cuenta de profesor que necesita ser aprobado <i>{name_oa}</i> ! Puedes revisar la lista de usuarios registrados como profesores  
+               <a style="color: gray;" href ="https://repositorio.edutech-project.org/#/admin/teacher/request/pending">no aprobados</a>.</p>
+               <p>Saludos,</p>
+                <br />
+               <P style =" font-weight: bolder;"><a style="color: gray;" href="https://repositorio.edutech-project.org/#/">Equipo ROA</a></P>
+               """.format(user=user, name_oa=name_oa))
+        try:
+            sg = SendGridAPIClient('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')
+            response = sg.send(message)
+        except Exception as e:
+            print(e)
+
+    def sendMail_validate_account_expert_Admin(self, to_email,user,name_oa):
+        message = Mail(
+            from_email='repositorio@edutech-project.org',
+            to_emails=to_email,
+            subject='Repositorio de Objetos de Aprendizaje - ROA 🚀',
+            html_content="""
+               <strong>Hola querido administrador {user}</strong>
+               <br />
+               <p>¡Se registro una cuenta de experto que necesita ser aprobado <i>{name_oa}</i> ! Puedes revisar la lista de usuarios registrados como expertos  
+               <a style="color: gray;" href ="https://repositorio.edutech-project.org/#/admin/expert/request/pending">no aprobados</a>.</p>
+               <p>Saludos,</p>
+                <br />
+               <P style =" font-weight: bolder;"><a style="color: gray;" href="https://repositorio.edutech-project.org/#/">Equipo ROA</a></P>
+               """.format(user=user, name_oa=name_oa))
+        try:
+            sg = SendGridAPIClient('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')
+            response = sg.send(message)
+        except Exception as e:
+            print(e)
