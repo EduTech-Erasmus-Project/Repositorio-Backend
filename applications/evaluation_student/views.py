@@ -1,5 +1,5 @@
 from copy import Error, error
-from roabackend.settings import CALIFICATION_OPTIONS, YES,NO,PARTIALLY
+from roabackend.settings import CALIFICATION_OPTIONS, YES,NO,PARTIALLY, NOT_APPLY
 from applications.learning_object_metadata.serializers import LearningObjectMetadataAllSerializer, LearningObjectMetadataByStudent, ROANumberPagination
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
@@ -81,6 +81,8 @@ class StudentEvaluationView(viewsets.ViewSet):
                 scores.append(YES)
             elif(qualification==CALIFICATION_OPTIONS['NO']):
                 scores.append(NO)
+            elif (qualification == CALIFICATION_OPTIONS['NOT_APPLY']):
+                scores.append(NOT_APPLY)
             else:
                 scores.append(PARTIALLY)
         #print("----------------",scores)
@@ -125,33 +127,70 @@ class StudentEvaluationView(viewsets.ViewSet):
                             evaluationquestions.save()
                             listEvaluationQuestions.append(evaluationquestions)
         totalguideline=0
+        valor_preliminar = 0
+        h = 0
+        multiplicacion = 0
+        ref_total_calificaciones = 0
+
         for a in listEvaluationGuideine:
             cont=0
             for b in listEvaluationQuestions:
                 if a.id==b.guideline_evaluations.id:
-                    totalguideline+=b.qualification
-                    cont+=1
-            #print("----------aaaaaa---",totalguideline,cont)
-            h=(totalguideline*5)/(2*cont)
-            a.average_guideline=h
+                    #and b.evaluation_question_id != 1 and b.evaluation_question_id != 2 and b.evaluation_question_id != 3
+                    if(b.qualification != -1):
+                        #obtenemos el peso de la pregunta
+                        weight_question = Question.objects.get(pk=b.evaluation_question_id)
+                        # multiplicamos el peso con la calificacion de la evaluacion
+                        multiplicacion = b.qualification * weight_question.weight
+                        totalguideline = (totalguideline + multiplicacion)
+
+                        ref_total_calificaciones = ref_total_calificaciones + ( 2 * weight_question.weight)
+
+                        cont+=1
+
+            #Agreagmos la evaluacion sin el peso
+            valor_preliminar = ref_total_calificaciones / cont
+            valor_preliminar = valor_preliminar / 5
+
+            h = totalguideline / cont
+
+            a.average_guideline=(h/valor_preliminar)
             a.save()
-            
-            totalguideline=0
+
+            totalguideline = 0
+            valor_preliminar = 0
+            h = 0
+            cont=0
+            multiplicacion=0
+            ref_total_calificaciones=0
         
         totalprinciple=0
         ratingOBJ=0
-        for i in listEvaluationPrinciple:
+        cont_not_apply = 0
+        cont_not_apply_principal = 0
+        for i, qualification in zip(listEvaluationPrinciple, scores):
             contg=0
             for j in listEvaluationGuideine:
                 if i.id==j.principle_gl.id:
-                    totalprinciple+=j.average_guideline
-                    contg+=1
-            i.average_principle=totalprinciple/contg
+                    #if (qualification != -1):
+                        totalprinciple+=j.average_guideline
+                        contg+=1
+                    #else:
+                     #   cont_not_apply_principal += 1
+
+
+            i.average_principle=totalprinciple/(contg)
             i.save()
-            ratingOBJ+=i.average_principle
+
+            #if (qualification != -1):
+            ratingOBJ += i.average_principle
+            #else:
+             #   cont_not_apply += 1
+
             totalprinciple=0
             contg=0
-        evaluationStudent.rating=ratingOBJ/len(Principle.objects.all())
+
+        evaluationStudent.rating=ratingOBJ/(len(Principle.objects.all()))
         evaluationStudent.save()  
         serializer = StudentEvaluationSerializer(evaluationStudent)
         #serializer = Evaluation_Student_Serializer(evaluationStudent)
@@ -184,8 +223,7 @@ class StudentEvaluationView(viewsets.ViewSet):
             Servicio para actuaizar una evalución
         """
         try:
-            print("entra en actualizar")
-            print(",,,,,,,,,,,,,,,,,,,,,,,,,",pk)
+
             serializer = EvaluationStudentCreateSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             user = User.objects.get(id=self.request.user.id)
@@ -210,6 +248,8 @@ class StudentEvaluationView(viewsets.ViewSet):
                     scores.append(YES)
                 elif(qualification==CALIFICATION_OPTIONS['NO']):
                     scores.append(NO)
+                elif (qualification == CALIFICATION_OPTIONS['NOT_APPLY']):
+                    scores.append(NOT_APPLY)
                 else:
                     scores.append(PARTIALLY)
 
@@ -220,12 +260,9 @@ class StudentEvaluationView(viewsets.ViewSet):
             evaluation_student.observation=serializer.validated_data['observation'] 
             #print("evaluation studetnt ........",evaluation_student)
 
-
             evaluationQuestionsQualifications = EvaluationQuestionQualification.objects.filter(
              guideline_evaluations__principle_gl__evaluation_student__id = pk).order_by("evaluation_question__id")
 
-            
-            
             #print(",,,,,,,,,,,,,,,,,,,,,,,,,",scores)
             listguideline=[]
             cont=0
@@ -236,62 +273,81 @@ class StudentEvaluationView(viewsets.ViewSet):
                 cont+=1
                 
                 listquestions.append(i)
-                #print("->>>>>>>>>>>>>>>>>>",i.evaluation_question.question,i.qualification)
-                #guideline=EvaluationGuidelineQualification.objects.get(
-                #    id=i.guideline_evaluations.id
-                #)
-                #listguideline.append(guideline)
 
-            totalnewguidelie=0
-            
+            valor_preliminar = 0
+            totalnewguidelie = 0
+            multiplicacion = 0
+            ref_total_calificaciones = 0
+            hnwe = 0
+            cont2 = 0
+
             for i in EvaluationGuidelineQualification.objects.filter(
                 principle_gl__evaluation_student__id=pk
             ):
-                #guideline=EvaluationGuidelineQualification.objects.get(
-                #       id=i.guideline_evaluations.id
-                #)
                 cont2=0
+                ref_total_calificaciones=0
                 for j in listquestions:
-                    #print("----->>>",i.id," sss",j.guideline_evaluations.id)
-                 
+
                     if i.id==j.guideline_evaluations.id:
-                        #print("ifffffff")
-                        totalnewguidelie+=j.qualification
-                        cont2+=1
-                #print("--------1111",listquestions)
-                        
-                #print("--------------------",i.id,totalnewguidelie,cont2)
-                try:
-                    hnwe=(totalnewguidelie*5)/(2*cont2)
-                    i.average_guideline=hnwe
-                    i.save()
-                    listguideline.append(i)
-                    totalnewguidelie=0
-                except:
-                    hnwe=0
-                
-            #print(",,,,,,,,,,,1111,,,,,",listguideline)
+                        #Validamos para que no se agregue las calificaciones de informacion
+                        #and j.evaluation_question_id != 1 and j.evaluation_question_id != 2 and j.evaluation_question_id != 3
+                        if(j.qualification != -1 ):
+                            #calificaion con pero para a pregunta
+                            weight_question = Question.objects.get(pk=j.evaluation_question_id)
+                            # multiplicamos el peso con la calificacion de la evaluacion
+                            multiplicacion = j.qualification * weight_question.weight
+                            totalnewguidelie = (totalnewguidelie + multiplicacion)
+                            #Se usa para rellenar los calculos de la refernecia
+                            ref_total_calificaciones = ref_total_calificaciones +(2 * weight_question.weight)
+                            cont2+=1
+
+               #Las cifras que se multiplican sirven para redondear la respuesta
+               #ya que al aplicar la formula de la media aritmetica. Su valor maximo siempre sera 2
+               #y no 5 como valor primoridial de la Evaluacion
+                valor_preliminar = (ref_total_calificaciones)/(cont2)
+                valor_preliminar = valor_preliminar/5
+
+                hnwe = (totalnewguidelie)/(cont2)
+
+                i.average_guideline = hnwe/valor_preliminar
+                i.save()
+                listguideline.append(i)
+
+                valor_preliminar=0
+                totalnewguidelie=0
+                multiplicacion = 0
+                ref_total_calificaciones=0
+                hnwe=0
+                cont =0
+
 
             totalprinciple_new=0
             totalrating_new=0
+            cont_not_apply = 0
             for i in EvaluationPrincipleQualification.objects.filter(
                 evaluation_student__id=pk
             ):
                 cont3=0
                 for j in listguideline:
-                    #print("---------bucle2---------",j)
                     if i.id==j.principle_gl.id:
+                        #if (qualification != -1):
                         totalprinciple_new+=j.average_guideline
                         cont3+=1
-                #print("----------eeeeee----------",i.id,totalprinciple_new,cont3)
+                        #else:
+                         #   cont_not_apply += 1
                 try:
+
                     i.average_principle=totalprinciple_new/cont3
+
                 except:
                     pass
+
                 i.save()
                 totalrating_new+=i.average_principle
                 totalprinciple_new=0
-            evaluation_student.rating=totalrating_new/len(Principle.objects.all())
+
+            evaluation_student.rating=totalrating_new/(len(Principle.objects.all()))
+
             evaluation_student.save() 
             serializer = StudentEvaluationSerializer(evaluation_student)            
         except Error as e:
@@ -353,7 +409,7 @@ class ListEvaluatedToStudentRetriveAPIView(ListAPIView):
         El servicio requiere de la autenticación como experto.
     """
     #permission_classes = [IsAuthenticated,(IsStudentUser | IsTeacherUser)]
-    permission_classes = [IsAuthenticated,IsStudentUser]
+    permission_classes = [IsAuthenticated,(IsStudentUser)]
     serializer_class = EvaluationStudentList_EvaluationSerializer
     def get_queryset(self):
         id = self.kwargs['pk']
@@ -376,7 +432,18 @@ class ListEvaluatedToStudenPublicAPIView(ListAPIView):
             learning_object__id=id,
         ).distinct('learning_object')
 
-
+class ListEvaluatedStudentSinglePublicAPIView(ListAPIView):
+    """
+    Listar resultados de evaluacion realizado por el estudiante
+    """
+    permission_classes = [AllowAny]
+    serializer_class = EvaluationStudentList_EvaluationSerializer
+    def get_queryset(self):
+        id = self.kwargs['pk']
+        return StudentEvaluation.objects.filter(
+            learning_object__id=id,
+            student_id=self.request.user.id
+        ).distinct('learning_object')
 
 #######################crear preguntas del estudiante post crear put actualizar get listar
 #revisar 
@@ -397,7 +464,6 @@ class EvaluationQuestionsStudentViewSet(viewsets.ModelViewSet):
         """
             Actualizar pregunta
         """
-        print("entro en el original")
         queryset = Question.objects.all()
         instance = get_object_or_404(queryset, pk=pk)
         serializer = EvaluationQuestionStRegisterSerializer(data=request.data)
@@ -409,7 +475,10 @@ class EvaluationQuestionsStudentViewSet(viewsets.ModelViewSet):
         instance.interpreter_st_yes = serializer.validated_data['interpreter_st_yes']
         instance.interpreter_st_no = serializer.validated_data['interpreter_st_no']
         instance.interpreter_st_partially = serializer.validated_data['interpreter_st_partially']
+        instance.interpreter_st_not_apply = serializer.validated_data['interpreter_st_not_apply']
         instance.value_st_importance = serializer.validated_data['value_st_importance']
+        instance.weight = serializer.validated_data['weight']
+        instance.relevance = serializer.validated_data['relevance']
         ###############################################################
         instance.save()
         return Response({"message": "success"},status=HTTP_200_OK)
@@ -434,7 +503,7 @@ class EvaluationQuestionsStudentViewSet(viewsets.ModelViewSet):
 #al pelo
 class EvaluationPrincipleGuidelienViewSet(viewsets.ModelViewSet):
     """
-       
+       Lista  las preguntas de sus linea directriz y principios
     """
     def get_permissions(self):
         if(self.action=='list'):

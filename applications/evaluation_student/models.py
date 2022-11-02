@@ -23,8 +23,13 @@ class Question(TimeStampedModel):
     interpreter_st_yes = models.TextField(blank=True, null=True)
     interpreter_st_no = models.TextField(blank=True, null=True)
     interpreter_st_partially = models.TextField(blank=True, null=True)
+    interpreter_st_not_apply = models.TextField(blank=True, null=True)
     value_st_importance= models.FloatField(blank=True, null=True)
     #########################################
+    #Peso y relevancia para cada pregunta
+    relevance = models.CharField(max_length=50, blank=False, null=True)
+    weight = models.FloatField(blank=True,null=True)
+
     guideline = models.ForeignKey(Guideline, on_delete=models.CASCADE, related_name='questions')
     def __str__(self):
         return str(self.id)

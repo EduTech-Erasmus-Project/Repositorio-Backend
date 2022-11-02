@@ -11,7 +11,7 @@ class EducationLevelSerializer(serializers.ModelSerializer):
 class EducationLevelListSerializer(serializers.ModelSerializer):
     class Meta:
         model = EducationLevel
-        exclude = ['name_es','name_en','modified','created']
+        exclude = ['name_en','modified','created']
 
 class EducationLevelEsSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='name_es')

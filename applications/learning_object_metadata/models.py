@@ -19,6 +19,19 @@ class LearningObjectMetadata(TimeStampedModel):
     # Metadatos complementarios
     avatar = models.ImageField(null=False, blank=False, upload_to = "avatar")
 
+    source_file = models.FileField(null=True, blank=True, upload_to="sourceFile")
+
+    #Items para guardar las respuestas de cada una de las preguntas
+    item_v1 = models.CharField(null=True, blank=True, max_length=40)
+    item_v2 = models.CharField(null=True, blank=True, max_length=40)
+    item_t3 = models.CharField(null=True, blank=True, max_length=40)
+    item_t4 = models.CharField(null=True, blank=True, max_length=40)
+    item_a5 = models.CharField(null=True, blank=True, max_length=40)
+    item_i6 = models.CharField(null=True, blank=True, max_length=40)
+
+    #Guarda una variable si el obejto de aprendizaje ya fue adaptado
+    is_adapted_oer = models.BooleanField(default=False)
+
     author = models.CharField(max_length=100, blank=True, null=True)
     package_type = models.CharField(max_length=50,blank=True, null=True)
 
@@ -50,7 +63,7 @@ class LearningObjectMetadata(TimeStampedModel):
     meta_metadata_description = models.TextField(blank=True, null=True)
     # Metadatos técnico
     technical_format = models.TextField(blank=True, null=True)
-    technical_size = models.IntegerField(blank=True, null=True)
+    technical_size = models.TextField(blank=True, null=True)
     technical_location = models.TextField(blank=True, null=True)
     technical_requirement_type = models.TextField(blank=True, null=True)
     technical_requirement_name = models.TextField(blank=True, null=True)
@@ -102,6 +115,7 @@ class LearningObjectMetadata(TimeStampedModel):
     accesibility_hazard = models.TextField(blank=True, null=True)
     accesibility_control = models.TextField(blank=True, null=True)
     accesibility_api = models.TextField(blank=True, null=True)
+
     # tags = models.TextField()
     education_levels = models.ForeignKey(EducationLevel,on_delete=models.CASCADE)
     knowledge_area = models.ForeignKey(

@@ -21,6 +21,7 @@ from django.conf.urls import url
 from django.conf.urls.static import static
 
 schema_view = get_swagger_view(title='ROA API-REST Documentation')
+
 urlpatterns = [
     url(r'api-view', schema_view),
     # Admin url
@@ -51,6 +52,11 @@ urlpatterns = [
     re_path('',include('applications.interaction.routers')),
 
 ]
+
+#urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+#print(static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))
+#print(settings.MEDIA_ROOT)
 # + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:

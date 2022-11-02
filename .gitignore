@@ -4,4 +4,18 @@ media/Educacion
 media/catalog
 media/oazip
 media/profile
+media/sourceFile
 !media/img
+!media/maplompad
+
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+lvenv/
