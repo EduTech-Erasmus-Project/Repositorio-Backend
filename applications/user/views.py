@@ -1,7 +1,7 @@
 import json
 from webbrowser import get
 
-from applications.user.testMail import SendMail, SendEmailCreateUser, SendEmailCreateUserCheck, SendEmailConfirm, SendEmailCreateUserCheck_Expert, SendEmail_activation_email,SendEmailCreateUserCheck_Admin_to_Expert,SendEmailAdminCreateUser
+from applications.user.emailManager import SendMail, SendEmailCreateUser, SendEmailCreateUserCheck, SendEmailConfirm, SendEmailCreateUserCheck_Expert, SendEmail_activation_email,SendEmailCreateUserCheck_Admin_to_Expert,SendEmailAdminCreateUser
 from applications.user.utils import Util
 from rest_framework.generics import ListAPIView
 from rest_framework import viewsets
@@ -65,6 +65,11 @@ from roabackend.settings import DOMAIN
 import jwt
 from rest_framework import generics
 from datetime import datetime, timezone,timedelta
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.encoding import smart_str, force_str,smart_bytes,DjangoUnicodeDecodeError
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.contrib.sites.shortcuts import get_current_site
+from django.urls.base import reverse
 # Create your views here.
 
 class UserAdminView(viewsets.ViewSet):
@@ -167,7 +172,6 @@ class ManagementUserView(viewsets.ViewSet):
             return True
         else:
             return False
-        return False
 
     def create(self, request, *args, **kwargs):
         """
@@ -298,6 +302,7 @@ class ManagementUserView(viewsets.ViewSet):
         return Response(serializer.data,status=HTTP_200_OK)
 
     def set_email_conform(self, id_user, request,role):
+        print('Se enviar el correo')
         token = jwt.encode({"id": id_user, "role":role,"exp": datetime.now(tz=timezone.utc)+timedelta(hours=24)}, "secreto", algorithm="HS256")
         mail_confirm_email.send_email_confirm_email(request.data['email'], request.data['first_name'], DOMAIN, token=token)
 
@@ -1007,12 +1012,6 @@ class ChangePasswordView(UpdateAPIView):
                 return Response({"message": "failed", "details": serializer.errors},status=HTTP_400_BAD_REQUEST)
         else:
             return Response({"message": "The user does not have permissions to update."},status=HTTP_400_BAD_REQUEST)
-
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.utils.encoding import smart_str, force_str,smart_bytes,DjangoUnicodeDecodeError
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.contrib.sites.shortcuts import get_current_site
-from django.urls.base import reverse
 
 mail = SendMail()
 class RequestPasswordResetEmail(GenericAPIView):
