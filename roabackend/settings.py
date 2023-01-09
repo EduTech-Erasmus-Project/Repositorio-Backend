@@ -163,6 +163,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
 AUTH_USER_MODEL = 'user.User'
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -187,7 +188,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 MEDIA_URL = '/media/'  #Base URL to serve the media files uploaded
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')  # local path where the media files reside
-
 
 EMAIL_HOST = env('EMAIL_HOST')
 EMAIL_HOST_USER = env('EMAIL_HOST_USER')
