@@ -9,7 +9,6 @@ from applications.education_level.models import EducationLevel
 from applications.knowledge_area.models import KnowledgeArea
 from datetime import datetime, timedelta
 from model_utils.models import TimeStampedModel
-
 # Create your models here.
 
 class LearningObjectMetadata(TimeStampedModel):

@@ -79,8 +79,6 @@ class LifeCycle:
                 #print("Life #78 ",atributes.get('#text'))
                 if self.string is None:
                     self.string=atributes.get('version')
-                elif self.string is None:
-                    self.string=atributes.get('string')
 
             def to_xml(self):
                 return f"""<version>

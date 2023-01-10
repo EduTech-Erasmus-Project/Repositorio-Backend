@@ -1066,7 +1066,8 @@ def automatic_evaluation_metadata_learning_object(objeto,META, user_email, user_
         i.save()
         ratingnew += h
     objeto.rating_schema = ratingnew / len(EvaluationConcept.objects.all())
-
+    print(objeto.rating_schema)
+    print(i.average_schema)
     if (objeto.rating_schema >= 4.0):
         META.public = True
         META.save()

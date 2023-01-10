@@ -29,7 +29,7 @@ DEBUG = env('DEBUG')
 
 # ALLOWED_HOSTS=[]
 if DEBUG:
-    ALLOWED_HOSTS=['*','repositorio.edutech-project.org','172.16.42.54','localhost']
+    ALLOWED_HOSTS=['repositorio.edutech-project.org','172.16.42.54','localhost','192.168.137.91','192.168.137.1']
 else:
     ALLOWED_HOSTS=['*']
 
@@ -140,11 +140,11 @@ WSGI_APPLICATION = 'roabackend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'roa5',
-        'USER': 'postgres',
-        'PASSWORD': 'manager',
-        'HOST': 'localhost',
-        'PORT': '5434',
+        'NAME': env('NAME'),
+        'USER': env('USER'),
+        'PASSWORD': env('PASSWORD'),
+        'HOST': env('HOST'),
+        'PORT': env('PORT'),
     }
 }
 
@@ -163,6 +163,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
 AUTH_USER_MODEL = 'user.User'
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -187,7 +188,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 MEDIA_URL = '/media/'  #Base URL to serve the media files uploaded
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')  # local path where the media files reside
-
 
 EMAIL_HOST = env('EMAIL_HOST')
 EMAIL_HOST_USER = env('EMAIL_HOST_USER')

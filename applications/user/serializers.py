@@ -286,6 +286,7 @@ class GeneralUserListSerializer(serializers.ModelSerializer):
             'collaboratingExpert',
             'created',
             'modified',
+            'user_key'
         )
     def get_image(self, obj):
         if obj.image is not None:

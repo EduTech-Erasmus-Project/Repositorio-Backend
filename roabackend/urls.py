@@ -50,7 +50,7 @@ urlpatterns = [
     re_path('',include('applications.learning_object_metadata.routers')),
     re_path('',include('applications.license.routers')),
     re_path('',include('applications.interaction.routers')),
-
+    re_path('',include('applications.learning_object_file.urls')),
 ]
 
 #urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

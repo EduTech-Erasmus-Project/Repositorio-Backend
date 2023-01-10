@@ -198,8 +198,7 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
     def get_permissions(self):
         if (self.action == 'create'):
             permission_classes = [IsAuthenticated, IsCollaboratingExpertUser]
-        else:
-            permission_classes = [IsAuthenticated, IsCollaboratingExpertUser]
+
         return [permission() for permission in permission_classes]
 
     def create(self, request, *args, **kwargs):

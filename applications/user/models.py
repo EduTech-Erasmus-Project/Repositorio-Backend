@@ -1,3 +1,5 @@
+import uuid
+
 from applications.profession.models import Profession
 from applications.preferences.models import Preferences
 from applications.knowledge_area.models import KnowledgeArea
@@ -57,6 +59,7 @@ class Administrator(TimeStampedModel):
         return str(self.id)
 
 class User(AbstractBaseUser, TimeStampedModel):
+    user_key = models.UUIDField(editable=False, primary_key=False, default=uuid.uuid4())
     first_name = models.CharField('Nombres',max_length=100)
     last_name = models.CharField('Apellidos',max_length=100)
     email = models.EmailField('Correo',max_length=50, unique=True, error_messages={'unique':"Este correo ya esta registrado."})
