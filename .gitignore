@@ -1,0 +1,28 @@
+db.sqlite3
+media/avatar
+media/Educacion
+media/catalog
+media/oazip
+media/profile
+media/sourceFile
+!media/img
+!media/maplompad
+# Migrations
+**/migrations/**
+!**/migrations
+!**/migrations/__init__.py
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.vscode
+.idea
+.idea/
+lvenv/
+__pycache__/
+__pycache__/*
+.idea/
