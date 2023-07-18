@@ -27,7 +27,7 @@ SECRET_KEY = env('SECRET_KEY')
 DEBUG = bool(int(env('DEBUG')))
 # ALLOWED_HOSTS=[]
 if not DEBUG:
-    ALLOWED_HOSTS=['https://oeradap.ups.edu.ec/#/','roa.ups.edu.ec','http://roa.ups.edu.ec','https://roa.ups.edu.ec']
+    ALLOWED_HOSTS=['https://oeradap.ups.edu.ec/#/','https://repositorio.edutech-project.org/#/', 'https://repositorio.edutech-project.org','repositorio.edutech-project.org']
 else:
     ALLOWED_HOSTS=['*']
 
