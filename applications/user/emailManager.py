@@ -256,7 +256,8 @@ def smt_send_email_to_receiver_testing_server(host,username, password, emailtest
     password = password
     username = username
 
-    server = smtplib.SMTP(smtphost, port)
+    #server = smtplib.SMTP(smtphost, port)
+    server = smtplib.SMTP(smtphost)
     server.starttls()
     server.login(username, password)
     server.sendmail(email_from, 'emarquez@ups.edu.ec', emailtest.as_string())
