@@ -157,7 +157,7 @@ class SendEmailConfirm:
             msg['To'] = emailtest
             msg['Subject'] = 'Bienvenido al servicio de mensajería del Repositorio de Objetos de Aprendizaje - ROA 🚀'
             msg.attach(MIMEText(message_email.encode('utf-8'), 'plain', "utf-8"))
-            smt_send_email_to_receiver_testing_server(host, msg, username, password, emailtest, port, tls,
+            smt_send_email_to_receiver_testing_server(host, username, password, msg, port, tls,
                                                             email_from)
         except Exception as e:
             raise e
@@ -251,7 +251,7 @@ def smt_send_email_to_receiver(msg):
     server.quit()
 
 
-def smt_send_email_to_receiver_testing_server(host, msg, username, password, emailtest, port, tls, email_from):
+def smt_send_email_to_receiver_testing_server(host,username, password, emailtest, port, tls, email_from):
     smtphost = host
     password = password
     username = username
@@ -259,5 +259,5 @@ def smt_send_email_to_receiver_testing_server(host, msg, username, password, ema
     server = smtplib.SMTP(smtphost, port)
     server.starttls()
     server.login(username, password)
-    server.sendmail(email_from, emailtest, msg.as_string())
+    server.sendmail(email_from, 'emarquez@ups.edu.ec', emailtest.as_string())
     server.quit()
