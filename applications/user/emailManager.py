@@ -151,14 +151,12 @@ class SendEmailConfirm:
         try:
             message_email = """Hola este es un mensaje de prueba, generado automáticamente para probar la conexión con el 
             servidor. """
-            print(message_email)
             msg = MIMEMultipart()
             msg['From'] = email_from
             msg['To'] = emailtest
             msg['Subject'] = 'Bienvenido al servicio de mensajería del Repositorio de Objetos de Aprendizaje - ROA 🚀'
             msg.attach(MIMEText(message_email.encode('utf-8'), 'plain', "utf-8"))
-            smt_send_email_to_receiver_testing_server(host, username, password, msg, port, tls,
-                                                            email_from)
+            smt_send_email_to_receiver_testing_server(host, username, password, msg, port, tls)
         except Exception as e:
             raise e
 
@@ -243,22 +241,28 @@ def smt_send_email_to_receiver(msg):
     smtphost = env('EMAIL_HOST')
     password = env('EMAIL_HOST_PASSWORD')
     username = env('EMAIL_HOST_USER')
-
-    server = smtplib.SMTP(smtphost)
+    port = env('EMAIL_PORT')
+    """server = smtplib.SMTP(smtphost)
     server.starttls()
     server.login(username, password)
     server.sendmail(msg['From'], msg['To'], msg.as_string())
-    server.quit()
+    server.quit()"""
+
+    session = smtplib.SMTP(smtphost, port)
+    session.starttls()
+    session.login(username, password)
+    session.sendmail(msg['From'], msg['To'], msg.as_string())
+    session.quit()
 
 
-def smt_send_email_to_receiver_testing_server(host,username, password, emailtest, port, tls, email_from):
+def smt_send_email_to_receiver_testing_server(host,username_send, password_send, emailtest, port, tls):
     smtphost = host
-    password = password
-    username = username
+    password = password_send
+    username = username_send
 
-    #server = smtplib.SMTP(smtphost, port)
-    server = smtplib.SMTP(smtphost)
-    server.starttls()
-    server.login(username, password)
-    server.sendmail(email_from, 'emarquez@ups.edu.ec', emailtest.as_string())
-    server.quit()
+    session = smtplib.SMTP(smtphost, port)
+    session.starttls()
+    session.login(username, password)
+    session.sendmail(emailtest['From'], emailtest['To'], emailtest.as_string())
+    session.quit()
+
