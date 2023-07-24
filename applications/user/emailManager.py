@@ -153,7 +153,7 @@ class SendEmailConfirm:
             servidor. """
             msg = MIMEMultipart()
             msg['From'] = email_from
-            msg['To'] = 'emarquez@ups.edu.ec'
+            msg['To'] = emailtest
             msg['Subject'] = 'Bienvenido al servicio de mensajería del Repositorio de Objetos de Aprendizaje - ROA 🚀'
             msg.attach(MIMEText(message_email.encode('utf-8'), 'plain', "utf-8"))
             smt_send_email_to_receiver_testing_server(host, username, password, msg, port, tls)
