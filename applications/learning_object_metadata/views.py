@@ -1328,5 +1328,5 @@ class learningObjectsTheMostRecent(ListAPIView):
     permission_classes = [AllowAny]
     serializer_class = LearningObjectMetadataAllSerializer
     def get_queryset(self):
-        learning_objects_most_recent = LearningObjectMetadata.objects.all().order_by('-created')[:4]
+        learning_objects_most_recent = LearningObjectMetadata.objects.filter(public=True).order_by('-created')[:4]
         return learning_objects_most_recent

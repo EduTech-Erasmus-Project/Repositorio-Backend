@@ -205,7 +205,12 @@ class UserTypeOptionUpdateView(generics.UpdateAPIView):
         con las apciones de registro
     """
     permission_classes = [IsAuthenticated, IsAdministratorUser]
-    serializer_class = UserTypeWithOptionSerializer
-    queryset = UserTypeWithOption.objects.all()
-
-
+    def update(self, request, *args, **kwargs):
+        pk = kwargs.get('pk')
+        try:
+            object_type_update = UserTypeWithOption.objects.get(pk=pk)
+            object_type_update.option_register_id = request.data['option_register']
+            object_type_update.save()
+            return Response({'message': 'Update Successful', 'code': 200}, status=HTTP_200_OK)
+        except Exception as e:
+            return Response({'message': 'Error Update', 'code': 400}, status=HTTP_400_BAD_REQUEST)
