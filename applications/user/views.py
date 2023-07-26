@@ -230,14 +230,13 @@ class ManagementUserView(viewsets.ViewSet):
         emails_extension = None
         if option_register.type_option == 'EXCEPT':
             emails_extension = EmailExtensionsTeacher.objects.filter(option_register_id=typeRolExtension.option_register.id,is_active=True)
-            self.asing_array_filter_only_all(emails_extension, email_string, 'EXCEPT')
+            return self.asing_array_filter_only_all(emails_extension, email_string, 'EXCEPT')
         elif option_register.type_option == 'ONLY':
             emails_extension = EmailExtensionsTeacher.objects.filter(option_register_id=typeRolExtension.option_register.id, is_active=True)
-            self.asing_array_filter_only_all(emails_extension,email_string, 'ONLY')
-
+            return self.asing_array_filter_only_all(emails_extension,email_string, 'ONLY')
         else:
             emails_extension = EmailExtensionsTeacher.objects.filter(is_active=True)
-            self.asing_array_filter_only_all(emails_extension, email_string, 'ALL')
+            return self.asing_array_filter_only_all(emails_extension, email_string, 'ALL')
 
     def create(self, request, *args, **kwargs):
         """
