@@ -36,8 +36,6 @@ class Email(TimeStampedModel):
             pas = str(password).encode()
             cipher_pass = Fernet(env('HASH_KEY'))
             encrypt_pass = cipher_pass.encrypt(pas)
-            #encrypt_pass = cipher_pass.encrypt(pas.encode('ascii'))
-            #encrypt_pass = base64.urlsafe_b64encode(encrypt_pass).decode("ascii")
             return encrypt_pass
         except Exception as e:
             raise e

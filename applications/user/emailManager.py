@@ -10,6 +10,8 @@ from unipath import Path
 # Coneccion con los entornos virtuales
 import environ
 
+from applications.settings.models import Email
+
 env = environ.Env()
 BASE_DIR = Path(__file__).ancestor(3)
 # Set the project base directory
@@ -27,7 +29,6 @@ class SendMail:
             new_message_html = message_html.replace('{NAME_USER}', user)
             new_message_html = new_message_html.replace('{URL}', url)
             msg = MIMEMultipart()
-            msg['From'] = env('EMAIL_FROM')
             msg['To'] = to_email
             msg['Subject'] = "Restablecer tu contraseña"
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html', 'utf-8'))
@@ -46,7 +47,6 @@ class SendEmailCreateUser:
             message_html = message_html.read()
             new_message_html = message_html.replace('{NAME_USER}', user)
             msg = MIMEMultipart()
-            msg['From'] = env('EMAIL_FROM')
             msg['To'] = to_email
             msg['Subject'] = 'Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀'
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html', 'utf-8'))
@@ -64,7 +64,6 @@ class SendEmailCreateUserCheck:
             message_html = message_html.read()
             new_message_html = message_html.replace('{NAME_USER}', user)
             msg = MIMEMultipart()
-            msg['From'] = env('EMAIL_FROM')
             msg['To'] = to_email
             msg['Subject'] = 'Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀'
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html', 'utf-8'))
@@ -82,7 +81,6 @@ class SendEmailCreateUserCheck_Expert:
             message_html = message_html.read()
             new_message_html = message_html.replace('{NAME_USER}', user)
             msg = MIMEMultipart()
-            msg['From'] = env('EMAIL_FROM')
             msg['To'] = to_email
             msg['Subject'] = 'Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀'
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html', 'utf-8'))
@@ -100,7 +98,6 @@ class SendEmailCreateUserCheck_Admin_to_Expert:
             message_html = message_html.read()
             new_message_html = message_html.replace('{NAME_USER}', user)
             msg = MIMEMultipart()
-            msg['From'] = env('EMAIL_FROM')
             msg['To'] = to_email
             msg['Subject'] = 'Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀'
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html'))
@@ -119,7 +116,6 @@ class SendEmailConfirm:
             new_message_html = message_html.replace('{NAME_USER}', user)
             new_message_html = new_message_html.replace('{HOST}', env('DOMAIN_HOST_ROA'))
             msg = MIMEMultipart()
-            msg['From'] = env('EMAIL_FROM')
             msg['To'] = to_email
             msg['Subject'] = 'Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀'
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html', "utf-8"))
@@ -138,7 +134,6 @@ class SendEmailConfirm:
             new_message_html = new_message_html.replace('{CORREO}', email_user)
             new_message_html = new_message_html.replace('{MENSAJE}', message)
             msg = MIMEMultipart()
-            msg['From'] = env('EMAIL_FROM')
             msg['To'] = to_email_admin
             msg['Subject'] = 'Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀'
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html', "utf-8"))
@@ -179,7 +174,6 @@ class SendEmail_activation_email:
             new_message_html = new_message_html.replace('{HOST_ROA}', env('DOMAIN_HOST_ROA'))
 
             msg = MIMEMultipart()
-            msg['From'] = env('EMAIL_FROM')
             msg['To'] = to_email
             msg['Subject'] = 'Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀'
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html', "utf-8"))
@@ -202,7 +196,7 @@ class SendEmailAdminCreateUser:
             new_message_html = new_message_html.replace('{NAME_OA}', name_oa)
 
             msg = MIMEMultipart()
-            msg['From'] = env('EMAIL_FROM')
+            
             msg['To'] = to_email
             msg['Subject'] = 'Repositorio de Objetos de Aprendizaje - ROA 🚀'
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html', "utf-8"))
@@ -222,7 +216,7 @@ class SendEmailAdminCreateUser:
             new_message_html = new_message_html.replace('{NAME_OA}', name_oa)
 
             msg = MIMEMultipart()
-            msg['From'] = env('EMAIL_FROM')
+            
             msg['To'] = to_email
             msg['Subject'] = 'Repositorio de Objetos de Aprendizaje - ROA 🚀'
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html', "utf-8"))
@@ -238,10 +232,13 @@ def smt_send_email_to_receiver(msg):
     """
         Funcion para abrir una sesion en smt y enviar el mesanje
     """
-    smtphost = env('EMAIL_HOST')
-    password = env('EMAIL_HOST_PASSWORD')
-    username = env('EMAIL_HOST_USER')
-    port = env('EMAIL_PORT')
+    email_settings = Email.objects.first()
+    smtphost = email_settings.host
+    password = email_settings.decrypt_password()
+    username = email_settings.username
+    port = email_settings.port
+    msg['From'] = email_settings.email_from
+
     """server = smtplib.SMTP(smtphost)
     server.starttls()
     server.login(username, password)
