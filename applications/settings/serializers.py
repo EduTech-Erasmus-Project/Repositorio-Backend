@@ -5,7 +5,7 @@ from applications.settings import models
 class EmailSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Email
-        exclude = ("password",)
+        fields = "__all__"
 
 
 class OptionRegisterEmailExtensionSerializer(serializers.ModelSerializer):

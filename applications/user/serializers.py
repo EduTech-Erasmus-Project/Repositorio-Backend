@@ -138,9 +138,11 @@ class CollaboratingExpertUpdateSerializer(serializers.Serializer):
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
     expert_level = serializers.CharField(required=True)
-    web = serializers.URLField(default=None)
-    academic_profile = serializers.CharField(default=None)
-
+    web = serializers.URLField(default=None, allow_null=True)
+    academic_profile = serializers.CharField(default=None, allow_null=True)
+    campus = serializers.IntegerField(required=True)
+    city = serializers.IntegerField(required=True)
+    university = serializers.IntegerField(required=True)
 
 class UserListSerializer(serializers.ModelSerializer):
     administrator = AdminSerializer()

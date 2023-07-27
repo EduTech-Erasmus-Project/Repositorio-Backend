@@ -23,19 +23,21 @@ class Email(TimeStampedModel):
 
     def decrypt_password(self):
         try:
-            pas = base64.urlsafe_b64decode(self.password)
+            #pas = base64.urlsafe_b64decode(self.password)
+            pas = self.password
             cipher_pass = Fernet(env('HASH_KEY'))
-            decode_pass = cipher_pass.decrypt(pas).decode("ascii")
+            decode_pass = cipher_pass.decrypt(pas).decode("utf-8")
             return decode_pass
         except Exception as e:
             raise e
 
     def encrypt_password(self, password):
         try:
-            pas = str(password)
+            pas = str(password).encode()
             cipher_pass = Fernet(env('HASH_KEY'))
-            encrypt_pass = cipher_pass.encrypt(pas.encode('ascii'))
-            encrypt_pass = base64.urlsafe_b64encode(encrypt_pass).decode("ascii")
+            encrypt_pass = cipher_pass.encrypt(pas)
+            #encrypt_pass = cipher_pass.encrypt(pas.encode('ascii'))
+            #encrypt_pass = base64.urlsafe_b64encode(encrypt_pass).decode("ascii")
             return encrypt_pass
         except Exception as e:
             raise e

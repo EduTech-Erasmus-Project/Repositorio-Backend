@@ -542,12 +542,17 @@ class ManagementUserView(viewsets.ViewSet):
 
                 if instance.collaboratingExpert is not None and role == 'expert':
                     serializer = CollaboratingExpertUpdateSerializer(data=request.data)
+                    serializer.is_valid(raise_exception=True)
                     collaboratingExpert_instance = CollaboratingExpert.objects.get(pk=instance.collaboratingExpert.id)
 
                     collaboratingExpert_instance.expert_level = serializer.validated_data['expert_level']
                     collaboratingExpert_instance.web = serializer.validated_data['web']
                     collaboratingExpert_instance.academic_profile = serializer.validated_data['academic_profile']
                     collaboratingExpert_instance.save()
+                    """Actualizar datos de direcciones  del usuario """
+                    instance.campus_id = serializer.validated_data['campus']
+                    instance.city_id = serializer.validated_data['city']
+                    instance.university_id = serializer.validated_data['university']
 
                 if instance.collaboratingExpert is None and role == 'expert':
                     serializer = CollaboratingExpertUpdateSerializer(data=request.data)
