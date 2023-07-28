@@ -13,6 +13,8 @@ from unipath import Path
 import environ
 import threading
 
+from applications.settings.models import Email
+
 env = environ.Env()
 BASE_DIR = Path(__file__).ancestor(3)
 #Set the project base directory
@@ -102,12 +104,21 @@ def smt_send_email_to_receiver(msg):
     """
         Funcion para abrir una sesion en smt y enviar el mesanje
     """
+    email_settings = Email.objects.first()
+    smtphost = email_settings.host
+    password = email_settings.decrypt_password()
+    username = email_settings.username
+    port = email_settings.port
+    msg['From'] = email_settings.email_from
 
-    smtphost = env('EMAIL_HOST')
-    password = env('EMAIL_HOST_PASSWORD')
-    username = env('EMAIL_HOST_USER')
-    server = smtplib.SMTP(smtphost)
+    """server = smtplib.SMTP(smtphost)
     server.starttls()
     server.login(username, password)
     server.sendmail(msg['From'], msg['To'], msg.as_string())
-    server.quit()
+    server.quit()"""
+
+    session = smtplib.SMTP(smtphost, port)
+    session.starttls()
+    session.login(username, password)
+    session.sendmail(msg['From'], msg['To'], msg.as_string())
+    session.quit()
