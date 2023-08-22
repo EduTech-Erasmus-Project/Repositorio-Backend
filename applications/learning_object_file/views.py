@@ -129,7 +129,7 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
             if XMLFILES_FOLDER is not None:
                 URL = url + index
                 #URL.replace('http://', 'https://', 1)
-                learningObject.url = URL
+                learningObject.url = URL.replace('http://', 'https://', 1)
                 learningObject.file_name = nombre[0]
                 learningObject.file_size = zip_kb
                 learningObject.path_origin = path_origin_verify
