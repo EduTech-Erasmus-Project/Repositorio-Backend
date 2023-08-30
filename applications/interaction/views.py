@@ -2,12 +2,13 @@ from django.db.models import Count
 from django.http.response import Http404
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, CreateAPIView
 from applications.learning_object_metadata.models import LearningObjectMetadata
-from applications.interaction.models import Interaction
-from applications.interaction.serializers import InteractionAllService, InteractionSerializer,InteractionMostLiked
+from applications.interaction.models import Interaction, ViewInteraction
+from applications.interaction.serializers import InteractionAllService, InteractionSerializer, InteractionMostLiked, \
+    InteractionViewCreateSerializer, InteractionViewSerializer
 from applications.learning_object_metadata.serializers import LearningObjectMetadataAllSerializer
-from applications.user.mixins import IsStudentUser
+from applications.user.mixins import IsStudentUser, IsTeacherUser, IsCollaboratingExpertUser
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated ,AllowAny
@@ -16,19 +17,24 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
     HTTP_200_OK
-) 
+)
+
+
 # Create your views here.
 class InteractionAPIView(viewsets.ModelViewSet):
     """
         Servicio para la interacción del estudiante con el Objeto de Aprendizaje.
         La interacción se realiza en base a me gusta sobre un OA
     """
+
+
     def get_permissions(self):
-        if(self.action=='list' or self.action=='retrieve'):
+        if self.action=='list' or self.action=='retrieve':
             permission_classes = [AllowAny]
         else:
-            permission_classes = [IsAuthenticated, IsStudentUser]
+            permission_classes = [IsAuthenticated, IsStudentUser | IsTeacherUser | IsCollaboratingExpertUser]
         return [permission() for permission in permission_classes]
+
     def create(self, request, *args, **kwargs):
         """
             Registrar interacción del estudainte con un OA
@@ -46,7 +52,6 @@ class InteractionAPIView(viewsets.ModelViewSet):
 
         instance = Interaction.objects.create(
             liked= serializer.validated_data['liked'],
-            viewed= serializer.validated_data['viewed'],
             learning_object= learning_object,
             user=user
         )
@@ -88,11 +93,54 @@ class InteractionAPIView(viewsets.ModelViewSet):
     def list(self, request):
         return Response({"message": "Not found"},status=HTTP_404_NOT_FOUND)
 
+
+class GetUpdateDownloadNumber(RetrieveUpdateAPIView):
+    """
+        Funcion para actualizar el numero de descargar y para
+        retornar el numero de descargas que existen dentro del objeto de aprendizaje
+    """
+
+    def get_permissions(self):
+        permission_classes = None
+        if self.request.method == 'PUT':
+            permission_classes = [IsAuthenticated, IsStudentUser | IsTeacherUser | IsCollaboratingExpertUser]
+        else:
+            permission_classes = [AllowAny]
+
+        return [permission() for permission in permission_classes]
+
+    def update(self, request, *args, **kwargs):
+        serializer = InteractionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = self.request.user
+        interaction_update = Interaction.objects.filter(learning_object_id = kwargs.get('pk'), user__id=user.id)
+        if interaction_update:
+            number_downloaded = serializer.validated_data['downloaded']
+            number_downloaded = int(number_downloaded) + 1
+            interaction_update[0].downloaded = number_downloaded
+            interaction_update[0].save()
+            serializer = InteractionAllService(interaction_update, many=True)
+            return Response(serializer.data, status=HTTP_200_OK)
+        return Response({'message':'Error update Count Download'}, status=HTTP_400_BAD_REQUEST)
+
+    def get(self, request, *args, **kwargs):
+        interactions = Interaction.objects.filter(learning_object_id = kwargs.get('pk'))
+        number_downloaded = 0
+        if len(interactions) > 1 :
+            for interaction in interactions:
+                number_downloaded = number_downloaded + int(interaction.downloaded)
+        elif len(interactions) == 1:
+            number_downloaded = interactions[0].downloaded
+
+        return Response({'message': 'success', 'number': number_downloaded},status=HTTP_200_OK)
+
+
 class GetLikedLearningObjetById(APIView):
     """
         Retrieve learning object is liked by user
     """
-    permission_classes = [IsAuthenticated, IsStudentUser]
+    permission_classes = [IsAuthenticated,  IsStudentUser | IsTeacherUser | IsCollaboratingExpertUser]
+
     def get_object(self, pk):
         try:
             return Interaction.objects.get(learning_object__id=pk,user__id=self.request.user.id)
@@ -104,12 +152,49 @@ class GetLikedLearningObjetById(APIView):
         serializer = InteractionAllService(snippet)
         return Response(serializer.data)
 
+
+class CreateDownload(CreateAPIView):
+    """
+    Funcion para crear la lista de contadores de descargas
+    """
+
+    permission_classes = [IsAuthenticated, IsStudentUser | IsTeacherUser | IsCollaboratingExpertUser]
+
+    def create(self, request, *args, **kwargs):
+        serializer = InteractionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = self.request.user
+
+        learning_object = LearningObjectMetadata.objects.get(pk=serializer.validated_data['learning_object'])
+
+        exist_liked = Interaction.objects.filter(
+            learning_object__id=serializer.validated_data['learning_object'],
+            user__id=user.id
+        )
+
+        if exist_liked:
+            exist_liked[0].downloaded =serializer.validated_data['downloaded']
+            exist_liked[0].save()
+            serializer = InteractionAllService(exist_liked,many=True)
+            return Response(serializer.data, status=HTTP_200_OK)
+
+        instance = Interaction.objects.create(
+            downloaded=serializer.validated_data['downloaded'],
+            learning_object=learning_object,
+            user=user
+        )
+        instance.save()
+        serializer = InteractionAllService(instance)
+        return Response(serializer.data, status=HTTP_200_OK)
+
+
 class MostLikeLearningObjects(ListAPIView):
     """
     Servicio para devolver los mas gustados
     """
     permission_classes = [AllowAny]
     serializer_class = LearningObjectMetadataAllSerializer
+
     def get_queryset(self):
         interaction_liked = Interaction.objects.filter(liked=True)
         interactions = interaction_liked.values('learning_object_id').annotate(total=Count('learning_object_id')).order_by('-total')[:4]
@@ -119,13 +204,62 @@ class MostLikeLearningObjects(ListAPIView):
         learning_object_metadata_query = LearningObjectMetadata.objects.filter(id__in=array_learning_objects)
         return learning_object_metadata_query
 
+
 class LearingObjectLike(ListAPIView):
     """
      Servicio que devuelve la puntuación en likes del objeto de aprendizaje por el ID el objeto de aprendizaje
     """
     permission_classes = [AllowAny]
     serializer_class = InteractionMostLiked
+
     def get_queryset(self):
         interaction = Interaction.objects.filter(learning_object_id=self.kwargs['pk'], liked=True)
         interaction_filter = interaction.values('learning_object_id').annotate(total=Count('learning_object_id')).order_by('-total')
         return interaction_filter
+
+
+class CreateViewInteraction(CreateAPIView):
+    """
+        Funcion para crear las interaccion de las vistas
+        dentro del objeto de aprendizaje
+    """
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = InteractionViewCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        interaction_view = ViewInteraction.objects.create(
+            view=serializer.validated_data['view'],
+            learning_object=serializer.validated_data['learning_object']
+        )
+        interaction_view.save()
+        view_interaction_s = InteractionViewSerializer(interaction_view)
+        return Response(view_interaction_s.data, status=HTTP_200_OK)
+
+
+class GetUpdateViewNumberView(RetrieveUpdateAPIView):
+    """
+        Funcion para actualizar el numero de descargar y para
+        retornar el numero de vistas que existen dentro del objeto de aprendizaje
+    """
+
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        view_interaction = ViewInteraction.objects.filter(learning_object=kwargs.get('pk'))
+        if len(view_interaction) > 0:
+            serializer = InteractionViewSerializer(view_interaction, many=True);
+            return Response(serializer.data, status=HTTP_200_OK)
+        else:
+            return Response({'message': 'error'}, status=HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        serializer = InteractionViewCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = ViewInteraction.objects.filter(learning_object=serializer.validated_data['learning_object'])
+        if len(instance) > 0:
+            instance[0].view = serializer.validated_data['view']
+            instance[0].save()
+            serializer_data = InteractionViewSerializer(instance, many=True)
+            return Response(serializer_data.data, status=HTTP_200_OK)
+        return Response({'message': 'error'}, status= HTTP_400_BAD_REQUEST)
