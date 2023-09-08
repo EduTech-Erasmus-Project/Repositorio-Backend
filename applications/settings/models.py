@@ -24,7 +24,7 @@ class Email(TimeStampedModel):
     def decrypt_password(self):
         try:
             #pas = base64.urlsafe_b64decode(self.password)
-            pas = self.password
+            pas = self.password.encode('utf-8')
             cipher_pass = Fernet(env('HASH_KEY'))
             decode_pass = cipher_pass.decrypt(pas).decode("utf-8")
             return decode_pass

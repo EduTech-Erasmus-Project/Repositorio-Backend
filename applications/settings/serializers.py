@@ -7,6 +7,8 @@ class EmailSerializer(serializers.ModelSerializer):
         model = models.Email
         fields = "__all__"
 
+    password = serializers.CharField(source='decrypt_password', read_only=True)
+
 
 class OptionRegisterEmailExtensionSerializer(serializers.ModelSerializer):
     class Meta:

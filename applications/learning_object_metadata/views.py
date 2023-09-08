@@ -376,12 +376,22 @@ class OAFilter(filters.FilterSet):
     def general_title_filter(self, queryset, name, value):
         general_reference_search = self.request.GET.getlist('general_title')
         if len(general_reference_search) == 1:
+            keywords = general_reference_search[0].split()
+            # Crea una lista de Q objects para buscar cada palabra clave en el campo 'nombre'
+            queries = [Q(general_title__icontains=keyword)
+                       | Q(general_description__icontains=keyword)
+                       | Q(user_created__first_name__icontains=keyword)
+                       | Q(user_created__last_name__icontains=keyword) for keyword in keywords]
+
+            # Combina todas las Q objects usando el operador OR
+            q_object = queries.pop()
+            for query in queries:
+                q_object |= query
+
             return queryset.filter(
-                Q(general_title__icontains = general_reference_search[0]) |
-                Q(general_description__icontains = general_reference_search[0]) |
-                Q(user_created__first_name__icontains=general_reference_search[0]) |
-                Q(user_created__last_name__icontains=general_reference_search[0])
+                q_object
             )
+
 
 class OAFilterExpert(filters.FilterSet):
     """

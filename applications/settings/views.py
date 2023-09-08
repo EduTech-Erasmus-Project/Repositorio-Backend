@@ -36,7 +36,7 @@ class EmailListCreateAPIView(generics.ListCreateAPIView):
             email_obj = Email.objects.first()
             serializer = self.serializer_class(instance=email_obj, data=request.data, partial=True)
             if serializer.is_valid():
-                new_password = serializer.validated_data.get('password')
+                new_password = request.data['password']
 
                 if new_password is not None:
                     hashed_password = email_obj.encrypt_password(new_password)
