@@ -131,6 +131,23 @@ class EmailDomainListView(generics.ListAPIView):
             return Response({'message': 'List error', 'code': 400}, status=HTTP_404_NOT_FOUND)
 
 
+class EmailDomainListView(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated, IsAdministratorUser]  # permisos autenticado y solo de admin
+
+    def destroy(self, request, *args, **kwargs):
+        if request.query_params.get('type') == "TEACHER":
+            instance = EmailExtensionsTeacher.objects.filter(pk=kwargs.get('pk'))
+            instance.delete()
+            return Response({'message':'Delete Success', 'code': 200}, status= HTTP_200_OK)
+        elif request.query_params.get('type') == "EXPERT":
+            instance = EmailExtensionsExpert.objects.filter(pk=kwargs.get('pk'))
+            instance.delete()
+            return Response({'message': 'Delete Success', 'code': 200}, status=HTTP_200_OK)
+        elif request.query_params.get('type') == "STUDENT":
+            instance = EmailExtensionsStudent.objects.filter(pk=kwargs.get('pk'))
+            instance.delete()
+            return Response({'message': 'Delete Success', 'code': 200}, status=HTTP_200_OK)
+
 class EmailDomainUpdateView(generics.UpdateAPIView):
     """
         Servicio para actualizar la relacion entre los tipos de roles
