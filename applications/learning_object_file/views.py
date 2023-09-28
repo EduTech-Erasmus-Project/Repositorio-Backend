@@ -33,7 +33,8 @@ from applications.learning_object_metadata.views import automaticEvaluation
 from xml.dom import minidom
 import requests
 
-from ..helpers_functions.beautiful_soup_data import read_html_files, look_for_class_oeradap, generaye_array_paths_img
+from ..helpers_functions.beautiful_soup_data import read_html_files, look_for_class_oeradap, generaye_array_paths_img, \
+    verify_that_oa_was_made_exelearning
 from roabackend.settings import DEBUG
 from io import BytesIO
 booleanLomLomes = True  # If booleanLomLomes is True represents a lom format, and
@@ -60,7 +61,7 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
         Se necesita estar autenticado como docente.
         """
         #variable para manejo de errores
-        errorsFeedback={ "media":False,"scorm":False,"web":False}
+        errorsFeedback={ "media":False,"scorm":False,"web":False, "is_exelearning":False}
 
         data = any
         serializer = LearningObjectSerializer(data=request.data)
@@ -110,10 +111,11 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
             elif get_index_file(filename_index) != '':
                 index = get_index_file(filename_index)
                 if index.find('website_index.html') == -1:
-                    delete_new_learning_object_fail(file_name, learningObject)
                     errorsFeedback['web'] = True
-                    return Response({"message": "Su objeto de aprendizaje no contiene los ficheros exportados como Sitio web ",
-                                     "data": errorsFeedback},status=HTTP_404_NOT_FOUND)
+                if index.find('index.html') != -1:
+                    if verify_that_oa_was_made_exelearning(
+                            os.path.join(BASE_DIR, filename_index, 'imsmanifest.xml').replace('\\', '/')):
+                        errorsFeedback['is_exelearning'] = True
             else:
                 delete_new_learning_object_fail(file_name, learningObject)
                 errorsFeedback['scorm'] = True
@@ -129,7 +131,9 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
             if XMLFILES_FOLDER is not None:
                 URL = url + index
                 #URL.replace('http://', 'https://', 1)
-                learningObject.url = URL.replace('http://', 'https://', 1)
+                if DEBUG is False:
+                    URL = URL.replace('http://', 'https://', 1)
+                learningObject.url = URL
                 learningObject.file_name = nombre[0]
                 learningObject.file_size = zip_kb
                 learningObject.path_origin = path_origin_verify

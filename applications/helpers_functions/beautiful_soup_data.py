@@ -173,6 +173,9 @@ def web_scraping_img_fields(aux_text, file, url_host):
             Condiciones para buscar una url 
             para no unir con la ruta base del proyecto 
             """
+            if cadena_src is None:
+                continue
+
             flag_img_url = False
             img = None
             if cadena_src.find('https://') == 0 or cadena_src.find('http://') == 0:
@@ -251,3 +254,16 @@ def generaye_array_paths_img(path_origin, url_host):
                 else:
                     break
     return array_paths
+
+
+def verify_that_oa_was_made_exelearning(path_imsmanifest):
+    soup_data = None
+    with open(path_imsmanifest, encoding="utf-8") as file:
+        # try:
+        soup_data = BeautifulSoup(file, "html.parser")
+        file.close()
+    imsmanifest = soup_data
+    ims_identifier = imsmanifest.find('manifest')['identifier']
+    if ims_identifier[0:3] == "eXe":
+        return True
+    return False
