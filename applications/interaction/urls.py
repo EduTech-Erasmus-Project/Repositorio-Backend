@@ -12,6 +12,7 @@ urlpatterns = [
     path('api/v1/learning-objects/downloaded/<pk>', views.GetUpdateDownloadNumber.as_view()),
     path('api/v1/learning-objects/viewed', views.CreateViewInteraction.as_view()),
     path('api/v1/learning-objects/viewed/<pk>', views.GetUpdateViewNumberView.as_view()),
+    path('api/v1/interaction-ref/', views.UserRefTokenInteraction.as_view()),
 
     path('api/v1/learning-objects/most-liked/', views.MostLikeLearningObjects.as_view()),
     path('api/v1/learning-objects/liked-count/<int:pk>', views.LearingObjectLike.as_view()),
