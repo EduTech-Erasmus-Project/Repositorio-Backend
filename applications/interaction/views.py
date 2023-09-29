@@ -7,7 +7,7 @@ from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, CreateAP
 from applications.learning_object_metadata.models import LearningObjectMetadata
 from applications.interaction.models import Interaction, ViewInteraction
 from applications.interaction.serializers import InteractionAllService, InteractionSerializer, InteractionMostLiked, \
-    InteractionViewCreateSerializer, InteractionViewSerializer
+    InteractionViewCreateSerializer, InteractionViewSerializer, UserRefSerializer
 from applications.learning_object_metadata.serializers import LearningObjectMetadataAllSerializer
 from applications.user.mixins import IsStudentUser, IsTeacherUser, IsCollaboratingExpertUser
 from rest_framework import viewsets
