@@ -36,3 +36,7 @@ class InteractionViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = ViewInteraction
         fields = ('view',)
+
+
+class UserRefSerializer(serializers.Serializer):
+    key_ref = serializers.CharField(max_length=10);

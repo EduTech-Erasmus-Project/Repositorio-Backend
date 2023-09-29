@@ -1,8 +1,9 @@
+import shortuuid
 from django.db.models import Count
 from django.http.response import Http404
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, CreateAPIView
+from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, CreateAPIView, ListCreateAPIView
 from applications.learning_object_metadata.models import LearningObjectMetadata
 from applications.interaction.models import Interaction, ViewInteraction
 from applications.interaction.serializers import InteractionAllService, InteractionSerializer, InteractionMostLiked, \
@@ -18,7 +19,7 @@ from rest_framework.status import (
     HTTP_404_NOT_FOUND,
     HTTP_200_OK
 )
-
+from roabackend.settings import env
 
 # Create your views here.
 class InteractionAPIView(viewsets.ModelViewSet):
@@ -263,3 +264,18 @@ class GetUpdateViewNumberView(RetrieveUpdateAPIView):
             serializer_data = InteractionViewSerializer(instance, many=True)
             return Response(serializer_data.data, status=HTTP_200_OK)
         return Response({'message': 'error'}, status= HTTP_400_BAD_REQUEST)
+
+
+class UserRefTokenInteraction(ListCreateAPIView):
+    """
+    Esta clase se usara para generar los tokens para controlar las visualizaciones de los recursos
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = UserRefSerializer(data=request.data)
+        if serializer.is_valid():
+            if serializer.validated_data['key_ref'] == env('KEY_REF'):
+                user_token = str(shortuuid.ShortUUID().random(length=64))
+                return Response({'message':'successful', 'code':200,'reference':user_token},status= HTTP_200_OK)
+        return Response({'message':'Error', 'code':400}, status= HTTP_404_NOT_FOUND)
