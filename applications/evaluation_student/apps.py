@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class EvaluationStudentConfig(AppConfig):
-    name = 'evaluation_student'
+    name = 'applications.evaluation_student'
