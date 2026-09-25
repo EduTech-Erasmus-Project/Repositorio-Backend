@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class MetadataConfig(AppConfig):
-    name = 'metadata'
+    name = 'applications.learning_object_metadata'
