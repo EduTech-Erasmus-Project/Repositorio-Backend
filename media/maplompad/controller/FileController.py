@@ -12,8 +12,11 @@ def read_manifest(ims_manifest_path):
     :return:
         A string representing the whole file.
     """
-    #print("Entra 1: ",ims_manifest_path)
+    print("Entra 1: ",ims_manifest_path)
     try:
+        import requests
+        import sys
+
         with open(ims_manifest_path,'r',encoding='UTF-8') as file:
             #file=etree.parse(file)
             read=file.readlines()
