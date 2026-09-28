@@ -15,6 +15,7 @@ import environ
 import threading
 
 from applications.settings.models import Email
+from applications.helpers_functions.env_compat import format_roa_email_subject
 
 
 env = environ.Env()
@@ -62,7 +63,7 @@ class SendMail:
             msg['From'] = env('EMAIL_FROM')
             msg['To'] = to_email
             msg['Cc'] = INSTITUTIONAL_COPY_EMAIL
-            msg['Subject'] = "Eliminación del Objeto de Aprendizaje"
+            msg['Subject'] = format_roa_email_subject("Eliminación del Objeto de Aprendizaje")
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html', 'utf-8'))
             hilo1_email = threading.Thread(target=smt_send_email_to_receiver, args=[msg])
             hilo1_email.start()

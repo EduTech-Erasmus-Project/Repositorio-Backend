@@ -29,7 +29,13 @@ from applications.user.auth_cookies import (
     set_csrf_cookie,
 )
 from applications.user.utils import Util
-from applications.helpers_functions.env_compat import get_domain_host_roa
+from applications.helpers_functions.env_compat import (
+    get_contact_email_recipient,
+    get_contact_email_recipient_name,
+    get_domain_host_roa,
+    get_roa_instance_name,
+    get_roa_public_url,
+)
 from rest_framework.generics import ListAPIView, CreateAPIView, DestroyAPIView
 from rest_framework import serializers, viewsets
 from rest_framework.generics import GenericAPIView, RetrieveAPIView, RetrieveUpdateAPIView, UpdateAPIView
@@ -1003,8 +1009,10 @@ class VerifyEmail(generics.GenericAPIView):
 
 
 mail_aproved = SendEmailConfirm()
-CONTACT_EMAIL_RECIPIENT = 'edutech@ups.edu.ec'
-CONTACT_EMAIL_RECIPIENT_NAME = 'Edutech UPS'
+CONTACT_EMAIL_RECIPIENT = get_contact_email_recipient()
+CONTACT_EMAIL_RECIPIENT_NAME = get_contact_email_recipient_name()
+CONTACT_ROA_INSTANCE_NAME = get_roa_instance_name()
+CONTACT_ROA_PUBLIC_URL = get_roa_public_url()
 
 
 def get_user_admin_notification_recipients():
@@ -2276,6 +2284,8 @@ class sendEmailContact(CreateAPIView):
                     serializer['name'].value,
                     serializer['email'].value,
                     serializer['content'].value,
+                    CONTACT_ROA_INSTANCE_NAME,
+                    CONTACT_ROA_PUBLIC_URL,
                 )
         except Exception:
             logger.exception("Error enviando correo de contacto al buzon institucional")

@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mensaje de contacto - ROA</title>
+  <title>Mensaje de contacto - {ROA_INSTANCE_NAME}</title>
 
   <style>
     body {
@@ -140,7 +140,7 @@
     <div class="email-container">
 
       <div class="email-header">
-        <h1>Equipo ROA</h1>
+        <h1>{ROA_INSTANCE_NAME}</h1>
       </div>
 
       <div class="email-content">
@@ -156,6 +156,11 @@
         </p>
 
         <p>
+          Origen: <strong>{ROA_INSTANCE_NAME}</strong><br>
+          Sitio: <a href="{ROA_PUBLIC_URL}" target="_blank">{ROA_PUBLIC_URL}</a>
+        </p>
+
+        <p>
           Mensaje:
         </p>
 
@@ -167,18 +172,18 @@
 
         <p>
           Saludos,<br>
-          <strong>Equipo ROA</strong>
+          <strong>Equipo {ROA_INSTANCE_NAME}</strong>
         </p>
       </div>
 
       <div class="email-footer">
-        <a href="https://repositorio.edutech-project.org/" target="_blank">
+        <a href="{ROA_PUBLIC_URL}" target="_blank">
           <img src="https://repositorio.edutech-project.org/assets/img/ROA-Edu.png" width="96" height="96" style="display:block;width:96px;max-width:96px;height:auto;border:0;outline:none;text-decoration:none;margin:0 auto 8px auto;"
                alt="Repositorio de Objetos de Aprendizaje ROA">
         </a>
 
-        <a href="https://repositorio.edutech-project.org/" target="_blank">
-          <h2>Equipo ROA</h2>
+        <a href="{ROA_PUBLIC_URL}" target="_blank">
+          <h2>Equipo {ROA_INSTANCE_NAME}</h2>
         </a>
 
         <h3>Gracias por preferirnos</h3>

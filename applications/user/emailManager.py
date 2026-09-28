@@ -20,7 +20,12 @@ from unipath import Path
 import environ
 
 from applications.settings.models import Email
-from applications.helpers_functions.env_compat import get_domain_host_roa
+from applications.helpers_functions.env_compat import (
+    format_roa_email_subject,
+    get_domain_host_roa,
+    get_roa_instance_name,
+    get_roa_public_url,
+)
 
 env = environ.Env()
 BASE_DIR = Path(__file__).ancestor(3)
@@ -58,7 +63,7 @@ class SendMail:
             msg = MIMEMultipart()
             
             msg['To'] = to_email
-            msg['Subject'] = "Restablecer tu contraseña"
+            msg['Subject'] = format_roa_email_subject("Restablecer tu contraseña")
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html', 'utf-8'))
             hilo1_email = threading.Thread(target=smt_send_email_to_receiver, args=[msg])
             hilo1_email.start()
@@ -77,7 +82,7 @@ class SendEmailCreateUser:
             msg = MIMEMultipart()
             
             msg['To'] = to_email
-            msg['Subject'] = 'Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀'
+            msg['Subject'] = format_roa_email_subject('Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀')
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html', 'utf-8'))
             hilo1_email = threading.Thread(target=smt_send_email_to_receiver, args=[msg])
             hilo1_email.start()
@@ -96,7 +101,7 @@ class SendEmailCreateUserCheck:
             msg = MIMEMultipart()
             
             msg['To'] = to_email
-            msg['Subject'] = 'Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀'
+            msg['Subject'] = format_roa_email_subject('Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀')
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html', 'utf-8'))
             hilo1_email = threading.Thread(target=smt_send_email_to_receiver, args=[msg])
             hilo1_email.start()
@@ -115,7 +120,7 @@ class SendEmailCreateUserCheck_Expert:
             msg = MIMEMultipart()
             
             msg['To'] = to_email
-            msg['Subject'] = 'Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀'
+            msg['Subject'] = format_roa_email_subject('Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀')
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html', 'utf-8'))
             hilo1_email = threading.Thread(target=smt_send_email_to_receiver, args=[msg])
             hilo1_email.start()
@@ -134,7 +139,7 @@ class SendEmailCreateUserCheck_Admin_to_Expert:
             msg = MIMEMultipart()
             
             msg['To'] = to_email
-            msg['Subject'] = 'Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀'
+            msg['Subject'] = format_roa_email_subject('Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀')
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html'))
             hilo1_email = threading.Thread(target=smt_send_email_to_receiver, args=[msg])
             hilo1_email.start()
@@ -154,25 +159,43 @@ class SendEmailConfirm:
             msg = MIMEMultipart()
             
             msg['To'] = to_email
-            msg['Subject'] = 'Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀'
+            msg['Subject'] = format_roa_email_subject('Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀')
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html', "utf-8"))
             hilo1_email = threading.Thread(target=smt_send_email_to_receiver, args=[msg])
             hilo1_email.start()
         except MAIL_DELIVERY_EXCEPTIONS:
             logger.exception('Error enviando correo de confirmacion de cuenta')
 
-    def sendEmailContactAdmin(self, to_email_admin, name_admin, name_user, email_user, message):
+    def sendEmailContactAdmin(
+        self,
+        to_email_admin,
+        name_admin,
+        name_user,
+        email_user,
+        message,
+        roa_instance_name=None,
+        roa_public_url=None,
+    ):
         try:
+            roa_instance_name = roa_instance_name or get_roa_instance_name()
+            roa_public_url = roa_public_url or get_roa_public_url()
+            safe_email_user = str(email_user).replace('\r', '').replace('\n', '').strip()
             path_email = os.path.join(BASE_DIR, 'applications', 'user', 'template', 'contactEmail.html')
             message_html = _read_html_template(path_email)
             new_message_html = message_html.replace('{NAME_USER}', name_user)
             new_message_html = new_message_html.replace('{NAME_ADMIN}', name_admin)
-            new_message_html = new_message_html.replace('{CORREO}', email_user)
+            new_message_html = new_message_html.replace('{CORREO}', safe_email_user)
             new_message_html = new_message_html.replace('{MENSAJE}', message)
+            new_message_html = new_message_html.replace('{ROA_INSTANCE_NAME}', roa_instance_name)
+            new_message_html = new_message_html.replace('{ROA_PUBLIC_URL}', roa_public_url)
             msg = MIMEMultipart()
             
             msg['To'] = to_email_admin
-            msg['Subject'] = 'Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀'
+            msg['Reply-To'] = safe_email_user
+            msg['Subject'] = format_roa_email_subject(
+                'Nuevo mensaje desde formulario de contacto',
+                roa_instance_name,
+            )
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html', "utf-8"))
             hilo1_email = threading.Thread(target=smt_send_email_to_receiver, args=[msg])
             hilo1_email.start()
@@ -187,7 +210,7 @@ class SendEmailConfirm:
             msg = MIMEMultipart()
             msg['From'] = email_from
             msg['To'] = emailtest
-            msg['Subject'] = 'Bienvenido al servicio de mensajería del Repositorio de Objetos de Aprendizaje - ROA 🚀'
+            msg['Subject'] = format_roa_email_subject('Bienvenido al servicio de mensajería del Repositorio de Objetos de Aprendizaje - ROA 🚀')
             msg.attach(MIMEText(message_email, 'plain'))
             smt_send_email_to_receiver_testing_server(host, msg, username, password,port, tls)
         except MAIL_DELIVERY_EXCEPTIONS as exc:
@@ -215,7 +238,7 @@ class SendEmail_activation_email:
             msg = MIMEMultipart()
             
             msg['To'] = to_email
-            msg['Subject'] = 'Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀'
+            msg['Subject'] = format_roa_email_subject('Bienvenido al Repositorio de Objetos de Aprendizaje - ROA 🚀')
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html', "utf-8"))
 
             hilo1_email = threading.Thread(target=smt_send_email_to_receiver, args=[msg])
@@ -239,7 +262,7 @@ class SendEmailAdminCreateUser:
             msg = MIMEMultipart()
             
             msg['To'] = to_email
-            msg['Subject'] = 'Repositorio de Objetos de Aprendizaje - ROA 🚀'
+            msg['Subject'] = format_roa_email_subject('Repositorio de Objetos de Aprendizaje - ROA 🚀')
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html', "utf-8"))
 
             hilo1_email = threading.Thread(target=smt_send_email_to_receiver, args=[msg])
@@ -258,7 +281,7 @@ class SendEmailAdminCreateUser:
             msg = MIMEMultipart()
             
             msg['To'] = to_email
-            msg['Subject'] = 'Repositorio de Objetos de Aprendizaje - ROA 🚀'
+            msg['Subject'] = format_roa_email_subject('Repositorio de Objetos de Aprendizaje - ROA 🚀')
             msg.attach(MIMEText(new_message_html.encode('utf-8'), 'html', "utf-8"))
 
             hilo1_email = threading.Thread(target=smt_send_email_to_receiver, args=[msg])

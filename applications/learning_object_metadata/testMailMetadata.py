@@ -15,7 +15,10 @@ from email.mime.text import MIMEText
 import environ
 from unipath import Path
 
-from applications.helpers_functions.env_compat import get_domain_host_roa
+from applications.helpers_functions.env_compat import (
+    format_roa_email_subject,
+    get_domain_host_roa,
+)
 from applications.settings.models import Email
 
 
@@ -63,7 +66,7 @@ class SendEmailCreateOA_satisfay:
             msg = MIMEMultipart()
 
             msg["To"] = to_email
-            msg["Subject"] = "Repositorio de Objetos de Aprendizaje - ROA"
+            msg["Subject"] = format_roa_email_subject("Repositorio de Objetos de Aprendizaje - ROA")
             msg.attach(MIMEText(new_message_html.encode("utf-8"), "html", "utf-8"))
             hilo1_email = threading.Thread(target=smt_send_email_to_receiver, args=[msg])
             hilo1_email.start()
@@ -93,7 +96,7 @@ class SendEmailCreateOA_not_satisfy:
             msg = MIMEMultipart()
 
             msg["To"] = to_email
-            msg["Subject"] = "Repositorio de Objetos de Aprendizaje - ROA"
+            msg["Subject"] = format_roa_email_subject("Repositorio de Objetos de Aprendizaje - ROA")
             msg.attach(MIMEText(new_message_html.encode("utf-8"), "html", "utf-8"))
             hilo1_email = threading.Thread(target=smt_send_email_to_receiver, args=[msg])
             hilo1_email.start()
@@ -121,7 +124,7 @@ class SendEmailCreateOA_not_satisfy_User:
             msg = MIMEMultipart()
 
             msg["To"] = to_email
-            msg["Subject"] = "Repositorio de Objetos de Aprendizaje - ROA"
+            msg["Subject"] = format_roa_email_subject("Repositorio de Objetos de Aprendizaje - ROA")
             msg.attach(MIMEText(new_message_html.encode("utf-8"), "html", "utf-8"))
             hilo1_email = threading.Thread(target=smt_send_email_to_receiver, args=[msg])
             hilo1_email.start()
@@ -150,7 +153,7 @@ class SendEmailCreateOA_satisfy_User:
             msg = MIMEMultipart()
 
             msg["To"] = to_email
-            msg["Subject"] = "Repositorio de Objetos de Aprendizaje - ROA"
+            msg["Subject"] = format_roa_email_subject("Repositorio de Objetos de Aprendizaje - ROA")
             msg.attach(MIMEText(new_message_html.encode("utf-8"), "html", "utf-8"))
             hilo1_email = threading.Thread(target=smt_send_email_to_receiver, args=[msg])
             hilo1_email.start()
@@ -181,7 +184,7 @@ class SendEmailLearningObjectReviewFindings:
             msg = MIMEMultipart()
             msg["To"] = to_email
             msg["Cc"] = INSTITUTIONAL_COPY_EMAIL
-            msg["Subject"] = f"Notificación de Hallazgos {name_oa} - ROA"
+            msg["Subject"] = format_roa_email_subject(f"Notificación de Hallazgos {name_oa} - ROA")
             msg.attach(MIMEText(new_message_html.encode("utf-8"), "html", "utf-8"))
             hilo1_email = threading.Thread(target=smt_send_email_to_receiver, args=[msg])
             hilo1_email.start()
