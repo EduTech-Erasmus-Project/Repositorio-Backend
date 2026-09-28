@@ -1,3 +1,10 @@
+"""Router principal del catálogo de profesiones.
+
+Este archivo expone el recurso REST base administrado por `ProfessionView`.
+El módulo no necesita rutas manuales adicionales: todo su contrato activo sale
+por este router.
+"""
+
 from rest_framework.routers import DefaultRouter
 
 from . import views

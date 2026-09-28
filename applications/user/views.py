@@ -1,17 +1,41 @@
+"""Vistas del modulo `user`.
+
+Este archivo concentra la mayor parte de los flujos operativos del dominio de
+usuarios: registro por rol, activación por correo, login, cambio y reseteo de
+contraseña, consulta y actualización de perfil, aprobación administrativa y
+reportes. La implementación es heredada y mezcla endpoints públicos, de perfil
+y administrativos en un mismo archivo; por eso la documentación prioriza
+explicar responsabilidades, supuestos por rol y side effects como el envío de
+correos.
+"""
+
 import json
+import logging
 import math
 from webbrowser import get
 
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema, extend_schema_view, inline_serializer
 
 from applications.user.emailManager import SendMail, SendEmailCreateUser, SendEmailCreateUserCheck, SendEmailConfirm, \
     SendEmailCreateUserCheck_Expert, SendEmail_activation_email, SendEmailCreateUserCheck_Admin_to_Expert, \
     SendEmailAdminCreateUser
+from applications.user.auth_cookies import (
+    clear_auth_cookies,
+    clear_csrf_cookie,
+    enforce_csrf,
+    get_refresh_token_from_request,
+    set_auth_cookies,
+    set_csrf_cookie,
+)
 from applications.user.utils import Util
+from applications.helpers_functions.env_compat import get_domain_host_roa
 from rest_framework.generics import ListAPIView, CreateAPIView, DestroyAPIView
-from rest_framework import viewsets
+from rest_framework import serializers, viewsets
 from rest_framework.generics import GenericAPIView, RetrieveAPIView, RetrieveUpdateAPIView, UpdateAPIView
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework.permissions import AllowAny
 from .serializers import ChangePasswordSerializer, MyTokenObtainPairSerializer, RequestPasswordResetEmailSerializer, \
     SetNewPasswordSerializer, StudentListSerializer, UpdateTecherCollaboratingExpertApproveedSerializer, \
@@ -81,19 +105,15 @@ from django.utils.encoding import smart_str, force_str, smart_bytes, DjangoUnico
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls.base import reverse
-# Create your views here.
 import os
 from unipath import Path
-# Coneccion con los entornos virtuales
 import environ
 import threading
 
 from ..address.models import Country, Province, City, University, Campus
 
-"""
-Definicion de las clases para envio de correos 
-"""
-
+# Instancias reutilizadas para los distintos correos transaccionales del
+# módulo. Se inicializan una vez y luego se usan desde varios endpoints.
 mail_create = SendEmailCreateUser()
 mail_create_check = SendEmailCreateUserCheck()
 mail_create_expert = SendEmailCreateUserCheck_Expert()
@@ -103,17 +123,215 @@ mail_account_not_active = SendEmailAdminCreateUser()
 
 env = environ.Env()
 BASE_DIR = Path(__file__).ancestor(3)
-# Set the project base directory
+# Este módulo también lee `.env` porque varios flujos heredados obtienen de ahí
+# datos de entorno al momento de ejecutar correos y URLs.
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
+logger = logging.getLogger(__name__)
 
+
+USER_AUTH_TAG = ['User Auth']
+USER_ACCOUNT_TAG = ['User Account']
+USER_ADMIN_ACCOUNT_TAG = ['User Admin Accounts']
+USER_ADMIN_APPROVAL_TAG = ['User Admin Approvals']
+USER_ADMIN_LIST_TAG = ['User Admin Lists']
+USER_VERIFICATION_TAG = ['User Verification']
+USER_REPORT_TAG = ['User Reports']
+
+USER_ID_PARAMETER = OpenApiParameter(
+    name='id',
+    type=int,
+    location=OpenApiParameter.PATH,
+    description='Identificador interno del usuario.',
+)
+USER_PK_PARAMETER = OpenApiParameter(
+    name='pk',
+    type=int,
+    location=OpenApiParameter.PATH,
+    description='Identificador interno del usuario.',
+)
+USER_EMAIL_PARAMETER = OpenApiParameter(
+    name='email',
+    type=str,
+    location=OpenApiParameter.PATH,
+    description='Correo electronico usado para ubicar el usuario.',
+)
+USER_VERIFY_TOKEN_PARAMETER = OpenApiParameter(
+    name='token',
+    type=str,
+    location=OpenApiParameter.PATH,
+    description='Token de activacion o recuperacion enviado por correo.',
+)
+USER_UIDB64_PARAMETER = OpenApiParameter(
+    name='uidb64',
+    type=str,
+    location=OpenApiParameter.PATH,
+    description='Identificador de usuario codificado en base64 para recuperacion de contrasena.',
+)
+USER_MESSAGE_RESPONSE = inline_serializer(
+    name='UserMessageResponse',
+    fields={
+        'message': serializers.CharField(required=False),
+        'error': serializers.CharField(required=False),
+        'email': serializers.CharField(required=False),
+        'code': serializers.IntegerField(required=False),
+        'status': serializers.CharField(required=False),
+        'details': serializers.JSONField(required=False),
+    },
+)
+USER_TOKEN_RESPONSE = inline_serializer(
+    name='UserTokenResponse',
+    fields={
+        'access': serializers.CharField(),
+        'refresh': serializers.CharField(),
+    },
+)
+USER_TOKEN_REFRESH_REQUEST = inline_serializer(
+    name='UserTokenRefreshRequest',
+    fields={
+        'refresh': serializers.CharField(),
+    },
+)
+USER_TOKEN_REFRESH_RESPONSE = inline_serializer(
+    name='UserTokenRefreshResponse',
+    fields={
+        'access': serializers.CharField(),
+        'refresh': serializers.CharField(required=False),
+    },
+)
+USER_TOKEN_VERIFY_REQUEST = inline_serializer(
+    name='UserTokenVerifyRequest',
+    fields={
+        'token': serializers.CharField(),
+    },
+)
+USER_SET_VERIFY_REQUEST = inline_serializer(
+    name='UserSetVerifyRequest',
+    fields={
+        'email': serializers.EmailField(),
+    },
+)
+USER_COUNT_RESPONSE = inline_serializer(
+    name='UserCountResponse',
+    fields={
+        'total_student': serializers.IntegerField(),
+        'total_teacher': serializers.IntegerField(),
+    },
+)
+USER_TOTAL_ROLE_RESPONSE = inline_serializer(
+    name='UserTotalRoleResponse',
+    fields={
+        'total_expert_approved': serializers.IntegerField(),
+        'total_expert_disapproved': serializers.IntegerField(),
+        'total_teacher_approved': serializers.IntegerField(),
+        'total_teacher_disapproved': serializers.IntegerField(),
+        'total_student': serializers.IntegerField(),
+    },
+)
+USER_PASSWORD_RESET_RESPONSE = inline_serializer(
+    name='UserPasswordResetResponse',
+    fields={
+        'message': serializers.CharField(),
+        'token': serializers.CharField(required=False),
+        'uidb64': serializers.CharField(required=False),
+        'status': serializers.IntegerField(required=False),
+    },
+)
+USER_PASSWORD_TOKEN_RESPONSE = inline_serializer(
+    name='UserPasswordTokenResponse',
+    fields={
+        'success': serializers.BooleanField(required=False),
+        'message': serializers.CharField(required=False),
+        'uidb64': serializers.CharField(required=False),
+        'token': serializers.CharField(required=False),
+        'error': serializers.CharField(required=False),
+    },
+)
+USER_REPORT_PARAMETERS = [
+    OpenApiParameter('upload', str, OpenApiParameter.QUERY, description='Usa `upload` para docentes con OAs o `not_upload` para docentes sin OAs.'),
+    OpenApiParameter('query', str, OpenApiParameter.QUERY, description='Busca por nombres, apellidos o correo exacto.'),
+    OpenApiParameter('city', int, OpenApiParameter.QUERY, description='Filtra por ciudad del docente.'),
+    OpenApiParameter('university', int, OpenApiParameter.QUERY, description='Filtra por universidad del docente.'),
+    OpenApiParameter('campus', int, OpenApiParameter.QUERY, description='Filtra por campus del docente.'),
+    OpenApiParameter('created_init', str, OpenApiParameter.QUERY, description='Fecha inicial de creacion en formato YYYY-MM-DD.'),
+    OpenApiParameter('created_end', str, OpenApiParameter.QUERY, description='Fecha final de creacion en formato YYYY-MM-DD.'),
+    OpenApiParameter('page', int, OpenApiParameter.QUERY, description='Numero de pagina a consultar.'),
+    OpenApiParameter('page_size', int, OpenApiParameter.QUERY, description='Cantidad de resultados por pagina.'),
+]
+
+
+class UserReportPagination(PageNumberPagination):
+    """Paginacion server-side para el endpoint administrativo de reportes."""
+
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+def filter_users_by_query_param(queryset, request):
+    """Aplica busqueda opcional por nombre, apellido o correo antes de paginar."""
+
+    query = request.query_params.get('query')
+    if query is None:
+        return queryset
+
+    query = query.strip()
+    if not query:
+        return queryset
+
+    return queryset.filter(
+        Q(first_name__icontains=query) |
+        Q(last_name__icontains=query) |
+        Q(email__icontains=query)
+    )
+
+
+@extend_schema_view(
+    list=extend_schema(
+        tags=USER_ADMIN_ACCOUNT_TAG,
+        summary='Listar perfil administrador autenticado',
+        description='Devuelve el perfil administrador asociado al usuario autenticado.',
+        responses={200: UserListSerializer(many=True)},
+    ),
+    retrieve=extend_schema(
+        tags=USER_ADMIN_ACCOUNT_TAG,
+        summary='Consultar administrador autenticado',
+        description='Recupera el detalle del administrador solo si el identificador de la ruta corresponde al usuario autenticado.',
+        parameters=[USER_ID_PARAMETER],
+        responses={200: UserListSerializer, 404: USER_MESSAGE_RESPONSE},
+    ),
+    create=extend_schema(
+        tags=USER_ADMIN_ACCOUNT_TAG,
+        summary='Crear usuario administrador',
+        description='Crea una cuenta con perfil administrador y la deja activa para operar en el sistema.',
+        request=UserAdminSerializer,
+        responses={200: UserListSerializer, 400: OpenApiResponse(description='Payload invalido.')},
+    ),
+    update=extend_schema(
+        tags=USER_ADMIN_ACCOUNT_TAG,
+        summary='Actualizar perfil administrador',
+        description='Actualiza nombres y datos del perfil administrador del usuario autenticado.',
+        parameters=[USER_ID_PARAMETER],
+        request=UserAdmiUpdatenSerializer,
+        responses={200: USER_MESSAGE_RESPONSE, 400: OpenApiResponse(description='Payload invalido.'), 404: USER_MESSAGE_RESPONSE},
+    ),
+    destroy=extend_schema(
+        tags=USER_ADMIN_ACCOUNT_TAG,
+        summary='Eliminar administrador no disponible',
+        description='Operacion conservada por compatibilidad; la vista responde que el API no esta disponible.',
+        parameters=[USER_ID_PARAMETER],
+        responses={404: USER_MESSAGE_RESPONSE},
+    ),
+)
 class UserAdminView(viewsets.ViewSet):
+    """CRUD acotado del perfil administrativo autenticado."""
+
     permission_classes = [IsAuthenticated, IsAdministratorUser, ]
+    serializer_class = UserListSerializer
 
     def create(self, request, *args, **kwargs):
-        """
-            Servicio para crear un usuario administrador. Se necesita un token de autenticación como administrador para hacer uso de este servicio
-        """
+        """Crea una nueva cuenta con perfil de administrador."""
+        
         serializer = UserAdminSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         new_admin = Administrator.objects.create(
@@ -136,17 +354,15 @@ class UserAdminView(viewsets.ViewSet):
         return Response(serializer.data, status=HTTP_200_OK)
 
     def list(self, request):
-        """
-            Servicio para listar los usuarios administradores. Se necesita un token de autenticación como super usuario para hacer uso de este servicio
-        """
+        """Lista el registro administrativo asociado al usuario autenticado."""
+
         queryset = User.objects.filter(email=self.request.user.email)
         serializer = UserListSerializer(queryset, many=True)
         return Response(serializer.data, status=HTTP_200_OK)
 
     def retrieve(self, request, pk=None):
-        """
-            Servicio para actualizar un usuario administrador. Se necesita un token de autenticación como administrador para hacer uso de este servicio
-        """
+        """Recupera el detalle del administrador autenticado por su propio `pk`."""
+        
         if int(request.user.id) == int(pk):
             queryset = User.objects.filter().order_by('-pk')
             user = get_object_or_404(queryset, pk=pk)
@@ -156,9 +372,8 @@ class UserAdminView(viewsets.ViewSet):
             return Response({"message": "User not found"}, status=HTTP_404_NOT_FOUND)
 
     def update(self, request, pk=None, project_pk=None):
-        """
-            Servicio para actuaizar un usuario administrador. Se necesita un token de autenticación como administrador para hacer uso de este servicio
-        """
+        """Actualiza el perfil del administrador autenticado por su propio `pk`."""
+        
         if int(request.user.id) == int(pk):
             queryset = User.objects.filter(administrator__is_active=True).order_by('-pk')
             instance = get_object_or_404(queryset, pk=pk)
@@ -170,7 +385,6 @@ class UserAdminView(viewsets.ViewSet):
             instance_admin.country = serializer.validated_data['country']
             instance_admin.city = serializer.validated_data['city']
             instance_admin.phone = serializer.validated_data['phone']
-            # instance.image = serializer.validated_data['image']
             instance_admin.is_active = serializer.validated_data['is_active']
             instance_admin.observation = serializer.validated_data['observation']
             instance.save()
@@ -180,16 +394,70 @@ class UserAdminView(viewsets.ViewSet):
             return Response({"message": "User not found"}, status=HTTP_404_NOT_FOUND)
 
     def destroy(self, request, pk=None):
+        """Operación no expuesta para administradores desde este viewset."""
+        
         return Response({"message": "Api not found"}, status=HTTP_404_NOT_FOUND)
 
 
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Consultar usuario autenticado',
+        description='Devuelve el perfil general del usuario autenticado con roles activos y datos relacionados.',
+        responses={200: GeneralUserListSerializer, 404: USER_MESSAGE_RESPONSE},
+    ),
+    retrieve=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Consultar usuario por id propio',
+        description='Recupera el perfil general solo cuando el `id` de la ruta coincide con el usuario autenticado.',
+        parameters=[USER_ID_PARAMETER],
+        responses={200: GeneralUserListSerializer, 404: USER_MESSAGE_RESPONSE},
+    ),
+    create=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Registrar usuario por roles',
+        description=(
+            'Crea una cuenta general con uno de los roles operativos: estudiante, docente o experto. '
+            'El payload incluye campos comunes del usuario y campos especificos segun el rol solicitado.'
+        ),
+        request=RoleSerializer,
+        responses={200: GeneralUserListSerializer, 400: OpenApiResponse(description='Payload invalido.')},
+    ),
+    update=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Actualizar usuario autenticado',
+        description=(
+            'Actualiza datos comunes y, segun `roles`, actualiza o crea el perfil de estudiante, docente o experto. '
+            'Solo se permite actualizar el usuario autenticado.'
+        ),
+        parameters=[USER_ID_PARAMETER],
+        request=UserUpdateSerializer,
+        responses={200: USER_MESSAGE_RESPONSE, 400: OpenApiResponse(description='Payload invalido.'), 404: USER_MESSAGE_RESPONSE},
+    ),
+    destroy=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Desactivar rol de usuario',
+        description='No elimina fisicamente la cuenta; marca como inactivo el perfil indicado en `roles`.',
+        parameters=[USER_ID_PARAMETER],
+        request=UserUpdateSerializer,
+        responses={200: USER_MESSAGE_RESPONSE, 400: OpenApiResponse(description='Payload invalido.')},
+    ),
+)
 class ManagementUserView(viewsets.ViewSet):
+    """Registro y mantenimiento del perfil general para student/teacher/expert.
+
+    El flujo crea primero el perfil específico del rol y luego lo enlaza con la
+    cuenta `User`. En el caso de docente, además persiste ciudad,
+    universidad y campus en el modelo principal porque forman parte del
+    contrato histórico de ese rol.
     """
-        Clase para crear listar usuario
-    """
+    serializer_class = GeneralUserListSerializer
+
     def get_permissions(self):
+        """Permite registro público y exige autenticación para el resto."""
+
         if (self.action == 'create'):
             permission_classes = [AllowAny]
         else:
@@ -197,10 +465,8 @@ class ManagementUserView(viewsets.ViewSet):
         return [permission() for permission in permission_classes]
 
     def asing_array_filter_only_all(self, emails_extension,email_string, option_value):
-        """
-            Funcion que filtra los correos electronicos dependiendo
-             la opcion de registro
-        """
+        """Evalúa si un correo pasa la política `ONLY`, `EXCEPT` o `ALL`."""
+
         emails_domain = []
         for email in emails_extension:
             emails_domain = email.domain
@@ -219,10 +485,7 @@ class ManagementUserView(viewsets.ViewSet):
             return True
 
     def checkEmail(self, email_string):
-        """
-            Función para validar el dominio de los correos registrados por el
-            administrador
-        """
+        """Valida el dominio permitido para altas de teacher/expert."""
 
         typeRolExtension = UserTypeWithOption.objects.get(description='TEACHER')
         option_register = OptionRegisterEmailExtension.objects.get(id=typeRolExtension.option_register.id)
@@ -230,25 +493,24 @@ class ManagementUserView(viewsets.ViewSet):
         emails_extension = None
         if option_register.type_option == 'EXCEPT':
             emails_extension = EmailExtensionsTeacher.objects.filter(option_register_email=typeRolExtension.option_register.id,is_active=True)
-            return self.asing_array_filter_only_all(emails_extension, email_string, 'EXCEPT')
+            return  self.asing_array_filter_only_all(emails_extension, email_string, 'EXCEPT')
         elif option_register.type_option == 'ONLY':
             emails_extension = EmailExtensionsTeacher.objects.filter(option_register_email=typeRolExtension.option_register.id, is_active=True)
             return self.asing_array_filter_only_all(emails_extension,email_string, 'ONLY')
+
         else:
             emails_extension = EmailExtensionsTeacher.objects.filter(is_active=True)
             return self.asing_array_filter_only_all(emails_extension, email_string, 'ALL')
 
     def create(self, request, *args, **kwargs):
         """
-            Servicio para crear un nuevo usuario (Estudiante, Dcente, Experto Colaborador).
+            Servicio para crear un nuevo usuario (Estudiante, Docente, Experto Colaborador).
         """
-        """ Validamos el correo del usuario """
-        # print(request.data)
+
         dataRes = request.data
 
         role_serializer = RoleSerializer(data=request.data)
         role_serializer.is_valid(raise_exception=True)
-        # print(role_serializer['email'].value)
         new_student = Student()
         new_teacher = Teacher()
         new_expert = CollaboratingExpert()
@@ -279,17 +541,12 @@ class ManagementUserView(viewsets.ViewSet):
                 for preference in preferences:
                     new_student.preferences.add(preference)
 
-                # if not ManagementUserView.checkEmail(request.data['email']):
-                #   value_active = False
-                #  mail_create_check.sendMailCreateCheckAdmin(request.data['email'], request.data['first_name'])
-                # else:
                 value_active = True
                 new_student.is_active = value_active
 
                 if serializer.validated_data['has_disability'] is False:
                     self.set_email_conform(new_student.id, request, "student")
 
-                    # new_student.is_account_active = True
 
                 else:
                     new_student.is_account_active = True
@@ -302,19 +559,31 @@ class ManagementUserView(viewsets.ViewSet):
                 teacher_serializer.is_valid(raise_exception=True)
                 if not self.checkEmail(request.data['email']):
                     value_active = False
-                    # Buscar datos del administrador para enviar los correos de revision
-                    users_admin = User.objects.filter(is_superuser=True)
-                    for user_admin in users_admin:
-                        user_email = user_admin.email
-                        user_name = user_admin.first_name + " " + user_admin.last_name
-                        name_user_account = role_serializer.validated_data['first_name'] + " " + \
-                                            role_serializer.validated_data['last_name']
-                        mail_account_not_active.sendMail_validate_account_teacher_Admin(user_email, user_name,
-                                                                                        name_user_account)
-                    # mail_create_check.sendMailCreateCheckAdmin(request.data['email'], request.data['first_name'])
+                    name_user_account = role_serializer.validated_data['first_name'] + " " + \
+                                        role_serializer.validated_data['last_name']
+                    # Logica heredada: antes se buscaban usuarios `is_superuser=True`
+                    # y se enviaba la notificacion de revision a cada uno.
+                    # Se conserva documentada por trazabilidad del flujo, pero la
+                    # regla vigente notifica a administradores activos y al
+                    # buzon institucional, sin incluir superusuarios.
+                    #
+                    # users_admin = User.objects.filter(is_superuser=True)
+                    # for user_admin in users_admin:
+                    #     user_email = user_admin.email
+                    #     user_name = user_admin.first_name + " " + user_admin.last_name
+                    #     mail_account_not_active.sendMail_validate_account_teacher_Admin(
+                    #         user_email,
+                    #         user_name,
+                    #         name_user_account,
+                    #     )
+                    for recipient_email, recipient_name in get_user_admin_notification_recipients():
+                        mail_account_not_active.sendMail_validate_account_teacher_Admin(
+                            recipient_email,
+                            recipient_name,
+                            name_user_account,
+                        )
                 else:
                     value_active = True
-                    # mail_create.sendMailCreate(request.data['email'], request.data['first_name'])
 
                 new_teacher = Teacher.objects.create(
                     is_active=value_active,
@@ -328,8 +597,6 @@ class ManagementUserView(viewsets.ViewSet):
 
                 self.set_email_conform(new_teacher.id, request, "teacher")
                 new_teacher.save()
-                # post_save.connect(send_email1, sender=User)
-                # request_finished.connect(send_email1(role_serializer.validated_data['first_name'],role_serializer.validated_data['last_name'],role,role_serializer.validated_data['email']))
 
             if role == 'expert' and role != 'teacher' and role != 'student':
                 serializer = CollaboratingExpertCreateSerializer(data=request.data)
@@ -337,30 +604,43 @@ class ManagementUserView(viewsets.ViewSet):
 
                 if not self.checkEmail(request.data['email']):
                     value_active = False
-                    users_admin = User.objects.filter(is_superuser=True)
-                    for user_admin in users_admin:
-                        user_email = user_admin.email
-                        user_name = user_admin.first_name + " " + user_admin.last_name
-                        name_user_account = role_serializer.validated_data['first_name'] + " " + \
-                                            role_serializer.validated_data['last_name']
-                        mail_account_not_active.sendMail_validate_account_expert_Admin(user_email, user_name,
-                                                                                       name_user_account)
-                    # mail_create_check_expert.sendMailCreate_Admin_to_Expert(request.data['email'], request.data['first_name'])
+                    name_user_account = role_serializer.validated_data['first_name'] + " " + \
+                                        role_serializer.validated_data['last_name']
+                    # Logica heredada: antes se buscaban usuarios `is_superuser=True`
+                    # y se enviaba la notificacion de revision a cada uno.
+                    # Se conserva documentada por trazabilidad del flujo, pero la
+                    # regla vigente notifica a administradores activos y al
+                    # buzon institucional, sin incluir superusuarios.
+                    #
+                    # users_admin = User.objects.filter(is_superuser=True)
+                    # for user_admin in users_admin:
+                    #     user_email = user_admin.email
+                    #     user_name = user_admin.first_name + " " + user_admin.last_name
+                    #     mail_account_not_active.sendMail_validate_account_expert_Admin(
+                    #         user_email,
+                    #         user_name,
+                    #         name_user_account,
+                    #     )
+                    for recipient_email, recipient_name in get_user_admin_notification_recipients():
+                        mail_account_not_active.sendMail_validate_account_expert_Admin(
+                            recipient_email,
+                            recipient_name,
+                            name_user_account,
+                        )
                 else:
                     value_active = True
-                    # mail_create_expert.sendMailCreate_Expert(request.data['email'], request.data['first_name'])
 
                 new_expert = CollaboratingExpert.objects.create(
                     expert_level=serializer.validated_data['expert_level'],
                     web=serializer.validated_data['web'],
                     academic_profile=serializer.validated_data['academic_profile'],
                     is_active=value_active,
-                    # is_account_active = True
                 )
                 self.set_email_conform(new_expert.id, request, "expert")
                 new_expert.save()
 
-        # Se agrega el campo del pais en base a la ciudad
+        # Para docentes, el alta históricamente deriva país y provincia a
+        # partir de la ciudad enviada en el payload.
 
         new_user = User.objects.create_general_user(
             first_name=role_serializer.validated_data['first_name'],
@@ -369,7 +649,6 @@ class ManagementUserView(viewsets.ViewSet):
             password=role_serializer.validated_data['password'],
         )
 
-        # print("country id", country.id)
 
         new_user.image = role_serializer.validated_data['image']
         if new_student.pk is not None:
@@ -390,24 +669,36 @@ class ManagementUserView(viewsets.ViewSet):
             new_user.campus = campusObj
             new_user.save()
         if new_expert.pk is not None:
+            countryObj = Country.objects.get(province__city__id=dataRes["city"])
+            provinceObj = Province.objects.get(city__id=dataRes["city"])
+            cityObj = City.objects.get(id=dataRes["city"])
+            universityObj = University.objects.get(id=dataRes["university"])
+            campusObj = Campus.objects.get(id=dataRes["campus"])
+
             new_user.collaboratingExpert = new_expert
+            new_user.country = countryObj
+            new_user.province = provinceObj
+            new_user.city = cityObj
+            new_user.university = universityObj
+            new_user.campus = campusObj
             new_user.save()
         serializer = GeneralUserListSerializer(new_user)
         return Response(serializer.data, status=HTTP_200_OK)
 
     def set_email_conform(self, id_user, request, role):
+        """Envía el enlace de activación con un JWT efímero del rol indicado."""
+
         token = jwt.encode({"id": id_user, "role": role, "exp": datetime.now(tz=timezone.utc) + timedelta(hours=24)},
                            "secreto", algorithm="HS256")
         try:
 
             mail_confirm_email.send_email_confirm_email(request.data['email'], request.data['first_name'], token)
-            # mail_confirm_email.test_mail_sent(request.data['email'], request.data['first_name'], token)
         except Exception as e:
-            print(e)
+            logger.exception("Error enviando correo de confirmación para el usuario %s", id_user)
 
     def list(self, request):
         """
-            Servicio para listar el usuario autentidado (Estudiante, Dcente, Experto Colaborador).
+            Servicio para listar el usuario autenticado (Estudiante, Docente, Experto Colaborador).
         """
         user = self.request.user
         if int(request.user.id) == int(user.pk):
@@ -422,7 +713,7 @@ class ManagementUserView(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         """
-            Servicio para listar el usuario autentidado (Estudiante, Dcente, Experto Colaborador).
+            Servicio para listar el usuario autenticado (Estudiante, Docente, Experto Colaborador).
         """
         if int(request.user.id) == int(pk):
             queryset = User.objects.filter(
@@ -436,7 +727,7 @@ class ManagementUserView(viewsets.ViewSet):
 
     def update(self, request, pk=None, project_pk=None):
         """
-            Servicio para actualizar el usuario se necesita estar autenticado como (Estudiante, Dcente, Experto Colaborador).
+            Servicio para actualizar el usuario se necesita estar autenticado como (Estudiante, Docente, Experto Colaborador).
         """
         if int(request.user.id) == int(pk):
             queryset = User.objects.filter(
@@ -448,12 +739,13 @@ class ManagementUserView(viewsets.ViewSet):
             user_serializer.is_valid(raise_exception=True)
             instance.first_name = user_serializer.validated_data['first_name']
             instance.last_name = user_serializer.validated_data['last_name']
+            if user_serializer.validated_data.get('city') is not None:
+                instance.city_id = user_serializer.validated_data['city']
+            if user_serializer.validated_data.get('university') is not None:
+                instance.university_id = user_serializer.validated_data['university']
+            if user_serializer.validated_data.get('campus') is not None:
+                instance.campus_id = user_serializer.validated_data['campus']
 
-            instance.city_id = int(request.data['city'])
-            instance.university_id = int(request.data['university'])
-            instance.campus_id = int(request.data['campus'])
-
-            # instance.image = user_serializer.validated_data['image']
             for role in user_serializer.validated_data['roles']:
                 if instance.student is not None and role == 'student':
                     serializer = StudentUpdateSerializer(data=request.data)
@@ -520,11 +812,8 @@ class ManagementUserView(viewsets.ViewSet):
                     for profession in professions:
                         teacher_instance.professions.add(profession)
                     teacher_instance.save()
-                    # else:
-                    #     return Response({"message": "Debe tener un email institucional"}, status=HTTP_400_BAD_REQUEST)
 
                 if instance.teacher is None and role == "teacher":
-                    # if ".edu" in instance.email:
                     serializer = TeacherUpdateSerializer(data=request.data)
                     serializer.is_valid(raise_exception=True)
                     new_teacher = Teacher.objects.create(
@@ -537,8 +826,6 @@ class ManagementUserView(viewsets.ViewSet):
                         new_teacher.professions.add(profession)
                     new_teacher.save()
                     instance.teacher = new_teacher
-                    # else:
-                    #     return Response({"message": "Debe tener un email institucional"}, status=HTTP_400_BAD_REQUEST)
 
                 if instance.collaboratingExpert is not None and role == 'expert':
                     serializer = CollaboratingExpertUpdateSerializer(data=request.data)
@@ -549,10 +836,6 @@ class ManagementUserView(viewsets.ViewSet):
                     collaboratingExpert_instance.web = serializer.validated_data['web']
                     collaboratingExpert_instance.academic_profile = serializer.validated_data['academic_profile']
                     collaboratingExpert_instance.save()
-                    """Actualizar datos de direcciones  del usuario """
-                    instance.campus_id = serializer.validated_data['campus']
-                    instance.city_id = serializer.validated_data['city']
-                    instance.university_id = serializer.validated_data['university']
 
                 if instance.collaboratingExpert is None and role == 'expert':
                     serializer = CollaboratingExpertUpdateSerializer(data=request.data)
@@ -572,7 +855,7 @@ class ManagementUserView(viewsets.ViewSet):
 
     def destroy(self, request, pk=None):
         """
-            Servicio para eliminar el usuario se necesita estar autenticado como (Estudiante, Dcente, Experto Colaborador).
+            Servicio para eliminar el usuario se necesita estar autenticado como (Estudiante, Docente, Experto Colaborador).
         """
         instance = User.objects.get(pk=pk)
         serializer = UserUpdateSerializer(data=request.data)
@@ -596,11 +879,20 @@ class ManagementUserView(viewsets.ViewSet):
         return status_message
 
 
+@extend_schema_view(
+    post=extend_schema(
+        tags=USER_VERIFICATION_TAG,
+        summary='Reenviar enlace de verificacion',
+        description='Genera un nuevo token de activacion para una cuenta registrada y envia el enlace por correo.',
+        request=USER_SET_VERIFY_REQUEST,
+        responses={200: USER_MESSAGE_RESPONSE, 400: USER_MESSAGE_RESPONSE},
+    )
+)
 class set_new_token_verify(APIView):
-    """
-    Enviar nuevo enlace con el token para confirmar el correo electrónico
-    """
+    """Reemite el enlace de verificación de correo para cuentas pendientes."""
+
     permission_classes = []
+    serializer_class = serializers.Serializer
 
     def post(self, request):
         try:
@@ -615,6 +907,8 @@ class set_new_token_verify(APIView):
             return Response({"message": "Correo no registrado", "status": 400}, status=HTTP_400_BAD_REQUEST)
 
     def role(self, user):
+        """Resuelve el rol operativo principal usado por la verificación."""
+
         if user.collaboratingExpert_id is not None:
             return 'expert', user.collaboratingExpert_id
         elif user.student_id is not None:
@@ -623,38 +917,38 @@ class set_new_token_verify(APIView):
             return 'teacher', user.teacher_id
 
     def set_email_conform_new_token(self, id_user, email_user, name_user, role):
+        """Genera y envía un nuevo token de activación para el rol indicado."""
+
         token = jwt.encode({"id": id_user, "role": role, "exp": datetime.now(tz=timezone.utc) + timedelta(hours=24)},
                            "secreto", algorithm="HS256")
         mail_confirm_email.send_email_confirm_email(email_user, name_user,
                                                     token)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=USER_VERIFICATION_TAG,
+        summary='Verificar correo y activar cuenta',
+        description=(
+            'Valida el token enviado por correo, activa la cuenta del rol indicado y dispara correos posteriores '
+            'segun si el usuario queda aprobado o pendiente de revision administrativa.'
+        ),
+        parameters=[USER_VERIFY_TOKEN_PARAMETER, USER_EMAIL_PARAMETER],
+        responses={200: USER_MESSAGE_RESPONSE, 400: USER_MESSAGE_RESPONSE},
+    )
+)
 class VerifyEmail(generics.GenericAPIView):
+    """Activa la cuenta a partir del token enviado por correo.
+
+    Además de marcar `is_account_active`, este flujo dispara correos
+    posteriores según el estado de aprobación del rol.
     """
-    Verificación de correo electrónico, en esta función enviamos el token al correo electrónico
-    """
+
     permission_classes = []
+    serializer_class = serializers.Serializer
 
     def get(self, request, token, email):
         try:
-            """user_user = User.objects.filter(email=email)
-            if user_user:
-                role_user, id_user = roleUser(user_user[0])
-                if role_user == 'student':
-                    student = Student.objects.get(pk=id_user);
-                    if student.is_account_active is True:
-                        return Response({'email': 'Activado satisfactoriamente'}, status=HTTP_200_OK)
-                if role_user == 'teacher':
-                    teacher = Teacher.objects.get(pk=id_user);
-                    if teacher.is_account_active:
-                        return Response({'email': 'Activado satisfactoriamente'}, status=HTTP_200_OK)
-                if role_user == 'expert':
-                    expert = CollaboratingExpert.objects.get(pk=id);
-                    if expert.is_account_active is True:
-                        return Response({'email': 'Activado satisfactoriamente'}, status=HTTP_200_OK)
-            else:
-                return Response({'error': 'Token invalido'}, status=HTTP_400_BAD_REQUEST)"""
-
             payload = jwt.decode(token, "secreto", algorithms=["HS256"])
             role = payload['role']
             id = payload['id']
@@ -709,9 +1003,40 @@ class VerifyEmail(generics.GenericAPIView):
 
 
 mail_aproved = SendEmailConfirm()
+CONTACT_EMAIL_RECIPIENT = 'edutech@ups.edu.ec'
+CONTACT_EMAIL_RECIPIENT_NAME = 'Edutech UPS'
+
+
+def get_user_admin_notification_recipients():
+    """Devuelve administradores activos y el buzon institucional sin duplicados."""
+
+    recipients = []
+    seen_emails = set()
+    active_administrators = User.objects.filter(administrator__is_active=True).order_by('id')
+
+    for admin_user in active_administrators:
+        email = (admin_user.email or '').strip()
+        if not email:
+            continue
+        normalized_email = email.lower()
+        if normalized_email in seen_emails:
+            continue
+        full_name = f"{admin_user.first_name} {admin_user.last_name}".strip() or "Administrador ROA"
+        recipients.append((email, full_name))
+        seen_emails.add(normalized_email)
+
+    institutional_email = CONTACT_EMAIL_RECIPIENT.strip()
+    if institutional_email:
+        normalized_institutional_email = institutional_email.lower()
+        if normalized_institutional_email not in seen_emails:
+            recipients.append((CONTACT_EMAIL_RECIPIENT, CONTACT_EMAIL_RECIPIENT_NAME))
+
+    return recipients
 
 
 def roleUser(user):
+    """Devuelve el rol principal y el id del perfil asociado al usuario."""
+
     if user.collaboratingExpert_id is not None:
         return 'expert', user.collaboratingExpert_id
     elif user.student_id is not None:
@@ -720,14 +1045,42 @@ def roleUser(user):
         return 'teacher', user.teacher_id
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=USER_ADMIN_APPROVAL_TAG,
+        summary='Listar docentes pendientes de aprobacion',
+        description='Lista usuarios con perfil docente que todavia no estan aprobados administrativamente.',
+        responses={200: AdminDisaprovedTeacherCollaboratingExpertSerializer(many=True)},
+    ),
+    retrieve=extend_schema(
+        tags=USER_ADMIN_APPROVAL_TAG,
+        summary='Consultar docente pendiente',
+        description='Devuelve el detalle administrativo de un docente pendiente o desaprobado.',
+        parameters=[USER_ID_PARAMETER],
+        responses={200: AdminDisaprovedTeacherCollaboratingExpertSerializer, 404: OpenApiResponse(description='Usuario no encontrado.')},
+    ),
+    update=extend_schema(
+        tags=USER_ADMIN_APPROVAL_TAG,
+        summary='Aprobar o actualizar docente pendiente',
+        description='Actualiza el estado `teacher_is_active` del docente pendiente y envia correo de confirmacion si corresponde.',
+        parameters=[USER_ID_PARAMETER],
+        request=UpdateTecherCollaboratingExpertDisapprovedSerializer,
+        responses={200: USER_MESSAGE_RESPONSE, 400: OpenApiResponse(description='Payload invalido.')},
+    ),
+)
 class AdminDisaprovedTeacher(viewsets.ViewSet):
+    """Gestiona docentes pendientes o desaprobados para administración."""
+
     permission_classes = [IsAuthenticated, IsAdministratorUser]
+    serializer_class = AdminDisaprovedTeacherCollaboratingExpertSerializer
     def list(self, request):
         """
-            Servicio para listar Docente no aprobados. Se necesita autenticación como administrador
+            Servicio para listar Docentes no aprobados. Se necesita autenticación como administrador
         """
         queryset = User.objects.filter(teacher__is_active=False)
+        queryset = filter_users_by_query_param(queryset, request)
         paginator = PageNumberPagination()
+        paginator.page_size = 10
         page = paginator.paginate_queryset(queryset, request)
         if page is not None:
             serializer = AdminDisaprovedTeacherCollaboratingExpertSerializer(page, many=True)
@@ -738,7 +1091,7 @@ class AdminDisaprovedTeacher(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         """
-            Servicio para listar Dcente  no aprobados por id. Se necesita autenticación como administrador
+            Servicio para listar Docentes no aprobados por id. Se necesita autenticación como administrador
         """
         queryset = User.objects.all()
         user = get_object_or_404(queryset, pk=pk)
@@ -747,7 +1100,7 @@ class AdminDisaprovedTeacher(viewsets.ViewSet):
 
     def update(self, request, pk=None, project_pk=None):
         """
-            Servicio para actualizar Dcente no aprobados. Se necesita autenticación como administrador
+            Servicio para actualizar Docentes no aprobados. Se necesita autenticación como administrador
         """
         instance = User.objects.get(pk=pk)
         serializer = UpdateTecherCollaboratingExpertDisapprovedSerializer(data=request.data)
@@ -760,11 +1113,21 @@ class AdminDisaprovedTeacher(viewsets.ViewSet):
 
         status_message = Response({"message": "success"}, status=HTTP_200_OK)
         return status_message
+@extend_schema_view(
+    delete=extend_schema(
+        tags=USER_ADMIN_APPROVAL_TAG,
+        summary='Eliminar docente pendiente',
+        description='Elimina la cuenta `User` y el perfil `Teacher` asociado cuando el docente pendiente es rechazado.',
+        parameters=[USER_ID_PARAMETER],
+        responses={200: USER_MESSAGE_RESPONSE, 400: USER_MESSAGE_RESPONSE},
+    )
+)
 class AdminDisaprovedTeacherDelete(DestroyAPIView):
-    """
-        Servicio para eliminar un usuario con el rol de docente
-    """
+    """Elimina un registro docente pendiente junto con su cuenta `User`."""
+
     permission_classes =  [IsAuthenticated, IsAdministratorUser]
+    serializer_class = AdminDisaprovedTeacherCollaboratingExpertSerializer
+    queryset = User.objects.all()
     def delete(self, request, pk=None):
         """
             Servicio para eliminar el usuario existente
@@ -776,18 +1139,46 @@ class AdminDisaprovedTeacherDelete(DestroyAPIView):
             user_teacher.delete()
             return Response({'message': 'User deleted successfully', 'code':200}, status= HTTP_200_OK)
         except Exception as e :
-            print(e)
+            logger.exception("Error eliminando docente desaprobado con id %s", pk)
             return Response({'message':'Error deleting record from database', 'code':400}, status= HTTP_400_BAD_REQUEST)
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=USER_ADMIN_APPROVAL_TAG,
+        summary='Listar expertos pendientes de aprobacion',
+        description='Lista usuarios con perfil de experto colaborador que todavia no estan aprobados administrativamente.',
+        responses={200: AdminDisaprovedTeacherCollaboratingExpertSerializer(many=True)},
+    ),
+    retrieve=extend_schema(
+        tags=USER_ADMIN_APPROVAL_TAG,
+        summary='Consultar experto pendiente',
+        description='Devuelve el detalle administrativo de un experto colaborador pendiente o desaprobado.',
+        parameters=[USER_ID_PARAMETER],
+        responses={200: AdminDisaprovedTeacherCollaboratingExpertSerializer, 404: OpenApiResponse(description='Usuario no encontrado.')},
+    ),
+    update=extend_schema(
+        tags=USER_ADMIN_APPROVAL_TAG,
+        summary='Aprobar o actualizar experto pendiente',
+        description='Actualiza el estado `expert_is_active` del experto pendiente y envia correo de confirmacion si corresponde.',
+        parameters=[USER_ID_PARAMETER],
+        request=UpdateTecherCollaboratingExpertDisapprovedSerializer,
+        responses={200: USER_MESSAGE_RESPONSE, 400: OpenApiResponse(description='Payload invalido.')},
+    ),
+)
 class AdminDisaprovedCollaboratingExpert(viewsets.ViewSet):
+    """Gestiona expertos pendientes o desaprobados para administración."""
+
     permission_classes = [IsAuthenticated, IsAdministratorUser]
+    serializer_class = AdminDisaprovedTeacherCollaboratingExpertSerializer
 
     def list(self, request):
         """
             Servicio para listar Experto Colaborador no aprobados. Se necesita autenticación como administrador
         """
         queryset = User.objects.filter(collaboratingExpert__is_active=False)
+        queryset = filter_users_by_query_param(queryset, request)
         paginator = PageNumberPagination()
+        paginator.page_size = 10
         page = paginator.paginate_queryset(queryset, request)
         if page is not None:
             serializer = AdminDisaprovedTeacherCollaboratingExpertSerializer(page, many=True)
@@ -821,11 +1212,21 @@ class AdminDisaprovedCollaboratingExpert(viewsets.ViewSet):
         status_message = Response({"message": "success"}, status=HTTP_200_OK)
         return status_message
 
+@extend_schema_view(
+    delete=extend_schema(
+        tags=USER_ADMIN_APPROVAL_TAG,
+        summary='Eliminar experto pendiente',
+        description='Elimina la cuenta `User` y el perfil `CollaboratingExpert` asociado cuando el experto pendiente es rechazado.',
+        parameters=[USER_ID_PARAMETER],
+        responses={200: USER_MESSAGE_RESPONSE, 400: USER_MESSAGE_RESPONSE},
+    )
+)
 class AdminDisaprovedCollaboratingExpertDelete(DestroyAPIView):
-    """
-        Servicio para eliminar el usuario de tipo experto colaborador
-    """
+    """Elimina un experto pendiente junto con su cuenta `User`."""
+
     permission_classes = [IsAuthenticated, IsAdministratorUser]
+    serializer_class = AdminDisaprovedTeacherCollaboratingExpertSerializer
+    queryset = User.objects.all()
     def delete(self, request, pk=None):
         """
             Eliminar usuario de tipo Experto Colaborador
@@ -837,18 +1238,46 @@ class AdminDisaprovedCollaboratingExpertDelete(DestroyAPIView):
             user_collaborating_expert.delete()
             return Response({'message':'User deleted successfully', 'code':200}, status= HTTP_200_OK)
         except Exception as e:
-            print(e)
+            logger.exception("Error eliminando experto desaprobado con id %s", pk)
             return Response({'message':'Error to delete User', 'code':400}, status=HTTP_400_BAD_REQUEST)
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=USER_ADMIN_APPROVAL_TAG,
+        summary='Listar docentes aprobados',
+        description='Lista usuarios con perfil docente activo/aprobado.',
+        responses={200: AdminAprovedTeacherCollaboratingExpertSerializer(many=True)},
+    ),
+    retrieve=extend_schema(
+        tags=USER_ADMIN_APPROVAL_TAG,
+        summary='Consultar docente aprobado',
+        description='Devuelve el detalle de un docente aprobado, incluyendo OAs creados cuando aplica.',
+        parameters=[USER_ID_PARAMETER],
+        responses={200: AdminAprovedTeacherCollaboratingExpertWithOaSerializer, 404: OpenApiResponse(description='Usuario no encontrado.')},
+    ),
+    update=extend_schema(
+        tags=USER_ADMIN_APPROVAL_TAG,
+        summary='Actualizar estado de docente aprobado',
+        description='Permite desactivar o mantener activo un perfil docente ya aprobado.',
+        parameters=[USER_ID_PARAMETER],
+        request=UpdateTecherCollaboratingExpertApproveedSerializer,
+        responses={200: USER_MESSAGE_RESPONSE, 400: OpenApiResponse(description='Payload invalido.')},
+    ),
+)
 class AdminAprovedTeacher(viewsets.ViewSet):
+    """Gestiona docentes ya aprobados desde la interfaz administrativa."""
+
     permission_classes = [IsAuthenticated, IsAdministratorUser]
+    serializer_class = AdminAprovedTeacherCollaboratingExpertSerializer
 
     def list(self, request):
         """
-            Servicio para listar Dcente no aprobados. Se necesita autenticación como administrador
+            Servicio para listar Docente no aprobados. Se necesita autenticación como administrador
         """
         queryset = User.objects.filter(teacher__is_active=True)
+        queryset = filter_users_by_query_param(queryset, request)
         paginator = PageNumberPagination()
+        paginator.page_size = 10
         page = paginator.paginate_queryset(queryset, request)
         if page is not None:
             serializer = AdminAprovedTeacherCollaboratingExpertSerializer(page, many=True)
@@ -859,7 +1288,7 @@ class AdminAprovedTeacher(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         """
-            Servicio para listar Dcente no aprobados por id. Se necesita autenticación como administrador
+            Servicio para listar Docente no aprobados por id. Se necesita autenticación como administrador
         """
         queryset = User.objects.filter(teacher__is_active=True)
         user = get_object_or_404(queryset, pk=pk)
@@ -868,7 +1297,7 @@ class AdminAprovedTeacher(viewsets.ViewSet):
 
     def update(self, request, pk=None, project_pk=None):
         """
-            Servicio para actualizar Dcente no aprobados. Se necesita autenticación como administrador
+            Servicio para actualizar Docente no aprobados. Se necesita autenticación como administrador
         """
         instance = User.objects.get(pk=pk)
         serializer = UpdateTecherCollaboratingExpertApproveedSerializer(data=request.data)
@@ -882,15 +1311,43 @@ class AdminAprovedTeacher(viewsets.ViewSet):
         return status_message
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=USER_ADMIN_APPROVAL_TAG,
+        summary='Listar expertos aprobados',
+        description='Lista usuarios con perfil experto colaborador activo/aprobado.',
+        responses={200: AdminAprovedTeacherCollaboratingExpertSerializer(many=True)},
+    ),
+    retrieve=extend_schema(
+        tags=USER_ADMIN_APPROVAL_TAG,
+        summary='Consultar experto aprobado',
+        description='Devuelve el detalle administrativo de un experto colaborador aprobado.',
+        parameters=[USER_ID_PARAMETER],
+        responses={200: AdminAprovedTeacherCollaboratingExpertSerializer, 404: OpenApiResponse(description='Usuario no encontrado.')},
+    ),
+    update=extend_schema(
+        tags=USER_ADMIN_APPROVAL_TAG,
+        summary='Actualizar estado de experto aprobado',
+        description='Permite desactivar o mantener activo un perfil experto ya aprobado.',
+        parameters=[USER_ID_PARAMETER],
+        request=UpdateTecherCollaboratingExpertApproveedSerializer,
+        responses={200: USER_MESSAGE_RESPONSE, 400: OpenApiResponse(description='Payload invalido.')},
+    ),
+)
 class AdminAprovedCollaboratingExpert(viewsets.ViewSet):
+    """Gestiona expertos ya aprobados desde la interfaz administrativa."""
+
     permission_classes = [IsAuthenticated, IsAdministratorUser]
+    serializer_class = AdminAprovedTeacherCollaboratingExpertSerializer
 
     def list(self, request):
         """
             Servicio para listar Experto Colaborador no aprobados. Se necesita autenticación como administrador
         """
         queryset = User.objects.filter(collaboratingExpert__is_active=True)
+        queryset = filter_users_by_query_param(queryset, request)
         paginator = PageNumberPagination()
+        paginator.page_size = 10
         page = paginator.paginate_queryset(queryset, request)
         if page is not None:
             serializer = AdminAprovedTeacherCollaboratingExpertSerializer(page, many=True)
@@ -924,17 +1381,51 @@ class AdminAprovedCollaboratingExpert(viewsets.ViewSet):
         return status_message
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=USER_ADMIN_LIST_TAG,
+        summary='Listar estudiantes para administracion',
+        description='Lista todos los usuarios que tienen perfil estudiante.',
+        responses={200: AdminStudentListSerializer(many=True)},
+    ),
+    retrieve=extend_schema(
+        tags=USER_ADMIN_LIST_TAG,
+        summary='Consultar estudiante para administracion',
+        description='Devuelve el detalle administrativo de un estudiante por id de usuario.',
+        parameters=[USER_ID_PARAMETER],
+        responses={200: AdminStudentListSerializer, 404: OpenApiResponse(description='Usuario no encontrado.')},
+    ),
+    update=extend_schema(
+        tags=USER_ADMIN_LIST_TAG,
+        summary='Actualizar estado de estudiante',
+        description='Activa o desactiva el perfil estudiante asociado al usuario.',
+        parameters=[USER_ID_PARAMETER],
+        request=AdminUpdateStudentSerializer,
+        responses={200: USER_MESSAGE_RESPONSE, 400: OpenApiResponse(description='Payload invalido.')},
+    ),
+)
 class AdminListStudent(viewsets.ViewSet):
+    """Listado administrativo de usuarios con perfil estudiante."""
+
     permission_classes = [IsAuthenticated, IsAdministratorUser]
+    serializer_class = AdminStudentListSerializer
 
     def list(self, request):
         """
             Servicio para listar estudiantes. Se necesita autenticación como administrador
         """
-        user = User.objects.filter(
+        queryset = User.objects.filter(
             Q(student__isnull=False)
         )
-        serializer = AdminStudentListSerializer(user, many=True)
+        queryset = filter_users_by_query_param(queryset, request)
+        paginator = PageNumberPagination()
+        paginator.page_size = 10
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            serializer = AdminStudentListSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
+        serializer = AdminStudentListSerializer(queryset, many=True)
         return Response(serializer.data, status=HTTP_200_OK)
 
     def retrieve(self, request, pk=None):
@@ -963,17 +1454,50 @@ class AdminListStudent(viewsets.ViewSet):
         return status_message
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=USER_ADMIN_LIST_TAG,
+        summary='Listar docentes para administracion',
+        description='Lista todos los usuarios que tienen perfil docente.',
+        responses={200: AdminTeacherListSerializer(many=True)},
+    ),
+    retrieve=extend_schema(
+        tags=USER_ADMIN_LIST_TAG,
+        summary='Consultar docente para administracion',
+        description='Devuelve el detalle administrativo de un docente por id de usuario.',
+        parameters=[USER_ID_PARAMETER],
+        responses={200: AdminTeacherListSerializer, 404: OpenApiResponse(description='Usuario no encontrado.')},
+    ),
+    update=extend_schema(
+        tags=USER_ADMIN_LIST_TAG,
+        summary='Actualizar estado de docente',
+        description='Activa o desactiva el perfil docente asociado al usuario.',
+        parameters=[USER_ID_PARAMETER],
+        request=UpdateTecherCollaboratingExpertApproveedSerializer,
+        responses={200: USER_MESSAGE_RESPONSE, 400: OpenApiResponse(description='Payload invalido.')},
+    ),
+)
 class AdminListTeacher(viewsets.ViewSet):
+    """Listado administrativo de usuarios con perfil docente."""
+
     permission_classes = [IsAuthenticated, IsAdministratorUser]
+    serializer_class = AdminTeacherListSerializer
 
     def list(self, request):
         """
             Servicio para listar Docentes. Se necesita autenticación como administrador
         """
-        user = User.objects.filter(
+        queryset = User.objects.filter(
             Q(teacher__isnull=False)
-        )
-        serializer = AdminTeacherListSerializer(user, many=True)
+        ).order_by('-pk')
+        paginator = PageNumberPagination()
+        paginator.page_size = 10
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            serializer = AdminTeacherListSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
+        serializer = AdminTeacherListSerializer(queryset, many=True)
         return Response(serializer.data, status=HTTP_200_OK)
 
     def retrieve(self, request, pk=None):
@@ -1002,17 +1526,50 @@ class AdminListTeacher(viewsets.ViewSet):
         return status_message
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=USER_ADMIN_LIST_TAG,
+        summary='Listar expertos para administracion',
+        description='Lista todos los usuarios que tienen perfil experto colaborador.',
+        responses={200: AdminCollaboratingExpertListSerializer(many=True)},
+    ),
+    retrieve=extend_schema(
+        tags=USER_ADMIN_LIST_TAG,
+        summary='Consultar experto para administracion',
+        description='Devuelve el detalle administrativo de un experto colaborador por id de usuario.',
+        parameters=[USER_ID_PARAMETER],
+        responses={200: AdminCollaboratingExpertListSerializer, 404: OpenApiResponse(description='Usuario no encontrado.')},
+    ),
+    update=extend_schema(
+        tags=USER_ADMIN_LIST_TAG,
+        summary='Actualizar estado de experto',
+        description='Activa o desactiva el perfil experto colaborador asociado al usuario.',
+        parameters=[USER_ID_PARAMETER],
+        request=AdminUpdateCollaboratingExpertSerializer,
+        responses={200: USER_MESSAGE_RESPONSE, 400: OpenApiResponse(description='Payload invalido.')},
+    ),
+)
 class AdminListCollaboratingExpert(viewsets.ViewSet):
+    """Listado administrativo de usuarios con perfil experto colaborador."""
+
     permission_classes = [IsAuthenticated, IsAdministratorUser]
+    serializer_class = AdminCollaboratingExpertListSerializer
 
     def list(self, request):
         """
-            Servicio para listar Expertos Colaboradore. Se necesita autenticación como administrador
+            Servicio para listar Expertos Colaboradores. Se necesita autenticación como administrador
         """
-        user = User.objects.filter(
+        queryset = User.objects.filter(
             Q(collaboratingExpert__isnull=False)
-        )
-        serializer = AdminCollaboratingExpertListSerializer(user, many=True)
+        ).order_by('-pk')
+        paginator = PageNumberPagination()
+        paginator.page_size = 10
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            serializer = AdminCollaboratingExpertListSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
+        serializer = AdminCollaboratingExpertListSerializer(queryset, many=True)
         return Response(serializer.data, status=HTTP_200_OK)
 
     def retrieve(self, request, pk=None):
@@ -1041,8 +1598,34 @@ class AdminListCollaboratingExpert(viewsets.ViewSet):
         return status_message
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=USER_ADMIN_LIST_TAG,
+        summary='Listar administradores',
+        description='Lista usuarios administradores excluyendo al administrador autenticado.',
+        responses={200: AdminAdministratorListSerializer(many=True)},
+    ),
+    retrieve=extend_schema(
+        tags=USER_ADMIN_LIST_TAG,
+        summary='Consultar administrador',
+        description='Devuelve el detalle administrativo de otro usuario administrador.',
+        parameters=[USER_ID_PARAMETER],
+        responses={200: AdminAdministratorListSerializer, 404: OpenApiResponse(description='Usuario no encontrado.')},
+    ),
+    update=extend_schema(
+        tags=USER_ADMIN_LIST_TAG,
+        summary='Actualizar estado de administrador',
+        description='Activa o desactiva el perfil administrador asociado al usuario.',
+        parameters=[USER_ID_PARAMETER],
+        request=AdminUpdateAdministratorSerializer,
+        responses={200: USER_MESSAGE_RESPONSE, 400: OpenApiResponse(description='Payload invalido.')},
+    ),
+)
 class AdminListAdministrador(viewsets.ViewSet):
+    """Listado administrativo de otros usuarios administradores."""
+
     permission_classes = [IsAuthenticated, IsAdministratorUser]
+    serializer_class = AdminAdministratorListSerializer
 
     def list(self, request):
         """
@@ -1080,8 +1663,16 @@ class AdminListAdministrador(viewsets.ViewSet):
         return status_message
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Contar estudiantes y docentes',
+        description='Devuelve contadores publicos resumidos de estudiantes registrados y docentes activos.',
+        responses={200: USER_COUNT_RESPONSE},
+    )
+)
 class UserCountView(APIView):
-    """Este servicio muestra el total del los usuarios que existe registrado en la plataforma."""
+    """Expone contadores públicos resumidos de estudiantes y docentes activos."""
     permission_classes = [AllowAny]
 
     def get(self, request, format=None):
@@ -1105,44 +1696,43 @@ import requests
 
 
 class VerifyOrcid(APIView):
-    """Verificador de ORCID"""
+    """Valida superficialmente un ORCID consultando la URL pública."""
     permission_classes = [AllowAny]
+    serializer_class = OrcidValidationSerializer
+
+    @extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Validar ORCID',
+        description='Recibe un ORCID y valida de forma superficial la disponibilidad de ORCID mediante una consulta HTTP externa.',
+        request=OrcidValidationSerializer,
+        responses={200: USER_MESSAGE_RESPONSE, 400: OpenApiResponse(description='Payload invalido.')},
+    )
 
     def post(self, request, format=None):
         serializer = OrcidValidationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         orcid = serializer.validated_data['orcid']
-        """
-            Servicio para verificar si el ORCID es valido.
-        """
         url = 'https://orcid.org/0000-0002-9659-7109'
         opener = urllib.request.FancyURLopener({})
         f = opener.open(url)
         content = f.read()
-        # http = urllib3.PoolManager()
-        # response = http.request('GET', url)
-        # data = response.data.decode("utf-8")
-        # datos = urllib.request.urlopen(url).read().decode()
-        # soup =  BeautifulSoup(datos)
-        # tags = soup('title')
-        # r = requests.get(url, allow_redirects=True)
-        # # print(r)
-        # print(r.headers.get('content-type'))
-        # print(tags)
-        # html_tables = data.find("body")
 
-        # print(data)
-        # print(r.status)
-        # print(r.data)
-        # url = requests.get("https://orcid.org/0000-0003-3250-6156")
         try:
             return Response({"message": "OK"}, status=HTTP_200_OK)
         except:
             return Response({"message": "invalid"}, status=HTTP_200_OK)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Contar docentes y expertos por estado',
+        description='Devuelve conteos publicos de docentes, expertos y estudiantes, separando aprobados y no aprobados.',
+        responses={200: USER_TOTAL_ROLE_RESPONSE},
+    )
+)
 class TotalExpertTeacher(APIView):
-    """Este servicio devuelve el total de los expertos colaboradores en la plataforma."""
+    """Devuelve el resumen público de usuarios por rol y estado de aprobación."""
     permission_classes = [AllowAny]
 
     def get(self, request, format=None):
@@ -1180,31 +1770,237 @@ class TotalExpertTeacher(APIView):
         return Response(result, status=HTTP_200_OK)
 
 
+@extend_schema_view(
+    post=extend_schema(
+        tags=USER_AUTH_TAG,
+        summary='Iniciar sesion',
+        description='Valida credenciales y emite tokens JWT solo si la cuenta y el rol operativo estan activos.',
+        request=MyTokenObtainPairSerializer,
+        responses={200: USER_TOKEN_RESPONSE, 401: OpenApiResponse(description='Credenciales invalidas o usuario inactivo.')},
+    )
+)
 class MyObtainTokenPairView(TokenObtainPairView):
+    """Punto de entrada de login basado en JWT para el frontend.
+
+    Durante la migracion conserva el JSON legacy con `access` y `refresh`,
+    pero ademas emite ambas credenciales en cookies HttpOnly para que el
+    frontend pueda empezar a probar el nuevo contrato sin romperse.
     """
-        Login de usuarios.
-        Parametros requeridos correo y contraseña
-    """
+
+    authentication_classes = ()
     permission_classes = (AllowAny,)
     serializer_class = MyTokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        """Autentica y adjunta cookies JWT cuando el login es exitoso."""
+
+        response = super().post(request, *args, **kwargs)
+
+        if response.status_code == 200 and isinstance(response.data, dict):
+            access_token = response.data.get('access')
+            refresh_token = response.data.get('refresh')
+            if access_token and refresh_token:
+                set_auth_cookies(response, access_token, refresh_token)
+                set_csrf_cookie(request, response)
+
+        return response
+
+
+@extend_schema_view(
+    post=extend_schema(
+        tags=USER_AUTH_TAG,
+        summary='Refrescar token JWT',
+        description='Recibe un refresh token valido y devuelve un nuevo access token para mantener la sesion activa.',
+        request=USER_TOKEN_REFRESH_REQUEST,
+        responses={
+            200: USER_TOKEN_REFRESH_RESPONSE,
+            401: OpenApiResponse(description='Refresh token invalido o expirado.'),
+        },
+    )
+)
+class TokenRefreshSwaggerView(TokenRefreshView):
+    """Wrapper de SimpleJWT con soporte de refresh por body o por cookie.
+
+    Durante la migracion se mantiene el contrato legacy que acepta `refresh`
+    en el body, pero si el cliente no lo envia se intenta leer desde la cookie
+    HttpOnly `roa_refresh`.
+    """
+
+    authentication_classes = ()
+
+    def post(self, request, *args, **kwargs):
+        """Refresca el access token y reemite cookies cuando corresponde."""
+
+        data = request.data.copy()
+        refresh_from_body = data.get('refresh')
+        refresh_token = refresh_from_body or get_refresh_token_from_request(request)
+        if refresh_from_body is None and refresh_token:
+            enforce_csrf(request)
+        if refresh_token:
+            data['refresh'] = refresh_token
+            request._full_data = data
+
+        response = super().post(request, *args, **kwargs)
+
+        if response.status_code == 200 and isinstance(response.data, dict):
+            access_token = response.data.get('access')
+            rotated_refresh = response.data.get('refresh', refresh_token)
+            if access_token:
+                set_auth_cookies(response, access_token, rotated_refresh)
+                set_csrf_cookie(request, response)
+
+        return response
+
+
+@extend_schema_view(
+    post=extend_schema(
+        tags=USER_AUTH_TAG,
+        summary='Cerrar sesion',
+        description=(
+            'Invalida el refresh token si existe y limpia las cookies JWT del backend. '
+            'Durante la migracion acepta `refresh` por body o por cookie.'
+        ),
+        request=USER_TOKEN_REFRESH_REQUEST,
+        responses={
+            200: USER_MESSAGE_RESPONSE,
+        },
+    )
+)
+class LogoutAPIView(APIView):
+    """Cierra sesion del lado servidor invalidando refresh y limpiando cookies."""
+
+    authentication_classes = ()
+    permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        """Blacklistea el refresh token cuando es valido y limpia cookies."""
+
+        refresh_from_body = request.data.get('refresh')
+        refresh_token = refresh_from_body or get_refresh_token_from_request(request)
+
+        if refresh_from_body is None and refresh_token:
+            enforce_csrf(request)
+
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except TokenError:
+                # Logout se mantiene idempotente: aunque el token ya sea invalido
+                # o este expirado, igual se limpian cookies del cliente.
+                pass
+
+        response = Response({'message': 'Logout successful'}, status=HTTP_200_OK)
+        clear_auth_cookies(response)
+        clear_csrf_cookie(response)
+        return response
+
+
+@extend_schema_view(
+    get=extend_schema(
+        tags=USER_AUTH_TAG,
+        summary='Inicializar cookie CSRF',
+        description=(
+            'Entrega o renueva la cookie CSRF que el frontend debe reenviar como '
+            '`X-CSRFToken` cuando use autenticacion por cookies HttpOnly.'
+        ),
+        responses={200: USER_MESSAGE_RESPONSE},
+    )
+)
+class CsrfCookieAPIView(APIView):
+    """Inicializa la cookie CSRF usada por el frontend SPA."""
+
+    authentication_classes = ()
+    permission_classes = (AllowAny,)
+
+    def get(self, request, *args, **kwargs):
+        """Entrega una respuesta ligera y asegura que la cookie CSRF exista."""
+
+        response = Response(
+            {
+                'message': 'CSRF cookie set successfully',
+                'cookie': 'csrftoken',
+            },
+            status=HTTP_200_OK,
+        )
+        set_csrf_cookie(request, response)
+        return response
+
+
+@extend_schema_view(
+    post=extend_schema(
+        tags=USER_AUTH_TAG,
+        summary='Verificar token JWT',
+        description='Valida si un token JWT sigue siendo valido sin devolver datos adicionales.',
+        request=USER_TOKEN_VERIFY_REQUEST,
+        responses={
+            200: OpenApiResponse(description='Token valido.'),
+            401: OpenApiResponse(description='Token invalido o expirado.'),
+        },
+    )
+)
+class TokenVerifySwaggerView(TokenVerifyView):
+    """Wrapper de SimpleJWT para documentar la verificacion de token en Swagger."""
+
+    authentication_classes = ()
 
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=USER_AUTH_TAG,
+        summary='Obtener datos del usuario autenticado',
+        description='Devuelve datos basicos, roles activos y perfiles relacionados del usuario autenticado.',
+        responses={200: UserLoginDataSerializer, 401: OpenApiResponse(description='No autenticado.')},
+    )
+)
 class UserAPIView(RetrieveAPIView):
+    """Devuelve los datos de sesion del usuario autenticado.
+
+    Este endpoint funciona como punto de rehidratacion del frontend: acepta
+    bearer legacy o cookie `roa_access` y, cuando la sesion es valida, renueva
+    tambien la cookie CSRF para los siguientes requests mutables.
+    """
+
     permission_classes = (IsAuthenticated,)
     serializer_class = UserLoginDataSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        """Responde con el usuario autenticado y refresca la cookie CSRF."""
+
+        response = super().retrieve(request, *args, **kwargs)
+        if response.status_code == 200:
+            set_csrf_cookie(request, response)
+        return response
 
     def get_object(self):
         return self.request.user
 
 
+@extend_schema_view(
+    put=extend_schema(
+        tags=USER_AUTH_TAG,
+        summary='Cambiar contrasena',
+        description='Permite cambiar la contrasena del usuario autenticado cuando el `id` de la ruta coincide con su cuenta.',
+        parameters=[USER_PK_PARAMETER],
+        request=ChangePasswordSerializer,
+        responses={200: USER_MESSAGE_RESPONSE, 400: USER_MESSAGE_RESPONSE},
+    ),
+    patch=extend_schema(
+        tags=USER_AUTH_TAG,
+        summary='Cambiar contrasena parcialmente',
+        description='Mismo flujo que PUT, conservado para clientes que actualizan parcialmente.',
+        parameters=[USER_PK_PARAMETER],
+        request=ChangePasswordSerializer,
+        responses={200: USER_MESSAGE_RESPONSE, 400: USER_MESSAGE_RESPONSE},
+    ),
+)
 class ChangePasswordView(UpdateAPIView):
-    """
-        Cambiar contraseña del usuario
-    """
+    """Permite al usuario autenticado cambiar su propia contraseña."""
+
     queryset = User.objects.all()
     permission_classes = (IsAuthenticated,)
     serializer_class = ChangePasswordSerializer
@@ -1229,11 +2025,25 @@ mail = SendMail()
 
 
 class RequestPasswordResetEmail(GenericAPIView):
+    """Inicia el flujo de reseteo de contraseña por correo.
+
+    Mantiene un comportamiento heredado especial para estudiantes con
+    discapacidad, donde el reseteo no usa enlace sino una regeneración directa.
     """
-        Reset contraseña de usuario por correo
-    """
+
     permission_classes = [AllowAny]
     serializer_class = RequestPasswordResetEmailSerializer
+
+    @extend_schema(
+        tags=USER_AUTH_TAG,
+        summary='Solicitar reseteo de contrasena',
+        description=(
+            'Recibe el correo de la cuenta y envia un enlace de recuperacion. '
+            'Para estudiantes con discapacidad conserva el flujo heredado de regeneracion directa.'
+        ),
+        request=RequestPasswordResetEmailSerializer,
+        responses={200: USER_PASSWORD_RESET_RESPONSE, 404: OpenApiResponse(description='Correo no registrado.')},
+    )
 
     def post(self, request):
         data = {request: request, 'data': request.data}
@@ -1252,7 +2062,7 @@ class RequestPasswordResetEmail(GenericAPIView):
 
         uidb64 = urlsafe_base64_encode(smart_bytes(user.id))
         token = PasswordResetTokenGenerator().make_token(user)
-        absurl = env('DOMAIN_HOST_ROA') + '/#/password-resed/' + uidb64 + '/' + token + '/'
+        absurl = get_domain_host_roa() + '/#/password-resed/' + uidb64 + '/' + token + '/'
         mail.sendMailTest(user.email, absurl, user.first_name)
         return Response({
             "message": "We have send you a link to reset your password",
@@ -1261,11 +2071,20 @@ class RequestPasswordResetEmail(GenericAPIView):
         }, status=HTTP_200_OK)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=USER_AUTH_TAG,
+        summary='Verificar token de reseteo',
+        description='Valida que el `uidb64` y el token de recuperacion sigan siendo correctos antes de aceptar una nueva contrasena.',
+        parameters=[USER_UIDB64_PARAMETER, USER_VERIFY_TOKEN_PARAMETER],
+        responses={200: USER_PASSWORD_TOKEN_RESPONSE, 401: USER_PASSWORD_TOKEN_RESPONSE},
+    )
+)
 class PasswordTokenCkeckAPI(GenericAPIView):
-    """
-        Password token ckeck
-    """
+    """Verifica si el token de reseteo recibido sigue siendo válido."""
+
     permission_classes = [AllowAny]
+    serializer_class = serializers.Serializer
 
     def get(self, request, uidb64, token):
         try:
@@ -1279,10 +2098,18 @@ class PasswordTokenCkeckAPI(GenericAPIView):
             return Response({"error": "Token is no valid, please request a new one."}, status=HTTP_401_UNAUTHORIZED)
 
 
+@extend_schema_view(
+    patch=extend_schema(
+        tags=USER_AUTH_TAG,
+        summary='Guardar nueva contrasena',
+        description='Aplica la nueva contrasena usando el `uidb64` y token validados del flujo de recuperacion.',
+        request=SetNewPasswordSerializer,
+        responses={200: USER_MESSAGE_RESPONSE, 401: OpenApiResponse(description='Token invalido o expirado.')},
+    )
+)
 class SetNewPasswordAPIView(GenericAPIView):
-    """
-        Set new password
-    """
+    """Cierra el flujo de reseteo aplicando la nueva contraseña."""
+
     permission_classes = [AllowAny, ]
     serializer_class = SetNewPasswordSerializer
 
@@ -1292,63 +2119,92 @@ class SetNewPasswordAPIView(GenericAPIView):
         return Response({'status': True, 'message': 'Password reset succes.'}, status=HTTP_200_OK)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Consultar foto de perfil',
+        description='Devuelve el recurso de usuario usado para actualizar la imagen de perfil.',
+        parameters=[USER_PK_PARAMETER],
+        responses={200: UserUpdatePictureSerializer, 404: OpenApiResponse(description='Usuario no encontrado.')},
+    ),
+    put=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Actualizar foto de perfil',
+        description='Actualiza exclusivamente el archivo de imagen del usuario autenticado.',
+        parameters=[USER_PK_PARAMETER],
+        request=UserUpdatePictureSerializer,
+        responses={200: UserUpdatePictureSerializer, 400: OpenApiResponse(description='Payload invalido.')},
+    ),
+    patch=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Actualizar parcialmente foto de perfil',
+        description='Permite cambiar solo el campo `image` del usuario.',
+        parameters=[USER_PK_PARAMETER],
+        request=UserUpdatePictureSerializer,
+        responses={200: UserUpdatePictureSerializer, 400: OpenApiResponse(description='Payload invalido.')},
+    ),
+)
 class UpdateUserProfilePicture(RetrieveUpdateAPIView):
-    """
-        Actualizar foto de perfil de un usurio
-    """
+    """Actualiza solo la foto de perfil del usuario autenticado."""
+
     permission_classes = [IsAuthenticated, (IsStudentUser | IsTeacherUser | IsCollaboratingExpertUser)]
     serializer_class = UserUpdatePictureSerializer
     queryset = User.objects.all()
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Consultar preferencias de estudiante por correo',
+        description='Devuelve las preferencias asociadas al perfil estudiante de la cuenta identificada por correo.',
+        parameters=[USER_EMAIL_PARAMETER],
+        responses={200: UserListSerializers, 404: OpenApiResponse(description='Usuario no encontrado.')},
+    )
+)
 class GetStudentPreferences(RetrieveAPIView):
-    """
-        Obtener preferencias de un estudiante
-    """
+    """Expone las preferencias de un estudiante identificado por correo."""
 
     lookup_field = 'email'
     permission_classes = [AllowAny]
     serializer_class = UserListSerializers
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return User.objects.none()
         email = self.kwargs['email']
         obj = User.objects.filter(email=email)
         return obj
-    # def get(self, request):
-    #     print(request.user.email)
-    #     preferences = User.objects.get(email=request.user.email)
-    #     print(preferences)
-    #     serializer = UserListSerializers(preferences)
-    #     return Response(serializer.data, status=HTTP_200_OK)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=USER_REPORT_TAG,
+        summary='Generar reporte administrativo de docentes',
+        description='Lista docentes y sus OAs creados aplicando filtros por carga, texto, ubicacion institucional y rango de fechas.',
+        parameters=USER_REPORT_PARAMETERS,
+        responses={200: UserReportSerializer(many=True), 401: OpenApiResponse(description='No autenticado.'), 403: OpenApiResponse(description='Requiere rol administrador.')},
+    )
+)
 class ReportListAPIView(ListAPIView):
-    permission_classes = [AllowAny, ]
-    # permission_classes = [IsAuthenticated, IsAdministratorUser]
+    """Reporte administrativo de docentes con filtros y objetos creados."""
+
+    permission_classes = [IsAuthenticated, IsAdministratorUser]
     serializer_class = UserReportSerializer
+    pagination_class = UserReportPagination
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
-        # "first_name": ["icontains"],
-        # "last_name": ["icontains"],
-        # "email": ["icontains"],
-        # "university_id": ["exact"],
-        # "campus_id": ["exact"]
     }
 
     def get_queryset(self):
-
-        """ 
-        if date_init is None or date_end is None:
-            return LearningObjectMetadata.objects.filter(public=public).order_by('-pk')
-
-        return LearningObjectMetadata.objects.filter(public=public, created__range=[date_init, date_end]).order_by(
-            '-pk')
-        """
+        if getattr(self, "swagger_fake_view", False):
+            return User.objects.none()
         upload = self.request.query_params.get("upload")
         query = self.request.query_params.get("query")
         city = self.request.query_params.get("city")
         university = self.request.query_params.get("university")
         campus = self.request.query_params.get("campus")
+        created_init = self.request.query_params.get("created_init")
+        created_end = self.request.query_params.get("created_end")
 
         users = User.objects.filter(
             teacher_id__isnull=False
@@ -1363,7 +2219,7 @@ class ReportListAPIView(ListAPIView):
                 metadata_created__isnull=True
             )
 
-        if query is not None or query != "":
+        if query not in (None, ""):
             users = users.filter(
                 Q(first_name__icontains=query) |
                 Q(last_name__icontains=query) |
@@ -1384,25 +2240,44 @@ class ReportListAPIView(ListAPIView):
             users = users.filter(
                 campus_id=int(campus)
             )
+        if created_init is not None and created_end is not None:
+            date_init = datetime.strptime(created_init, '%Y-%m-%d').date()
+            date_end = datetime.strptime(created_end, '%Y-%m-%d').date()
+            users = users.filter(
+                created__date__range=[date_init, date_end]
+            )
+
         return users.order_by('-pk').distinct('id')
 
 
+@extend_schema_view(
+    post=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Enviar mensaje de contacto',
+        description='Envia el mensaje del formulario publico de contacto al correo institucional definido para atencion.',
+        request=EmailContacSerializer,
+        responses={200: USER_MESSAGE_RESPONSE, 400: USER_MESSAGE_RESPONSE},
+    )
+)
 class sendEmailContact(CreateAPIView):
-    """
-    Clase para enviar los emails a los administradores desde la pagina de contacto
-    """
+    """Envia mensajes del formulario publico de contacto al buzon institucional."""
+
     permission_classes = [AllowAny]
+    serializer_class = EmailContacSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = EmailContacSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        users_admin = User.objects.filter(is_superuser=True)
-        for user_admin in users_admin:
-            try:
-                mail_aproved.sendEmailContactAdmin(user_admin.email, user_admin.first_name + ' ' + user_admin.last_name,
-                                                   serializer['name'].value, serializer['email'].value,
-                                                   serializer['content'].value)
-            except Exception as e:
-                print(e)
-                return Response({'code': 400, 'message': 'Failed to send email'}, status=HTTP_400_BAD_REQUEST)
+        try:
+            for recipient_email, recipient_name in get_user_admin_notification_recipients():
+                mail_aproved.sendEmailContactAdmin(
+                    recipient_email,
+                    recipient_name,
+                    serializer['name'].value,
+                    serializer['email'].value,
+                    serializer['content'].value,
+                )
+        except Exception:
+            logger.exception("Error enviando correo de contacto al buzon institucional")
+            return Response({'code': 400, 'message': 'Failed to send email'}, status=HTTP_400_BAD_REQUEST)
         return Response({'code': 200, 'message': 'Email sent successfully'}, status=HTTP_200_OK)

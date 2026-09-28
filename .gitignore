@@ -1,12 +1,17 @@
 db.sqlite3
-media/avatar
-media/Educacion
-media/catalog
-media/oazip
-media/profile
-media/sourceFile
-!media/img
-!media/maplompad
+# Media generada en runtime (uploads, zips, avatars, etc.)
+media/*
+!media/.keep
+!media/maplompad/
+!media/maplompad/**
+!media/img/
+!media/img/.keep
+!media/img/user.png
+
+# Basura local dentro de media/maplompad
+media/maplompad/.idea/
+media/maplompad/**/__pycache__/
+media/maplompad/**/*.pyc
 # Migrations
 **/migrations/**
 !**/migrations
@@ -26,3 +31,9 @@ lvenv/
 __pycache__/
 __pycache__/*
 .idea/
+
+#Archivos de migración de versión
+docs/
+
+# Temporales locales de pruebas y diagnostico
+.tmp_test_media/

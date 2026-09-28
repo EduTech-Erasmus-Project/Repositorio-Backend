@@ -1,3 +1,12 @@
+"""Serializers del modulo `user`.
+
+Este archivo concentra lógica de negocio de entrada y salida para varios flujos del
+proyecto: autenticación, registro por rol, actualización de perfiles,
+listados administrativos, reportes y recuperación de contraseña.
+"""
+
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from applications.user.utils import Util
 from rest_framework.response import Response
 from roabackend.settings import DOMAIN
@@ -27,33 +36,47 @@ from ..learning_object_file.serializers import LearningObjectFileSerializer
 from ..learning_object_metadata.models import LearningObjectMetadata
 
 
+"""Helpers de colecciones simples reutilizados en payloads por rol."""
 class ArrayIntegerSerializer(serializers.ListField):
+    """Lista tipada de enteros para ids relacionados."""
+
     children = serializers.IntegerField(required=True)
 
 
 class ArrayStringSerializer(serializers.ListField):
+    """Lista tipada de strings para colecciones simples como `roles`."""
+
     child = serializers.CharField(required=True)
 
 
+"""Serializers básicos de administración y cuenta principal."""
 class AdminSerializer(serializers.ModelSerializer):
+    """Representación genérica del perfil administrativo."""
+
     class Meta:
         model = Administrator
         fields = ('__all__')
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """Serializer plano del modelo `User` para usos internos genéricos."""
+
     class Meta:
         model = User
         fields = ('__all__')
 
 
 class UserFullName(serializers.ModelSerializer):
+    """Salida reducida con nombres y apellidos del usuario."""
+
     class Meta:
         model = User
         fields = ('first_name', 'last_name')
 
 
 class UserAdminSerializer(serializers.Serializer):
+    """Entrada para creación administrativa de usuarios internos."""
+
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
     email = serializers.EmailField(required=True, validators=[
@@ -69,6 +92,8 @@ class UserAdminSerializer(serializers.Serializer):
 
 
 class UserAdmiUpdatenSerializer(serializers.Serializer):
+    """Entrada para actualización del perfil administrativo."""
+
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
     country = serializers.CharField(required=True)
@@ -79,72 +104,90 @@ class UserAdmiUpdatenSerializer(serializers.Serializer):
     observation = serializers.CharField(default="")
 
 
+"""Serializers de actualización por rol."""
 class UserUpdateSerializer(serializers.Serializer):
+    """Campos comunes del update de la cuenta principal.
+
+    Los atributos específicos de estudiante, docente y experto se validan con
+    serializers separados dentro del flujo de actualización.
+    """
+
     roles = ArrayStringSerializer()
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
-    city = serializers.IntegerField(required=True)
+    city = serializers.IntegerField(required=False, allow_null=True)
+    university = serializers.IntegerField(required=False, allow_null=True)
+    campus = serializers.IntegerField(required=False, allow_null=True)
     # image = serializers.ImageField(required=True)
 
 
 class UserUpdatePictureSerializer(serializers.ModelSerializer):
+    """Actualización acotada de la imagen de perfil."""
+
     class Meta:
         model = User
         fields = ('image',)
 
 
 class StudentUpdateSerializer(serializers.Serializer):
+    """Entrada de actualización para el perfil estudiante."""
+
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
     birthday = serializers.DateField(required=True)
     has_disability = serializers.BooleanField(default=False)
-    disability_description = serializers.CharField(default=None)
+    disability_description = serializers.CharField(required=False, allow_blank=True, allow_null=True, default="")
     education_levels = ArrayIntegerSerializer()
     knowledge_areas = ArrayIntegerSerializer()
     preferences = ArrayIntegerSerializer()
 
     def validate_education_levels(self, value):
         for i in value:
-            if len(EducationLevel.objects.filter(pk=i)) == 0:
+            if not EducationLevel.objects.filter(pk=i).exists():
                 raise serializers.ValidationError(f"No existe el nivel de educación con id {i}")
         return value
 
     def validate_knowledge_areas(self, value):
         for i in value:
-            if len(KnowledgeArea.objects.filter(pk=i)) == 0:
+            if not KnowledgeArea.objects.filter(pk=i).exists():
                 raise serializers.ValidationError(f"No existe el area de conocimiento con id {i}")
         return value
 
     def validate_preferences(self, value):
         for i in value:
-            if len(Preferences.objects.filter(pk=i)) == 0:
+            if not Preferences.objects.filter(pk=i).exists():
                 raise serializers.ValidationError(f"No existe las preferencias con id {i}")
         return value
 
 
 class TeacherUpdateSerializer(serializers.Serializer):
+    """Entrada de actualización para el perfil docente."""
+
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
     professions = ArrayIntegerSerializer()
 
     def validate_professions(self, value):
         for i in value:
-            if len(Profession.objects.filter(pk=i)) == 0:
+            if not Profession.objects.filter(pk=i).exists():
                 raise serializers.ValidationError(f"No existe la profesión con id {i}")
         return value
 
 
 class CollaboratingExpertUpdateSerializer(serializers.Serializer):
+    """Entrada de actualización para el perfil de experto colaborador."""
+
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
     expert_level = serializers.CharField(required=True)
-    web = serializers.URLField(default=None, allow_null=True)
-    academic_profile = serializers.CharField(default=None, allow_null=True)
-    campus = serializers.IntegerField(required=True)
-    city = serializers.IntegerField(required=True)
-    university = serializers.IntegerField(required=True)
+    web = serializers.URLField(default=None)
+    academic_profile = serializers.CharField(default=None)
 
+
+"""Serializers de lectura y registro por rol."""
 class UserListSerializer(serializers.ModelSerializer):
+    """Salida administrativa de usuario con perfil admin."""
+
     administrator = AdminSerializer()
     image_url = serializers.SerializerMethodField()
 
@@ -160,12 +203,15 @@ class UserListSerializer(serializers.ModelSerializer):
             'administrator'
         )
 
+    @extend_schema_field(OpenApiTypes.URI)
     def get_image_url(self, obj):
         if obj.image is not None:
             return DOMAIN + obj.image.url
 
 
 class UserCommentSerializer(serializers.ModelSerializer):
+    """Salida breve para comentarios u otras vistas públicas ligeras."""
+
     image_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -178,12 +224,19 @@ class UserCommentSerializer(serializers.ModelSerializer):
             'email'
         )
 
+    @extend_schema_field(OpenApiTypes.URI)
     def get_image_url(self, obj):
         if obj.image is not None:
             return DOMAIN + obj.image.url
 
 
 class RoleSerializer(serializers.Serializer):
+    """Entrada base para registro de usuarios por rol.
+
+    Reúne los campos comunes y deja a serializers específicos por rol
+    la validación de atributos adicionales.
+    """
+
     roles = ArrayStringSerializer()
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
@@ -215,49 +268,58 @@ class RoleSerializer(serializers.Serializer):
 
 
 class StudentCreateSerializer(serializers.Serializer):
+    """Entrada de registro para el perfil estudiante."""
+
     birthday = serializers.DateField(required=True)
     has_disability = serializers.BooleanField(default=False)
-    disability_description = serializers.CharField(default=None)
+    disability_description = serializers.CharField(required=False, allow_blank=True, allow_null=True, default="")
     education_levels = ArrayIntegerSerializer()
     knowledge_areas = ArrayIntegerSerializer()
     preferences = ArrayIntegerSerializer()
 
     def validate_education_levels(self, value):
         for i in value:
-            if len(EducationLevel.objects.filter(pk=i)) == 0:
+            if not EducationLevel.objects.filter(pk=i).exists():
                 raise serializers.ValidationError(f"No existe el nivel de educación con id {i}")
         return value
 
     def validate_knowledge_areas(self, value):
         for i in value:
-            if len(KnowledgeArea.objects.filter(pk=i)) == 0:
+            if not KnowledgeArea.objects.filter(pk=i).exists():
                 raise serializers.ValidationError(f"No existe el area de conocimiento con id {i}")
         return value
 
     def validate_preferences(self, value):
         for i in value:
-            if len(Preferences.objects.filter(pk=i)) == 0:
+            if not Preferences.objects.filter(pk=i).exists():
                 raise serializers.ValidationError(f"No existe las preferencias con id {i}")
         return value
 
 
 class TeacherCreateSerializer(serializers.Serializer):
+    """Entrada de registro para el perfil docente."""
+
     professions = ArrayIntegerSerializer()
 
     def validate_professions(self, value):
         for i in value:
-            if len(Profession.objects.filter(pk=i)) == 0:
+            if not Profession.objects.filter(pk=i).exists():
                 raise serializers.ValidationError(f"No existe la profesión con id {i}")
         return value
 
 
 class CollaboratingExpertCreateSerializer(serializers.Serializer):
+    """Entrada de registro para el perfil de experto colaborador."""
+
     expert_level = serializers.CharField(required=True)
     web = serializers.CharField(default=None)
     academic_profile = serializers.CharField(default=None)
 
 
+"""Serializers de lectura expandida usados por el frontend y listados admin."""
 class StudentListSerializer(serializers.ModelSerializer):
+    """Salida expandida del perfil estudiante con relaciones anidadas."""
+
     education_levels = EducationLevelListSerializer(many=True)
     knowledge_areas = KnowledgeAreaListSerializer(many=True)
     preferences = PreferencesListSerializer(many=True)
@@ -275,9 +337,9 @@ class StudentListSerializer(serializers.ModelSerializer):
             'preferences'
         )
 
-
-# AQUI
 class UserListSerializersPreferences(serializers.ModelSerializer):
+    """Salida reducida usada cuando solo interesa exponer preferencias."""
+
     preferences = PreferencesListSerializersTest(many=True)
 
     class Meta:
@@ -288,6 +350,8 @@ class UserListSerializersPreferences(serializers.ModelSerializer):
 
 
 class TeacherListSerializer(serializers.ModelSerializer):
+    """Salida expandida del perfil docente."""
+
     professions = ProfessionListSerializer(many=True)
 
     class Meta:
@@ -300,6 +364,8 @@ class TeacherListSerializer(serializers.ModelSerializer):
 
 
 class ExpertListSerializer(serializers.ModelSerializer):
+    """Salida expandida del perfil de experto colaborador."""
+
     class Meta:
         model = CollaboratingExpert
         fields = (
@@ -312,6 +378,8 @@ class ExpertListSerializer(serializers.ModelSerializer):
 
 
 class AdministratorListSerializer(serializers.ModelSerializer):
+    """Salida completa del perfil administrativo."""
+
     class Meta:
         model = Administrator
         fields = (
@@ -320,6 +388,12 @@ class AdministratorListSerializer(serializers.ModelSerializer):
 
 
 class GeneralUserListSerializer(serializers.ModelSerializer):
+    """Salida completa de usuario para vistas generales del frontend.
+
+    Expone perfiles relacionados ya serializados y deriva la lista de roles
+    visibles a partir del estado activo de cada perfil.
+    """
+
     student = StudentListSerializer()
     teacher = TeacherListSerializer()
     collaboratingExpert = ExpertListSerializer()
@@ -349,10 +423,12 @@ class GeneralUserListSerializer(serializers.ModelSerializer):
             'campus'
         )
 
+    @extend_schema_field(OpenApiTypes.URI)
     def get_image(self, obj):
         if obj.image is not None:
             return DOMAIN + obj.image.url
 
+    @extend_schema_field(serializers.ListField(child=serializers.CharField()))
     def get_roles(self, obj):
         role_lis = []
         if obj.student is not None:
@@ -365,6 +441,8 @@ class GeneralUserListSerializer(serializers.ModelSerializer):
 
 
 class GeneralUserStudent_View_ListSerializer(serializers.ModelSerializer):
+    """Salida reducida de usuario para vistas estudiantiles."""
+
     roles = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
 
@@ -382,10 +460,12 @@ class GeneralUserStudent_View_ListSerializer(serializers.ModelSerializer):
             'modified',
         )
 
+    @extend_schema_field(OpenApiTypes.URI)
     def get_image(self, obj):
         if obj.image is not None:
             return DOMAIN + obj.image.url
 
+    @extend_schema_field(serializers.ListField(child=serializers.CharField()))
     def get_roles(self, obj):
         role_lis = []
         if obj.student is not None:
@@ -398,6 +478,8 @@ class GeneralUserStudent_View_ListSerializer(serializers.ModelSerializer):
 
 
 class UserLoginDataSerializer(serializers.ModelSerializer):
+    """Salida usada durante login para resolver roles activos del usuario."""
+
     roles = serializers.SerializerMethodField()
 
     class Meta:
@@ -415,6 +497,7 @@ class UserLoginDataSerializer(serializers.ModelSerializer):
             'administrator',
         )
 
+    @extend_schema_field(serializers.ListField(child=serializers.CharField()))
     def get_roles(self, obj):
         role_lis = []
         if obj.student is not None:
@@ -430,7 +513,10 @@ class UserLoginDataSerializer(serializers.ModelSerializer):
         return role_lis
 
 
+"""Serializers administrativos para aprobación, rechazo y listados por rol."""
 class AdminDisaprovedTeacherCollaboratingExpertSerializer(serializers.ModelSerializer):
+    """Lista usuarios con perfiles docente/experto pendientes o desaprobados."""
+
     teacher = TeacherListSerializer()
     collaboratingExpert = ExpertListSerializer()
     rol_solicitados = serializers.SerializerMethodField()
@@ -452,10 +538,12 @@ class AdminDisaprovedTeacherCollaboratingExpertSerializer(serializers.ModelSeria
             'modified',
         )
 
+    @extend_schema_field(OpenApiTypes.URI)
     def get_image_url(self, obj):
         if obj.image is not None:
             return DOMAIN + obj.image.url
 
+    @extend_schema_field(serializers.ListField(child=serializers.CharField()))
     def get_rol_solicitados(self, obj):
         role_lis = []
         if obj.teacher is not None and obj.teacher.is_active is False:
@@ -466,6 +554,8 @@ class AdminDisaprovedTeacherCollaboratingExpertSerializer(serializers.ModelSeria
 
 
 class AdminAprovedTeacherCollaboratingExpertSerializer(serializers.ModelSerializer):
+    """Lista usuarios con perfiles docente/experto aprobados."""
+
     teacher = TeacherListSerializer()
     collaboratingExpert = ExpertListSerializer()
     rol_aprovados = serializers.SerializerMethodField()
@@ -487,10 +577,12 @@ class AdminAprovedTeacherCollaboratingExpertSerializer(serializers.ModelSerializ
             'modified',
         )
 
+    @extend_schema_field(OpenApiTypes.URI)
     def get_image_url(self, obj):
         if obj.image is not None:
             return DOMAIN + obj.image.url
 
+    @extend_schema_field(serializers.ListField(child=serializers.CharField()))
     def get_rol_aprovados(self, obj):
         role_lis = []
         if obj.teacher is not None and obj.teacher.is_active is True:
@@ -501,6 +593,8 @@ class AdminAprovedTeacherCollaboratingExpertSerializer(serializers.ModelSerializ
 
 
 class AdminAprovedTeacherCollaboratingExpertSerializer(serializers.ModelSerializer):
+    """Duplicado heredado del serializer de aprobados."""
+
     teacher = TeacherListSerializer()
     collaboratingExpert = ExpertListSerializer()
     rol_aprovados = serializers.SerializerMethodField()
@@ -522,10 +616,12 @@ class AdminAprovedTeacherCollaboratingExpertSerializer(serializers.ModelSerializ
             'modified',
         )
 
+    @extend_schema_field(OpenApiTypes.URI)
     def get_image_url(self, obj):
         if obj.image is not None:
             return DOMAIN + obj.image.url
 
+    @extend_schema_field(serializers.ListField(child=serializers.CharField()))
     def get_rol_aprovados(self, obj):
         role_lis = []
         if obj.teacher is not None and obj.teacher.is_active is True:
@@ -536,12 +632,15 @@ class AdminAprovedTeacherCollaboratingExpertSerializer(serializers.ModelSerializ
 
 
 class AdminAprovedTeacherCollaboratingExpertWithOaSerializer(serializers.ModelSerializer):
+    """Lista perfiles aprobados junto con los objetos de aprendizaje creados."""
+
     teacher = TeacherListSerializer()
     collaboratingExpert = ExpertListSerializer()
     rol_aprovados = serializers.SerializerMethodField()
     image_url = serializers.SerializerMethodField()
     learning_objects = serializers.SerializerMethodField()
 
+    @extend_schema_field(serializers.ListField(child=serializers.DictField()))
     def get_learning_objects(self, obj):
         objects = LearningObjectMetadata.objects.filter(user_created=obj)
         serializer = LearningObjectMetadataReport(objects, many=True)
@@ -564,10 +663,12 @@ class AdminAprovedTeacherCollaboratingExpertWithOaSerializer(serializers.ModelSe
             'learning_objects',
         )
 
+    @extend_schema_field(OpenApiTypes.URI)
     def get_image_url(self, obj):
         if obj.image is not None:
             return DOMAIN + obj.image.url
 
+    @extend_schema_field(serializers.ListField(child=serializers.CharField()))
     def get_rol_aprovados(self, obj):
         role_lis = []
         if obj.teacher is not None and obj.teacher.is_active is True:
@@ -578,6 +679,8 @@ class AdminAprovedTeacherCollaboratingExpertWithOaSerializer(serializers.ModelSe
 
 
 class AdminStudentListSerializer(serializers.ModelSerializer):
+    """Salida administrativa de usuarios con perfil estudiante."""
+
     student = StudentListSerializer()
     # collaboratingExpert=ExpertListSerializer()
     image_url = serializers.SerializerMethodField()
@@ -596,12 +699,15 @@ class AdminStudentListSerializer(serializers.ModelSerializer):
             'modified',
         )
 
+    @extend_schema_field(OpenApiTypes.URI)
     def get_image_url(self, obj):
         if obj.image is not None:
             return DOMAIN + obj.image.url
 
 
 class AdminTeacherListSerializer(serializers.ModelSerializer):
+    """Salida administrativa de usuarios con perfil docente."""
+
     teacher = TeacherListSerializer()
 
     class Meta:
@@ -619,6 +725,8 @@ class AdminTeacherListSerializer(serializers.ModelSerializer):
 
 
 class AdminCollaboratingExpertListSerializer(serializers.ModelSerializer):
+    """Salida administrativa de usuarios con perfil experto colaborador."""
+
     collaboratingExpert = ExpertListSerializer()
 
     class Meta:
@@ -636,6 +744,8 @@ class AdminCollaboratingExpertListSerializer(serializers.ModelSerializer):
 
 
 class AdminAdministratorListSerializer(serializers.ModelSerializer):
+    """Salida administrativa de usuarios con perfil administrador."""
+
     administrator = AdministratorListSerializer()
     image_url = serializers.SerializerMethodField()
 
@@ -653,38 +763,59 @@ class AdminAdministratorListSerializer(serializers.ModelSerializer):
             'modified',
         )
 
+    @extend_schema_field(OpenApiTypes.URI)
     def get_image_url(self, obj):
         if obj.image is not None:
             return DOMAIN + obj.image.url
 
 
 class UpdateTecherCollaboratingExpertDisapprovedSerializer(serializers.Serializer):
+    """Payload administrativo para desaprobar perfiles docentes y/o experto."""
+
     teacher_is_active = serializers.BooleanField(default=False)
     expert_is_active = serializers.BooleanField(default=False)
 
 
 class UpdateTecherCollaboratingExpertApproveedSerializer(serializers.Serializer):
+    """Payload administrativo para aprobar perfiles docentes y/o experto."""
+
     teacher_is_active = serializers.BooleanField(default=True)
     expert_is_active = serializers.BooleanField(default=True)
 
 
 class AdminUpdateStudentSerializer(serializers.Serializer):
+    """Payload administrativo para activar o desactivar estudiantes."""
+
     student_is_active = serializers.BooleanField(default=False)
 
 
 class AdminUpdateCollaboratingExpertSerializer(serializers.Serializer):
+    """Payload administrativo para activar o desactivar expertos."""
+
     expert_is_active = serializers.BooleanField(default=False)
 
 
 class AdminUpdateAdministratorSerializer(serializers.Serializer):
+    """Payload administrativo para activar o desactivar administradores."""
+
     administrator_is_active = serializers.BooleanField(default=False)
 
 
+"""Serializers de autenticación, recuperación de cuenta y reportes."""
 class OrcidValidationSerializer(serializers.Serializer):
+    """Valida la recepción del identificador ORCID en flujos externos."""
+
     orcid = serializers.CharField(max_length=200)
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """Emite JWT solo para cuentas y perfiles marcados como activos.
+
+    El proyecto distingue entre activación de cuenta (`is_account_active`) y
+    aprobación operativa del rol (`is_active`). Este serializer conserva ambas
+    verificaciones antes de emitir el token.
+    """
+
     @classmethod
     def get_token(cls, user):
         # token = super(MyTokenObtainPairSerializer, cls).get_token(user)
@@ -706,6 +837,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class ChangePasswordSerializer(serializers.ModelSerializer):
+    """Entrada para cambio autenticado de contraseña actual."""
+
     password = serializers.CharField(write_only=True, required=True)
     password2 = serializers.CharField(write_only=True, required=True)
     old_password = serializers.CharField(write_only=True, required=True)
@@ -748,6 +881,8 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 # from django.urls import reverse
 
 class RequestPasswordResetEmailSerializer(serializers.Serializer):
+    """Entrada del inicio del flujo de reseteo de contraseña por correo."""
+
     email = serializers.EmailField(min_length=2)
 
     class Meta:
@@ -755,6 +890,8 @@ class RequestPasswordResetEmailSerializer(serializers.Serializer):
 
 
 class SetNewPasswordSerializer(serializers.Serializer):
+    """Entrada del cierre del flujo de reseteo de contraseña por correo usando token y uid codificado."""
+
     password = serializers.CharField(min_length=4, max_length=68, write_only=True)
     token = serializers.CharField(min_length=1, write_only=True)
     uidb64 = serializers.CharField(min_length=1, write_only=True)
@@ -780,6 +917,8 @@ class SetNewPasswordSerializer(serializers.Serializer):
 
 
 class UserListSerializers(serializers.ModelSerializer):
+    """Salida mínima de usuario enfocada en preferencias del estudiante."""
+
     student = UserListSerializersPreferences()
 
     class Meta:
@@ -790,6 +929,8 @@ class UserListSerializers(serializers.ModelSerializer):
 
 
 class LearningObjectMetadataReport(serializers.ModelSerializer):
+    """Representa objetos creados por un usuario dentro de reportes."""
+
     learning_object_file = LearningObjectFileSerializer()
 
     class Meta:
@@ -798,6 +939,8 @@ class LearningObjectMetadataReport(serializers.ModelSerializer):
 
 
 class UserReportSerializer(serializers.ModelSerializer):
+    """Salida administrativa para reportes de usuarios y sus objetos creados."""
+
     # metadata_created = LearningObjectMetadataReport(many=True)
     learning_objects = serializers.SerializerMethodField()
     country = CountrySerializer()
@@ -806,17 +949,14 @@ class UserReportSerializer(serializers.ModelSerializer):
     university = UniversitySerializer()
     campus = CampusSerializer()
 
+    @extend_schema_field(LearningObjectMetadataReport(many=True))
     def get_learning_objects(self, obj):
         date_init = self.context['request'].query_params.get("created_init")
         date_end = self.context['request'].query_params.get("created_end")
-        upload = self.context['request'].query_params.get("upload")
+        objects = LearningObjectMetadata.objects.filter(user_created=obj).order_by('-pk')
 
-        # print("params", bool(int(upload))) bool(int(upload)) and
-        objects = LearningObjectMetadata.objects.filter(user_created=obj)
-
-        if upload == "upload" and (date_init is None or date_end is None):
-            objects = objects.filter(user_created=obj, created__range=[date_init, date_end]).order_by(
-                '-pk')
+        if date_init is not None and date_end is not None:
+            objects = objects.filter(created__date__range=[date_init, date_end])
 
         serializer = LearningObjectMetadataReport(objects, many=True)
         return serializer.data
@@ -830,6 +970,8 @@ class UserReportSerializer(serializers.ModelSerializer):
 
 
 class EmailContacSerializer(serializers.Serializer):
+    """Entrada del formulario de contacto público."""
+
     email = serializers.EmailField(required=True)
     name = serializers.CharField(required=True)
     content = serializers.CharField(required=True)

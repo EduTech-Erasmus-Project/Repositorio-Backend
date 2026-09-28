@@ -1,5 +1,15 @@
+"""Helpers pequeños reutilizados por el módulo de metadata de OAs."""
+
+
 def get_rating_value(rating):
-    data=0
+    """Convierte el rating interno a la escala visible usada por el frontend.
+
+    El mapeo conserva los umbrales heredados del proyecto, aunque no sea una
+    escala lineal continua. Si se cambia esta función hay que revisar
+    serializadores, listados públicos y pruebas de compatibilidad.
+    """
+
+    data = 0
     if rating > 0 and rating <= 0.9:
         data = 1
     elif rating > 2 and rating <= 2.9:

@@ -1,7 +1,19 @@
-from yaml import serialize
+"""Vistas y helpers para carga, extracción e integración de archivos OA.
 
+Este módulo concentra el flujo mas operativo del repositorio:
+
+- recepción de paquetes ZIP IMS/SCORM
+- extracción local del contenido y lectura del manifest
+- generación de previsualización
+- integración con OER Adapt
+- borrado de registros y limpieza de archivos asociados
+"""
+
+from yaml import serialize
+import logging
 from applications.user.models import User
-from rest_framework import viewsets
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema, extend_schema_view, inline_serializer
+from rest_framework import serializers, viewsets
 from rest_framework import status
 from rest_framework.views import APIView
 from media.maplompad.controller import FileController
@@ -17,6 +29,7 @@ import shortuuid
 from bs4 import BeautifulSoup as bs
 from applications.user.mixins import IsTeacherUser, IsAdministratorUser
 from roabackend import settings as _settings
+from django.conf import settings
 from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
@@ -37,42 +50,143 @@ from ..helpers_functions.beautiful_soup_data import read_html_files, look_for_cl
     verify_that_oa_was_made_exelearning
 from roabackend.settings import DEBUG
 from io import BytesIO
-booleanLomLomes = True  # If booleanLomLomes is True represents a lom format, and
-# if booleanLomLomes is False represents a lomes format.
+logger = logging.getLogger(__name__)
+booleanLomLomes = True  # True representa manifests LOM; False representa LOMES.
 from applications.learning_object_file.emailManagerLO import SendMail
-#Para la coneccion con S3
 import environ
 env = environ.Env()
 BASE_DIR = Path(__file__).ancestor(3)
-#Set the project base directory
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 
+LEARNING_OBJECT_FILE_TAG = ['Learning Object File Management']
+LEARNING_OBJECT_FILE_DELETE_TAG = ['Learning Object File Deletion']
+LEARNING_OBJECT_OER_TAG = ['Learning Object OER Adapt']
+
+LEARNING_OBJECT_FILE_ID_PARAMETER = OpenApiParameter(
+    name='id',
+    type=int,
+    location=OpenApiParameter.PATH,
+    description='Identificador del archivo OA o de la metadata segun el endpoint de borrado usado.',
+)
+LEARNING_OBJECT_FILE_DELETE_MESSAGE_PARAMETER = OpenApiParameter(
+    name='message',
+    type=str,
+    location=OpenApiParameter.QUERY,
+    required=False,
+    description='Motivo que administracion envia por correo al docente cuando elimina el OA.',
+)
+LEARNING_OBJECT_FILE_ERRORS_RESPONSE = inline_serializer(
+    name='LearningObjectFileErrorsResponse',
+    fields={
+        'media': serializers.BooleanField(),
+        'scorm': serializers.BooleanField(),
+        'web': serializers.BooleanField(),
+        'is_exelearning': serializers.BooleanField(),
+    },
+)
+LEARNING_OBJECT_FILE_UPLOAD_RESPONSE = inline_serializer(
+    name='LearningObjectFileUploadResponse',
+    fields={
+        'metadata': serializers.JSONField(help_text='Metadata extraida del manifest IMS/SCORM.'),
+        'oa_file': LearningObjectSerializer(),
+        'tag_count': serializers.IntegerField(allow_null=True),
+        'data': LEARNING_OBJECT_FILE_ERRORS_RESPONSE,
+    },
+)
+LEARNING_OBJECT_FILE_MESSAGE_RESPONSE = inline_serializer(
+    name='LearningObjectFileMessageResponse',
+    fields={
+        'message': serializers.CharField(),
+        'code': serializers.IntegerField(required=False),
+        'status': serializers.IntegerField(required=False),
+        'data': serializers.JSONField(required=False),
+    },
+)
+LEARNING_OBJECT_OER_RESPONSE = inline_serializer(
+    name='LearningObjectOerAdaptResponse',
+    fields={
+        'message': serializers.CharField(),
+        'status': serializers.IntegerField(),
+        'data': serializers.JSONField(required=False),
+    },
+)
+
+
+@extend_schema_view(
+    list=extend_schema(
+        tags=LEARNING_OBJECT_FILE_TAG,
+        summary='Listar archivos OA cargados',
+        description='Lista registros `LearningObjectFile`. En el flujo normal se usa principalmente para administracion o depuracion.',
+        responses={200: LearningObjectSerializer(many=True)},
+    ),
+    retrieve=extend_schema(
+        tags=LEARNING_OBJECT_FILE_TAG,
+        summary='Consultar archivo OA cargado',
+        description='Devuelve el registro del archivo comprimido, su URL de preview, tamanio, carpeta extraida y datos de integracion OER si existen.',
+        parameters=[LEARNING_OBJECT_FILE_ID_PARAMETER],
+        responses={200: LearningObjectSerializer, 404: OpenApiResponse(description='Archivo OA no encontrado.')},
+    ),
+    create=extend_schema(
+        tags=LEARNING_OBJECT_FILE_TAG,
+        summary='Cargar archivo ZIP de objeto de aprendizaje',
+        description=(
+            'Recibe un paquete ZIP IMS/SCORM cargado por un docente, lo guarda, lo extrae, lee el manifest, '
+            'busca el archivo inicial de preview y devuelve la metadata detectada. Si falla la validacion, '
+            'revierte el registro y limpia archivos temporales asociados.'
+        ),
+        request=LearningObjectSerializer,
+        responses={
+            200: LEARNING_OBJECT_FILE_UPLOAD_RESPONSE,
+            400: OpenApiResponse(description='Payload invalido.'),
+            404: LEARNING_OBJECT_FILE_MESSAGE_RESPONSE,
+        },
+    ),
+    update=extend_schema(
+        tags=LEARNING_OBJECT_FILE_TAG,
+        summary='Actualizar registro de archivo OA',
+        description='Actualiza completamente el registro `LearningObjectFile`. No ejecuta el flujo de extraccion inicial.',
+        request=LearningObjectSerializer,
+        responses={200: LearningObjectSerializer, 400: OpenApiResponse(description='Payload invalido.')},
+    ),
+    partial_update=extend_schema(
+        tags=LEARNING_OBJECT_FILE_TAG,
+        summary='Actualizar parcialmente registro de archivo OA',
+        description='Permite modificar campos puntuales del registro `LearningObjectFile`.',
+        request=LearningObjectSerializer,
+        responses={200: LearningObjectSerializer, 400: OpenApiResponse(description='Payload invalido.')},
+    ),
+    destroy=extend_schema(
+        tags=LEARNING_OBJECT_FILE_DELETE_TAG,
+        summary='Eliminar registro de archivo OA',
+        description='Elimina el registro del archivo OA usando la operacion estandar del ViewSet.',
+        parameters=[LEARNING_OBJECT_FILE_ID_PARAMETER],
+        responses={204: OpenApiResponse(description='Archivo OA eliminado.')},
+    ),
+)
 class LearningObjectModelViewSet(viewsets.ModelViewSet):
-    # authentication_classes = (TokenAuthentication,)
+    """Endpoint principal para cargar un nuevo paquete OA comprimido."""
+
     permission_classes = [IsAuthenticated, IsTeacherUser]
     serializer_class = LearningObjectSerializer
     queryset = LearningObjectFile.objects.all()
 
     def create(self, request, *args, **kwargs):
+        """Carga un ZIP IMS/SCORM, extrae su metadata y genera preview inicial."""
+
         global booleanLomLomes
-        """
-        Servicio para cargar un OA comprimido y obtener los metadatos correspontientes al Objeto de Aprendizaje.
-        Se necesita estar autenticado como docente.
-        """
-        #variable para manejo de errores
+
         errorsFeedback={ "media":False,"scorm":False,"web":False, "is_exelearning":False}
 
         data = any
         serializer = LearningObjectSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        # file_path = os.path.join(BASE_DIR,'media',str(serializer.validated_data['file']))
 
         learningObject = LearningObjectFile.objects.create(
             file=serializer.validated_data['file']
-            # file_name = serializer.validated_data['file_name'],
-            # file_size = serializer.validated_data['file_size']
         )
+        # Nombre base de respaldo si falla el parseo antes de generar uno dinámico.
+        file_name = str(serializer.validated_data['file']).split('.')[0]
 
         now = datetime.now()
         total_time = timedelta(
@@ -103,8 +217,7 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
             request_host = self.request._current_scheme_host
             filename_index, filename, url = search_file_index(request_host, listNames, folder_area, file_name)
 
-            PROJECT_ROOT = os.path.abspath(os.path.dirname(PROJECT_ROOT))
-            XMLFILES_FOLDER = os.path.join(PROJECT_ROOT, filename)
+            XMLFILES_FOLDER = filename
 
             if get_index_imsmanisfest(XMLFILES_FOLDER) != '':
                 index = get_index_imsmanisfest(XMLFILES_FOLDER)
@@ -114,8 +227,10 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
                     errorsFeedback['web'] = True
                 if index.find('index.html') != -1:
                     if verify_that_oa_was_made_exelearning(
-                            os.path.join(BASE_DIR, filename_index, 'imsmanifest.xml').replace('\\', '/')):
+                        os.path.join(filename_index, 'imsmanifest.xml').replace('\\','/')
+                    ):
                         errorsFeedback['is_exelearning'] = True
+
             else:
                 delete_new_learning_object_fail(file_name, learningObject)
                 errorsFeedback['scorm'] = True
@@ -131,8 +246,6 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
             if XMLFILES_FOLDER is not None:
                 URL = url + index
                 #URL.replace('http://', 'https://', 1)
-                if DEBUG is False:
-                    URL = URL.replace('http://', 'https://', 1)
                 learningObject.url = URL
                 learningObject.file_name = nombre[0]
                 learningObject.file_size = zip_kb
@@ -142,7 +255,7 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
                 return Response({"message": "No se encontro metadatos en el Objeto de Aprendizaje"},
                                 status=HTTP_404_NOT_FOUND)
         except Exception as e:
-            print(e)
+            logger.exception("Error procesando el zip del objeto de aprendizaje")
             delete_new_learning_object_fail(file_name, learningObject)
             errorsFeedback['scorm'] = True
             return Response({"message": "Objetos de Aprendizaje aceptados por el repositorio es IMS y SCORM.","data":errorsFeedback},
@@ -151,7 +264,7 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
         try:
             count_tag = generate_preview_information(learningObject, url)
         except Exception as e:
-            print(e)
+            logger.exception("Error generando informacion de previsualización del objeto de aprendizaje")
             delete_new_learning_object_fail(file_name, learningObject)
             errorsFeedback['media'] = True
             return Response({"message": "Existen problemas con el contenido multimedia.","data":errorsFeedback}, status=HTTP_404_NOT_FOUND);
@@ -166,25 +279,30 @@ class LearningObjectModelViewSet(viewsets.ModelViewSet):
         return Response(metadata, status=HTTP_200_OK)
 
 def delete_new_learning_object_fail(file_name, learningObject):
-    zip_file = str(learningObject.file)
-    zip_file_path = os.path.join(BASE_DIR, 'media', zip_file.replace('/', '\\'))
-    catalog_path = os.path.join(BASE_DIR, 'media','catalog',file_name)
+    """Revierte archivos y registro cuando falla la carga inicial del OA."""
+
+    zip_file_path = None
     try:
-        remove(str(zip_file_path.replace('\\', '/')))
+        # Ruta física real del archivo en almacenamiento local.
+        zip_file_path = learningObject.file.path
+    except Exception:
+        zip_file = str(learningObject.file)
+        zip_file_path = os.path.join(settings.MEDIA_ROOT, zip_file.replace('/', os.sep))
+
+    catalog_path = os.path.join(settings.MEDIA_ROOT, 'catalog', file_name)
+    try:
+        remove(str(zip_file_path))
     except Exception as e:
         pass
 
     try:
-        rmtree(str(catalog_path.replace('\\', '/')))
+        rmtree(str(catalog_path))
     except Exception as e:
         pass
     learningObject.delete()
 
 def method_extract_zip_file(file, dir_aux, folder_area, file_name, vec):
-    """
-        Metodo para extraer el archivo zip
-        y guardarlo en S3 o media/ local
-    """
+    """Extrae el ZIP recibido en el almacenamiento local del repositorio."""
 
 
     for archi in sorted(file.namelist()):
@@ -193,25 +311,19 @@ def method_extract_zip_file(file, dir_aux, folder_area, file_name, vec):
             pathFiles = url_base_media_from_local(True, folder_area, file_name)
         else:
             pathFiles = url_base_media_from_local(False, folder_area, file_name)
-            # pathFiles = url_base_media_from_s3_local(False, folder_area, file_name)
 
         file.extract(archi, pathFiles)
 
         for nom in vec:
             if nom.endswith(".xml"):
                 listNames.append(nom)
-                # if archi.find(dir_aux) == -1:
-                #   path = os.path.join(_settings.MEDIA_ROOT + "/" + folder_area + "/" + file_name + "/")
-                # else:
-                #   path = os.path.join(_settings.MEDIA_ROOT + "/")
     file.close()
 
     return file, dir_aux, folder_area, file_name, vec, listNames
 
 def extract_zip_file(path, file_name, file):
-    """
-        Extrae un archivo zip en una ruta determinada
-        :param path:
+    """Extrae un ZIP en una ruta concreta preservando la carpeta de origen.
+    :param path:
         :param file_name:
         :param file:
         :return:
@@ -230,48 +342,40 @@ def extract_zip_file(path, file_name, file):
         zip_file.extractall(directory_origin)
 
 def url_base_media_from_local(identify, folder_area,file_name):
-    """
-        Metodo para devolver las URLs, para descomprimir el OA validando las rutas locales
-        o las rutas de S3 (Amazon)
-    """
+    """Resuelve la ruta base donde se descomprime el OA en almacenamiento local."""
     if identify == True:
-            pathFiles = os.path.join(_settings.MEDIA_ROOT + folder_area + "/" + file_name + "/")
+            pathFiles = os.path.join(settings.MEDIA_ROOT, folder_area, file_name)
     else:
-            pathFiles = os.path.join(_settings.MEDIA_ROOT)
+            pathFiles = os.path.join(settings.MEDIA_ROOT)
 
     return pathFiles
 
 def path_origin_check(file_name):
-    return os.path.join(BASE_DIR, 'media', 'catalog', file_name)
+    """Construye la carpeta local donde queda extraído el OA."""
+
+    return os.path.join(settings.MEDIA_ROOT, 'catalog', file_name)
 
 def generate_preview_information(learningObject, url):
-    """
-        Metodo que extrae informacion del objeto de aprendizaje
-        , verifica si el objeto esta adaptado por la herramienta
-        OerAdap
-    """
+    """Calcula conteos y recursos de preview a partir del contenido extraído."""
     # pocedemos a leer los recursos que tiene el objeto de aprendizaje
     count_general_paragaph, count_general_img, count_general_audio, count_general_video = read_html_files(
         learningObject.path_origin)
 
-    # Lectura del archivo index para buscar si esta adaptado por la herramienta Oeradap
+    # Lectura del archivo índex para buscar si está adaptado por la herramienta Oeradap
     is_adapted_oer = False
     try:
         with open(os.path.join(learningObject.path_origin, 'index.html')) as file:
             is_adapted_oer = look_for_class_oeradap(os.path.join(learningObject.path_origin, 'index.html'))
-        # No need to close the file
     except FileNotFoundError:
-        print('Lo sentimos no existe el archivo index en la carpeta raiz')
-        # exit()
+        logger.warning('No existe el archivo índex en la carpeta raíz del OA')
 
     url_img_prev = os.path.join(learningObject.path_origin, 'img-prev.png')
     url_request_host = os.path.join(url, 'img-prev.png')
     url_img_preview = os.path.exists(url_img_prev)
 
-    # Verificamos si existe la imagen de previsualizacion
+    # Verificamos si existe la imagen de previsualización
     if url_img_preview:
         uuid = str(shortuuid.ShortUUID().random(length=8))
-        # name = str('img-prev-' + uuid + '.png')
         name = str('img-prev.png')
     else:
         name = ''
@@ -295,6 +399,8 @@ def generate_preview_information(learningObject, url):
 # Funciones para leer los metadatos
 
 def upload_file(_filepath):
+    """Carga y normaliza el manifest XML para identificar su perfil."""
+
     global booleanLomLomes
 
     _profile = None
@@ -320,23 +426,25 @@ def upload_file(_filepath):
     elif (childTag == "lomes:lom"):
         booleanLomLomes = False
     else:
-        print('Error, the file does not contain metadata')
+        logger.error('El archivo no contiene metadatos reconocibles')
 
     if xml_manifest == -1:
         _profile = 'IMS'
     elif xml_manifest != -1:
         _profile = 'SCORM'
     else:
-        return print('Error, the file does not contain imslrm.xml nor imsmanifest.xml files.')
+        logger.error('El archivo no contiene imslrm.xml ni imsmanifest.xml')
+        return None
     if xml_manifest is not None:
-        print("Manifest con datos")
+        logger.info("Manifest con datos")
     else:
-        print('Error trying to parse the imsmanifest.xml')
+        logger.error('Error intentando parsear el imsmanifest.xml')
 
-    # print("profile: ", _profile, " filepath: ", _filepath)
     return _profile, _filepath, booleanLomLomes, xml_manifest
 
 def read_file(filepath, profile):
+    """Parsea el manifest ya localizado y devuelve la estructura cargada."""
+
     redundant_elements = [' uniqueElementName="general"', ' uniqueElementName="catalog"', ' uniqueElementName="entry"',
                           ' uniqueElementName="aggregationLevel"', ' uniqueElementName="role"',
                           ' uniqueElementName="dateTime"',
@@ -353,8 +461,7 @@ def read_file(filepath, profile):
         for redundant in redundant_elements:
             xml_manifest = xml_manifest.replace(redundant, '')
         xml_manifest = xml_manifest.replace('lom:', '')
-        print("xml correcto")
-        # print(xml_manifest)
+        logger.info("xml correcto")
     else:
         xml_manifest = FileController.read_manifest(filepath)
         for redundant in redundant_elements:
@@ -369,22 +476,19 @@ def read_file(filepath, profile):
         from_lompad = True
 
     if xml_manifest == -1:
-        print('Error, file not found or corrupted.')
+        logger.error('Archivo de metadatos no encontrado o corrupto')
 
     if not from_lompad:
         load = FileController.load_recursive_model(xml_manifest, booleanLomLomes, filepath)
-        # print("Load: ",load)
         return load, xml_manifest
     else:
         load = FileController.load_recursive_model(xml_manifest, filepath, is_lompad_exported=True)
-        # print("Load: ",load)
         return load, xml_manifest
 
-# Se terminan las funciones
 def get_metadata_imsmanisfest(filename):
+    """Devuelve la metadata del manifest en formato JSON serializado."""
+
     global booleanLomLomes
-    # with open(filename, 'r',encoding="utf-8") as myfile:
-    #    jsondoc = xmltodict.parse(myfile.read())
     profile, filepath, booleanLomLomes, xml_manifest = upload_file(filename.replace('\\', '/'))
     load, xml_manifest = read_file(filepath, profile)
     import json
@@ -392,6 +496,8 @@ def get_metadata_imsmanisfest(filename):
     return json_object
 
 def get_metadata_imsmanisfest1(filename):
+    """Parser legacy con BeautifulSoup para manifests LOM clásicos."""
+
     general = {}
     lifecycle = {}
     metaMetadata = {}
@@ -554,6 +660,8 @@ def get_metadata_imsmanisfest1(filename):
 from bs4 import BeautifulSoup
 
 def get_metadata_imsmanisfest_normal(filename):
+    """Parser alterno y más simple para manifests XML legacy."""
+
     general = {}
     lifecycle = {}
     metaMetadata = {}
@@ -567,17 +675,20 @@ def get_metadata_imsmanisfest_normal(filename):
     with open(filename, 'r', encoding="utf-8") as myfile:
         jsondoc = xmltodict.parse(myfile.read())
         data = jsondoc['manifest']
-        # title = data.find('metadata').find('general').find('title').find('string')
         res = BeautifulSoup(jsondoc)
     return jsondoc
 
 def validateData(data):
+    """Extrae texto de un nodo BeautifulSoup o devuelve un placeholder."""
+
     if data:
         return data.text
     else:
         return "No existe valor"
 
 def validateDataBr(data):
+    """Extrae texto reemplazando saltos HTML `<br>` por comas visibles."""
+
     if data:
         for dat in data.select("br"):
             dat.replace_with("\n")
@@ -587,6 +698,8 @@ def validateDataBr(data):
         return "No existe valor"
 
 def get_index_file(filepath):
+    """Busca un `index.html` o `excursion.html` dentro del OA extraído."""
+
     file = ""
     index_path = ""
     index_url = ""
@@ -602,6 +715,8 @@ def get_index_file(filepath):
     return index_url
 
 def get_index_imsmanisfest(filename):
+    """Lee el primer recurso listado en el manifest IMS."""
+
     content = []
     result = ""
     try:
@@ -616,11 +731,12 @@ def get_index_imsmanisfest(filename):
                 else:
                     result = ""
     except Exception as e:
-        print(e)
-        print("Error al leer el archivo method1")
+        logger.exception("Error al leer el archivo method1")
     return result
 
 def folder_name(value):
+    """Normaliza nombres de áreas a slugs de carpeta heredados."""
+
     return {
         "Programas generales": "Programas-generales",
         "Educación": "Educacion",
@@ -634,10 +750,31 @@ def folder_name(value):
         "Sectores desconocidos no especificados": "Otros"
     }[value]
 
+@extend_schema_view(
+    destroy=extend_schema(
+        tags=LEARNING_OBJECT_FILE_DELETE_TAG,
+        summary='Eliminar OA cargado por docente',
+        description=(
+            'Elimina un archivo de objeto de aprendizaje cargado por el docente autenticado. '
+            'Tambien intenta borrar la metadata asociada, el ZIP, el avatar y la carpeta extraida del catalogo local.'
+        ),
+        parameters=[LEARNING_OBJECT_FILE_ID_PARAMETER],
+        responses={
+            200: LEARNING_OBJECT_FILE_MESSAGE_RESPONSE,
+            400: LEARNING_OBJECT_FILE_MESSAGE_RESPONSE,
+            401: OpenApiResponse(description='No autenticado.'),
+            403: OpenApiResponse(description='Requiere rol docente.'),
+        },
+    )
+)
 class DeleteLearningObjectViewSet(viewsets.ViewSet):
+    """Permite al docente eliminar uno de sus archivos OA cargados."""
+
     permission_classes = [IsAuthenticated, IsTeacherUser]
 
     def destroy(self, request, pk=None):
+        """Elimina el archivo OA y su metadata asociada si existe."""
+
         is_not_metadata = False
         learning_object_metadata_instance = None
         learning_object_instance = None
@@ -656,16 +793,37 @@ class DeleteLearningObjectViewSet(viewsets.ViewSet):
         else:
             return Response({'message': 'Error trying to delete record not found'}, status=status.HTTP_400_BAD_REQUEST)
 
-#Importamos las clases para la mesajeria
+#Importamos las clases para la mensajería
 mail_delete_oa = SendMail()
+@extend_schema_view(
+    destroy=extend_schema(
+        tags=LEARNING_OBJECT_FILE_DELETE_TAG,
+        summary='Eliminar OA desde administracion',
+        description=(
+            'Elimina un OA desde administracion usando el identificador de metadata. '
+            'Ademas limpia archivos fisicos y envia un correo al docente con el motivo recibido en `message`.'
+        ),
+        parameters=[LEARNING_OBJECT_FILE_ID_PARAMETER, LEARNING_OBJECT_FILE_DELETE_MESSAGE_PARAMETER],
+        responses={
+            200: LEARNING_OBJECT_FILE_MESSAGE_RESPONSE,
+            400: LEARNING_OBJECT_FILE_MESSAGE_RESPONSE,
+            401: OpenApiResponse(description='No autenticado.'),
+            403: OpenApiResponse(description='Requiere rol administrador.'),
+        },
+    )
+)
 class DeleteLearningObjectViewSetAdmin(viewsets.ViewSet):
+    """Permite a administración eliminar un OA y notificar el motivo."""
+
     permission_classes = [IsAuthenticated, IsAdministratorUser]
 
     def destroy(self, request, pk=None):
+        """Elimina un OA desde metadata y notifica al docente propietario.
+
+        El `pk` recibido aquí corresponde al registro de metadata, no al
+        registro de `LearningObjectFile`.
         """
-            Funcion para eliminar desde el Admin los objetos de aprendizaje
-            El id que viene es el id de la tabla de metadatos, no de la tabla de learning Object
-        """
+
         is_not_metadata = False
         learning_object_metadata_instance = None
         learning_object_instance = None
@@ -692,11 +850,8 @@ class DeleteLearningObjectViewSetAdmin(viewsets.ViewSet):
             return Response({'message': 'Error trying to delete record not found'}, status=status.HTTP_400_BAD_REQUEST)
 
 def deleteLearningObjectsFile(learning_object_metadata_instance,learning_object_instance,is_not_metadata):
-    """
-        Función que nos permite eliminar el objeto de aprendizaje enviando como parámetro los datos que se van a eliminar
-        params: learning_object_metadata_instance, learning_object_instance, is_not_metadata
+    """Elimina avatar, ZIP y carpeta extraída asociados a un OA."""
 
-    """
     if (learning_object_metadata_instance or learning_object_instance):
         avatar = ''
         avatar_path = None
@@ -729,9 +884,28 @@ def deleteLearningObjectsFile(learning_object_metadata_instance,learning_object_
         else:
             return Response({'message': 'Error loading routes'}, status=status.HTTP_400_BAD_REQUEST)
 
+@extend_schema_view(
+    post=extend_schema(
+        tags=LEARNING_OBJECT_OER_TAG,
+        summary='Crear o refrescar OA desde OER Adapt',
+        description=(
+            'Recibe datos enviados por OER Adapt para crear una copia integrada del OA o actualizar el ZIP ya integrado. '
+            'Valida la llave publica del usuario, descarga el ZIP remoto y mantiene la referencia de retorno hacia ROA/OER.'
+        ),
+        request=LearningObjectOerAdapt,
+        responses={
+            200: LEARNING_OBJECT_OER_RESPONSE,
+            400: LEARNING_OBJECT_OER_RESPONSE,
+        },
+    )
+)
 class getDataNewLearningObject(APIView):
+    """Integra o actualiza un OA proveniente desde OER Adapt."""
+
     permission_classes = [AllowAny]
     def post(self, request):
+        """Crea o refresca un OA integrado según el identificador recibido."""
+
         serializer = LearningObjectOerAdapt(data=request.data)
         serializer.is_valid(raise_exception=True)
         user_exist = validate_user_key(serializer['key'].value)
@@ -744,12 +918,11 @@ class getDataNewLearningObject(APIView):
             if is_crete is False:
                 return Response({'message':message_method,'status':400}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                request.data['roa_ref_url']='https://roa.ups.edu.ec/#/settings/my-objects'
+                request.data['roa_ref_url']='https://repositorio.edutech-project.org/#/settings/my-objects'
                 return Response({'message': message_method,'status':200, 'data':request.data}, status=status.HTTP_200_OK)
         elif len(learning_object) == 1 and learning_object[0].oa_integration_id != None:
             learning_object_integration = LearningObjectFile.objects.filter(pk=learning_object[0].oa_integration_id)
             file_path_oa_zip =os.path.abspath(os.path.join(_settings.MEDIA_ROOT,str(learning_object_integration[0].file)))
-            #file_response = requests.get(request.data['urlZip'])
             file_path_catalog = learning_object_integration[0].path_origin
             try:
                 data_request=requests.get(request.data['urlZip'])
@@ -761,7 +934,7 @@ class getDataNewLearningObject(APIView):
                     zipfile.extractall(file_path_catalog)
                     zipfile.close()
             except Exception as e:
-                print(e)
+                logger.exception("Error actualizando OA integrado desde OER")
                 return Response({'message':e,'status':400}, status=HTTP_400_BAD_REQUEST)
             request.data['roa_ref_url'] = env('DOMAIN_HOST_OER')
             return Response({'message':'Updated successfully','status':200, 'data':request.data}, status=HTTP_200_OK)
@@ -771,13 +944,16 @@ class getDataNewLearningObject(APIView):
 from django.core.files.storage import default_storage
 
 class funcionDeleteOldFolderAndRegisters(viewsets.ViewSet):
+    """Limpia registros huérfanos y carpetas antiguas del catálogo local."""
+
     permission_classes = [AllowAny]
     def list(self, request):
+        """Sincroniza disco y base eliminando carpetas/registros sin pareja."""
+
         learningObjects = LearningObjectFile.objects.all()
         for learnign in learningObjects:
             metadata = LearningObjectMetadata.objects.filter(learning_object_file_id=learnign.id)
             if len(metadata) == 0:
-                #print('APTH',str(learnign.path_origin))
                 zip_file = str(learnign.file.name)
                 zip_file_path = os.path.join(BASE_DIR, 'media', zip_file.replace('/', '\\'))
                 if learnign.path_origin is not None:
@@ -819,17 +995,35 @@ class funcionDeleteOldFolderAndRegisters(viewsets.ViewSet):
                         pass
         return Response({'message':'Delete folders and registers successfully'}, status= HTTP_200_OK)
 
+@extend_schema_view(
+    post=extend_schema(
+        tags=LEARNING_OBJECT_OER_TAG,
+        summary='Guardar datos de integracion OER',
+        description=(
+            'Persiste en `LearningObjectFile` las fechas, URLs de preview y enlace de OER Adapt devueltos por la integracion. '
+            'El endpoint valida que el usuario exista por `user_key` y que el OA no tenga una integracion previa.'
+        ),
+        request=LearningObjectFileOerSerializer,
+        responses={
+            200: LEARNING_OBJECT_OER_RESPONSE,
+            400: LEARNING_OBJECT_OER_RESPONSE,
+        },
+    )
+)
 class saveDataIntegrationWithOer(APIView):
+    """Guarda metadatos de integración devueltos por OER Adapt."""
+
     permission_classes = [AllowAny]
-    #permission_classes = [IsAuthenticated, IsTeacherUser]
     def post(self, request):
+        """Persiste fechas, previews y URL de integración para un OA."""
+
         serializer = LearningObjectFileOerSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         try:
             learning_object = LearningObjectFile.objects.get(pk=serializer['id'].value)
         except Exception as e:
-            print(e)
+            logger.exception("Error obteniendo LearningObjectFile para integración OER")
             return Response({'message':e,'status':400}, status=HTTP_400_BAD_REQUEST)
 
         error_status, message=validate_items_before_creating(serializer,learning_object)
@@ -846,9 +1040,8 @@ class saveDataIntegrationWithOer(APIView):
         return Response({'message':'The data was saved successfully', 'status':200,'data':request.data}, status=HTTP_200_OK)
 
 def validate_items_before_creating(serializer,learning_object):
-    #if len(learning_object) == 0:
-      #  return True,'No relationship found with the id entered'
-    #el
+    """Valida precondiciones antes de crear una integración con OER."""
+
     if validate_user_key(serializer['user_key'].value) is False:
         return True,'Incorrect data, no action can be executed'
     elif learning_object.oa_integration_id is not None:
@@ -858,6 +1051,8 @@ def validate_items_before_creating(serializer,learning_object):
     return False,''
 
 def validate_user_key(key_user):
+    """Comprueba si existe un usuario con la llave publica indicada."""
+
     user = User.objects.filter(user_key = key_user)
     if len(user) == 0:
         return False
@@ -865,60 +1060,66 @@ def validate_user_key(key_user):
         return True
 
 def search_file_index(request_host,listNames,folder_area, file_name):
+    """Localiza el manifest o índice principal y construye su URL base."""
+
     filename_index=''
     filename=''
     url=''
     files = ["imslrm.xml", "imsmanifest.xml", "imsmanifest_nuevo.xml", "catalogacionLomes.xml"]
     for fileName in files:
         if fileName in listNames and fileName in listNames:
-            filename_index = "media/" + folder_area + "/" + file_name
-            filename = os.path.join('media', folder_area, file_name, files[0])
+            filename_index = os.path.join(settings.MEDIA_ROOT, folder_area, file_name)
+            filename = os.path.join(settings.MEDIA_ROOT, folder_area, file_name, files[0])
             url = request_host + "/media/" + folder_area + "/" + file_name + "/"
             break
         if files[0] in listNames and files[1] not in listNames and files[2] not in listNames and files[
             3] not in listNames:
-            filename_index = "media/" + folder_area + "/" + file_name
-            filename = os.path.join('media', folder_area, file_name, files[0])
+            filename_index = os.path.join(settings.MEDIA_ROOT, folder_area, file_name)
+            filename = os.path.join(settings.MEDIA_ROOT, folder_area, file_name, files[0])
             url = request_host + "/media/" + folder_area + "/" + file_name + "/"
             break
         if files[0] not in listNames and files[1] in listNames and files[2] not in listNames and files[
             3] not in listNames:
-            filename_index = "media/" + folder_area + "/" + file_name
-            filename = os.path.join('media', folder_area, file_name, files[1])
+            filename_index = os.path.join(settings.MEDIA_ROOT, folder_area, file_name)
+            filename = os.path.join(settings.MEDIA_ROOT, folder_area, file_name, files[1])
             url = request_host + "/media/" + folder_area + "/" + file_name + "/"
             break
         if files[0] not in listNames and files[1] not in listNames and files[2] in listNames and files[
             3] not in listNames:
-            filename_index = "media/" + folder_area + "/" + file_name
-            filename = os.path.join('media', folder_area, file_name, files[2])
+            filename_index = os.path.join(settings.MEDIA_ROOT, folder_area, file_name)
+            filename = os.path.join(settings.MEDIA_ROOT, folder_area, file_name, files[2])
             url = request_host + "/media/" + folder_area + "/" + file_name + "/"
             break
         if files[0] not in listNames and files[1] not in listNames and files[2] not in listNames and files[
             3] in listNames:
-            filename_index = "media/" + folder_area + "/" + file_name
-            filename = os.path.join('media', folder_area, file_name, files[3])
+            filename_index = os.path.join(settings.MEDIA_ROOT, folder_area, file_name)
+            filename = os.path.join(settings.MEDIA_ROOT, folder_area, file_name, files[3])
             url = request_host + "/media/" + folder_area + "/" + file_name + "/"
             break
     return filename_index, filename, url
 
 def read_and_extract_xml_and_zip(file,dir_aux,folder_area,file_name,vec):
+    """Extrae el ZIP descargado y devuelve nombres XML detectados."""
+
     for archi in sorted(file.namelist()):
         listNames = []
         if archi.find(dir_aux) == -1:
-            pathFiles = os.path.join(_settings.MEDIA_ROOT + "/" + folder_area + "/" + file_name + "/")
+            pathFiles = os.path.join(settings.MEDIA_ROOT, folder_area, file_name)
         else:
-            pathFiles = os.path.join(_settings.MEDIA_ROOT + "/")
+            pathFiles = os.path.join(settings.MEDIA_ROOT)
         file.extract(archi, pathFiles)
         for nom in vec:
             if nom.endswith(".xml"):
                 listNames.append(nom)
                 if archi.find(dir_aux) == -1:
-                    path = os.path.join(_settings.MEDIA_ROOT + "/" + folder_area + "/" + file_name + "/")
+                    path = os.path.join(settings.MEDIA_ROOT, folder_area, file_name)
                 else:
-                    path = os.path.join(_settings.MEDIA_ROOT + "/")
+                    path = os.path.join(settings.MEDIA_ROOT)
     return listNames, pathFiles
 
 def variable_definition_Oa(file_path, file_name):
+    """Prepara variables base para procesar un OA integrado desde ZIP."""
+
     settings_dir = os.path.dirname(__file__)
     PROJECT_ROOT = os.path.abspath(os.path.dirname(settings_dir))
     folder_area = "catalog"
@@ -929,6 +1130,7 @@ def variable_definition_Oa(file_path, file_name):
     return file, dir_aux, folder_area, file_name_oa, vec, PROJECT_ROOT
 
 def create_and_register_new_learning_object(request, host):
+    """Descarga desde OER, crea el archivo OA y clona su metadata base."""
 
     file_name = request.data['urlZip'].split('/')[-1]
     file_response = requests.get(request.data['urlZip'])
@@ -966,14 +1168,16 @@ def create_and_register_new_learning_object(request, host):
                        path_origin=file_path_oa,
                        url=url+index
                        )
-        #learningObject.save()
-        """Volcado de datos para la tabla de metadatos"""
+        
+        #Volcado de datos para la tabla de metadatos
         create_metadata_learning_object(object_metadata, request.data['IdOa'],learningObject.id, pathFiles)
         return True, 'Saved successfully'
     except Exception as err:
         return False, err
 
 def get_metadata_and_evaluation(XMLFILES_FOLDER):
+    """Extrae solo los campos de metadata necesarios para OER Adapt."""
+
     data = get_metadata_imsmanisfest(XMLFILES_FOLDER)
     data_json = json.loads(data)
     accessibilityHazard = data_json['accesibility']['accessibilityHazard']['value']
@@ -995,11 +1199,13 @@ def get_metadata_and_evaluation(XMLFILES_FOLDER):
     return object_metadata
 
 def create_metadata_learning_object(object_metadata,id,new_learning_object_file_id,pathFiles):
+    """Clona metadata existente a un nuevo `LearningObjectFile` integrado."""
+
     learning_object_metadata = LearningObjectMetadata.objects.filter(learning_object_file_id=id)
     learning_object_related = LearningObjectFile.objects.get(pk=id)
     learning_object_related.oa_integration_id = new_learning_object_file_id
     learning_object_related.save()
-    #Copiamos la imagen de previsualizacion
+    #Copiamos la imagen de previsualización
     try:
         name_img = 'img-prev_' + generate_characters_random() + '.png'
         shutil.copy(os.path.abspath(os.path.join(pathFiles, 'img-prev.png')),
@@ -1099,6 +1305,8 @@ def create_metadata_learning_object(object_metadata,id,new_learning_object_file_
     automaticEvaluation(new_learning_object_metadata.id)
 
 def generate_characters_random():
+    """Genera un sufijo corto aleatorio para nombres auxiliares de archivos."""
+
     import string
     import random
     return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(8))

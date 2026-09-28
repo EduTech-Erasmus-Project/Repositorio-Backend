@@ -1,11 +1,22 @@
+"""Serializers para la evaluación estudiantil de objetos de aprendizaje.
+
+El archivo mezcla cuatro grupos principales:
+
+- serialización de la rúbrica que consume el frontend
+- validación de payloads para crear evaluaciones estudiantiles
+- serializers de consulta con resultados agregados
+- serializers CRUD para principios, lineamientos y preguntas
+"""
+
+from drf_spectacular.utils import extend_schema_field
 from rest_framework.validators import UniqueValidator
 from roabackend.settings import CALIFICATION_OPTIONS, YES,NO, NOT_APPLY
 from applications.learning_object_metadata.models import LearningObjectMetadata
 from applications.evaluation_student.models import EvaluationGuidelineQualification, EvaluationPrincipleQualification, EvaluationQuestionQualification, Guideline, Principle, Question, StudentEvaluation
 from rest_framework import serializers
-# Serializers
-
 class StudentQuestionSerializer(serializers.ModelSerializer):
+    """Expone una pregunta de la rúbrica con sus intérpretes de respuesta."""
+
     class Meta:
         model = Question
         fields = (
@@ -21,7 +32,9 @@ class StudentQuestionSerializer(serializers.ModelSerializer):
             )
 
 class GuidelineSerializer(serializers.ModelSerializer):
-    questions = StudentQuestionSerializer(many=True)
+    """Entrega un lineamiento junto con sus preguntas ordenadas."""
+
+    questions = serializers.SerializerMethodField()
     class Meta:
         model = Guideline
         fields = (
@@ -29,8 +42,17 @@ class GuidelineSerializer(serializers.ModelSerializer):
             'guideline', 
             'questions'
             )
+
+    @extend_schema_field(StudentQuestionSerializer(many=True))
+    def get_questions(self, obj) -> list:
+        """Resuelve las preguntas hijas del lineamiento en el orden histórico del módulo."""
+        queryset = obj.questions.all().order_by('id')
+        return StudentQuestionSerializer(queryset, many=True).data
+
 class PrincipleSerializer(serializers.ModelSerializer):
-    guidelines = GuidelineSerializer(many=True)
+    """Entrega un principio con toda su jerarquía de lineamientos y preguntas."""
+
+    guidelines = serializers.SerializerMethodField()
     class Meta:
         model = Principle
         fields = (
@@ -39,7 +61,15 @@ class PrincipleSerializer(serializers.ModelSerializer):
             'guidelines',
             )
 
+    @extend_schema_field(GuidelineSerializer(many=True))
+    def get_guidelines(self, obj) -> list:
+        """Resuelve los lineamientos hijos del principio en orden estable."""
+        queryset = obj.guidelines.all().order_by('id')
+        return GuidelineSerializer(queryset, many=True).data
+
 class EvaluationQuestionQualificationSerializer(serializers.ModelSerializer):
+    """Representa la calificación persistida para una pregunta respondida."""
+
     evaluation_question = StudentQuestionSerializer(required=True)
     class Meta:
         model = EvaluationQuestionQualification
@@ -50,11 +80,15 @@ class EvaluationQuestionQualificationSerializer(serializers.ModelSerializer):
             )
 
 class LearningObjectMetadataSerialize(serializers.ModelSerializer):
+    """Versión resumida del OA para respuestas de evaluación estudiantil."""
+
     class Meta:
         model= LearningObjectMetadata
         exclude = ('public', )
 
 class StudentEvaluationSerializer(serializers.ModelSerializer):
+    """Serializa una evaluación estudiantil con el OA y sus respuestas base."""
+
     learning_object= LearningObjectMetadataSerialize(read_only=True)
     studentevaluations = EvaluationQuestionQualificationSerializer(many=True,read_only=True)
     class Meta:
@@ -69,39 +103,47 @@ class StudentEvaluationSerializer(serializers.ModelSerializer):
             )
 
 class ArrayIntegerSerializer(serializers.ListField):
+    """Helper legacy para listas de enteros en requests simples."""
     children = serializers.IntegerField(required=True)
 
 class ArrayFloatSerializer(serializers.ListField):
+    """Helper legacy para listas de flotantes en requests simples."""
     children = serializers.FloatField(required=True)
-########################################################serializer para enviar las respuestas#######################################################
 
 class ArrayDicFielSerializer(serializers.ListField):
+    """Lista de diccionarios usada para enviar respuestas por pregunta."""
     children = serializers.DictField(required=True)
 
 class EvaluationStudentCreateSerializer(serializers.Serializer):
+    """Valida la carga que crea o actualiza una evaluación estudiantil."""
+
     learning_object= serializers.IntegerField(required=True)
     results= ArrayDicFielSerializer()
     observation = serializers.CharField(required=False)
+
     def validate(self, data):
+        """Verifica existencia del OA, preguntas y opciones permitidas."""
         incident = LearningObjectMetadata.objects.filter(pk=int(data['learning_object']))
         if not incident:
             raise serializers.ValidationError(f"Not exist oa with code {int(data['learning_object'])}")
         for value in data['results']:
-            if len(Question.objects.filter(pk=value['id']))==0:
+            if not Question.objects.filter(pk=value['id']).exists():
                  raise serializers.ValidationError(f"Not exist question with pk {value['id']}")
         for option in data['results']:
             if option['value'] != CALIFICATION_OPTIONS['YES'] and option['value'] != CALIFICATION_OPTIONS['NO'] and option['value'] != CALIFICATION_OPTIONS['PARTIALLY'] and option['value'] != CALIFICATION_OPTIONS['NOT_APPLY']:
                 raise serializers.ValidationError(f"Options are Si, No, No aplica and Parcialmente")
         return data
 
-#############################CRUD PREGUNTAS
-
 class EvaluationQuestionStSerializer(serializers.ModelSerializer):
+    """Serializer CRUD directo para preguntas de la rúbrica estudiantil."""
+
     class Meta:
         model = Question
         fields = ('__all__')
 
 class EvaluationQuestionStRegisterSerializer(serializers.Serializer):
+    """Valida el alta o actualización manual de preguntas estudiantiles."""
+
     """question = serializers.CharField(required=True,validators=[
         UniqueValidator(queryset=Question.objects.all(), 
         message="Esta pregunta ya esta registrado.",
@@ -120,14 +162,16 @@ class EvaluationQuestionStRegisterSerializer(serializers.Serializer):
     relevance = serializers.CharField(required=True)
     ###################################################
 
-###list
-
 class EvaluationPrincipleSerializer(serializers.ModelSerializer):
+    """Salida reducida de un principio para listados simples."""
+
     class Meta:
         model = Principle
         fields = ['principle',] 
 
 class EvaluationSchemaListSerializer(serializers.ModelSerializer):
+    """Expone la configuración completa de una pregunta dentro del schema."""
+
     class Meta:
         model = Question
         fields = ('id',
@@ -144,21 +188,24 @@ class EvaluationSchemaListSerializer(serializers.ModelSerializer):
         )
 
 class EvaluationGuidelinesListSerializer(serializers.ModelSerializer):
+    """Entrega un lineamiento con todas sus preguntas de schema."""
+
     questions=EvaluationSchemaListSerializer(many=True, read_only=True)
     class Meta:
         model = Guideline
         fields = ['id','guideline', 'questions']
 
 class EvaluationPrincipleListSerializer(serializers.ModelSerializer):
+    """Entrega un principio con su estructura completa para administración."""
+
     guidelines=EvaluationGuidelinesListSerializer(many=True, read_only=True)
     class Meta:
         model = Principle
         fields = ['id','principle', 'guidelines']
 
-
-#####################serializers del create evaluation
-
 class EvaluationQuestionListStudentSerializer(serializers.ModelSerializer):
+    """Pregunta presentada al reconstruir una evaluación ya respondida."""
+
     class Meta:
         model = Question
         fields = (
@@ -173,6 +220,8 @@ class EvaluationQuestionListStudentSerializer(serializers.ModelSerializer):
             'value_st_importance')
 
 class EvaluationQuestionEstudentQualificationSerializer(serializers.ModelSerializer):
+    """Convierte la calificación númerica guardada a la opción textual del frontend."""
+
     evaluation_question= EvaluationQuestionListStudentSerializer(read_only=True)
     qualification = serializers.SerializerMethodField()
     class Meta:
@@ -182,7 +231,9 @@ class EvaluationQuestionEstudentQualificationSerializer(serializers.ModelSeriali
             'qualification',
             'evaluation_question'
         )
-    def get_qualification(self,obj):
+    @extend_schema_field(serializers.CharField())
+    def get_qualification(self,obj) -> str:
+        """Mapea el valor persistido a la etiqueta de opción histórica."""
         if obj.qualification is not None and float(YES) == float(obj.qualification):
             return CALIFICATION_OPTIONS['YES']
         elif obj.qualification is not None and float(NO) == float(obj.qualification):
@@ -194,6 +245,8 @@ class EvaluationQuestionEstudentQualificationSerializer(serializers.ModelSeriali
 
 
 class Evaluation_StudentGuidelineQualificationSerializer(serializers.ModelSerializer):
+    """Agrupa preguntas respondidas bajo un lineamiento evaluado."""
+
     guideline=GuidelineSerializer()
     questions_student_evaluations=EvaluationQuestionEstudentQualificationSerializer(many=True,read_only=True)
     class Meta:
@@ -205,6 +258,8 @@ class Evaluation_StudentGuidelineQualificationSerializer(serializers.ModelSerial
         )
 
 class Evaluation_StudentPrincipleQualificationSerializer(serializers.ModelSerializer):
+    """Agrupa lineamientos evaluados bajo un principio respondido."""
+
     principle=PrincipleSerializer()
     guideline_evaluations=Evaluation_StudentGuidelineQualificationSerializer(many=True,read_only=True)
     class Meta:
@@ -217,6 +272,8 @@ class Evaluation_StudentPrincipleQualificationSerializer(serializers.ModelSerial
 
 
 class Evaluation_Student_Serializer(serializers.ModelSerializer):
+    """Salida jerárquica de una evaluación estudiantil completa."""
+
     principle_evaluations=Evaluation_StudentPrincipleQualificationSerializer(many=True,read_only=True)
     class Meta:
         model = StudentEvaluation
@@ -228,8 +285,9 @@ class Evaluation_Student_Serializer(serializers.ModelSerializer):
             'principle_evaluations',
         )
     
-##########################de consulta de la evaluacion
 class QuestionSerializer(serializers.ModelSerializer):
+    """Expone cada respuesta con texto, metadata e intérpretes asociados."""
+
     question = serializers.SerializerMethodField()
     question_id = serializers.SerializerMethodField()
     qualification = serializers.SerializerMethodField()
@@ -252,48 +310,64 @@ class QuestionSerializer(serializers.ModelSerializer):
             'interpreter_st_partially',
             'interpreter_st_not_apply',
         )
-    def get_interpreter_st_no(self, obj):
+    @extend_schema_field(serializers.CharField())
+    def get_interpreter_st_no(self, obj) -> str:
+        """Obtiene el texto asociado a la opción negativa de la pregunta."""
         query = Question.objects.filter(pk = obj.evaluation_question.id).values('interpreter_st_no')
         if query.exists():
             return query[0]['interpreter_st_no']
         else:
             return ""
-    def get_interpreter_st_partially(self, obj):
+    @extend_schema_field(serializers.CharField())
+    def get_interpreter_st_partially(self, obj) -> str:
+        """Obtiene el texto asociado a la opción parcial de la pregunta."""
         query = Question.objects.filter(pk = obj.evaluation_question.id).values('interpreter_st_partially')
         if query.exists():
             return query[0]['interpreter_st_partially']
         else:
             return ""
-    def get_metadata(self, obj):
+    @extend_schema_field(serializers.CharField())
+    def get_metadata(self, obj) -> str:
+        """Obtiene la metadata textual asociada a la pregunta evaluada."""
         query = Question.objects.filter(pk = obj.evaluation_question.id).values('metadata')
         if query.exists():
             return query[0]['metadata']
         else:
             return ""
-    def get_interpreter_st_yes(self, obj):
+    @extend_schema_field(serializers.CharField())
+    def get_interpreter_st_yes(self, obj) -> str:
+        """Obtiene el texto asociado a la opción afirmativa de la pregunta."""
         query = Question.objects.filter(pk = obj.evaluation_question.id).values('interpreter_st_yes')
         if query.exists():
             return query[0]['interpreter_st_yes']
         else:
             return ""
 
-    def get_interpreter_st_not_apply(self, obj):
+    @extend_schema_field(serializers.CharField())
+    def get_interpreter_st_not_apply(self, obj) -> str:
+        """Obtiene el texto asociado a la opción de no aplica."""
         query = Question.objects.filter(pk=obj.evaluation_question.id).values('interpreter_st_not_apply')
         if query.exists():
             return query[0]['interpreter_st_not_apply']
         else:
             return ""
 
-    def get_question(self, obj):
+    @extend_schema_field(serializers.CharField())
+    def get_question(self, obj) -> str:
+        """Recupera el texto visible de la pregunta evaluada."""
         query = Question.objects.filter(pk = obj.evaluation_question.id).values('question')
         if query.exists():
             return query[0]['question']
         else:
             return ""
-    def get_question_id(self, obj):
+    @extend_schema_field(serializers.IntegerField())
+    def get_question_id(self, obj) -> int:
+        """Devuelve el identificador de la pregunta original."""
         return obj.evaluation_question.id
 
-    def get_qualification(self,obj):
+    @extend_schema_field(serializers.CharField())
+    def get_qualification(self,obj) -> str:
+        """Convierte la nota numérica al valor textual esperado por el frontend."""
         if obj.qualification is not None and float(YES) == float(obj.qualification):
             return CALIFICATION_OPTIONS['YES']
         elif obj.qualification is not None and float(NO) == float(obj.qualification):
@@ -303,19 +377,19 @@ class QuestionSerializer(serializers.ModelSerializer):
         else:
             return CALIFICATION_OPTIONS['PARTIALLY']
 
-
-
-
-
 class EvaluationGuidelineSTSerializer(serializers.ModelSerializer):
+    """Salida reducida de un lineamiento para resultados agregados."""
+
     class Meta:
         model = Guideline
         fields = ['guideline']
     
 
 class EvaluationGuideline_QualificationsValueSerializer(serializers.ModelSerializer):
+    """Expone promedio de lineamiento junto con sus respuestas por pregunta."""
+
     guideline_pr=EvaluationGuidelineSTSerializer(read_only=True)
-    guideline_evaluations=QuestionSerializer(many=True,read_only=True)
+    guideline_evaluations=serializers.SerializerMethodField()
     class Meta:
         model = EvaluationGuidelineQualification
         fields = (
@@ -326,15 +400,25 @@ class EvaluationGuideline_QualificationsValueSerializer(serializers.ModelSeriali
             
         )
 
+    @extend_schema_field(QuestionSerializer(many=True))
+    def get_guideline_evaluations(self, obj) -> list:
+        """Ordena y serializa las respuestas asociadas al lineamiento evaluado."""
+        queryset = obj.guideline_evaluations.all().order_by('evaluation_question__id')
+        return QuestionSerializer(queryset, many=True).data
+
 class EvaluationPrincipleSTSerializer(serializers.ModelSerializer):
+    """Salida reducida de un principio para resultados agregados."""
+
     class Meta:
         model = Principle
         fields = ['principle']
     
 
 class EvaluationPrinciple_QualificationsValueSerializer(serializers.ModelSerializer):
+    """Expone promedio de principio junto con sus lineamientos evaluados."""
+
     evaluation_principle=EvaluationPrincipleSTSerializer(read_only=True)
-    principle_gl=EvaluationGuideline_QualificationsValueSerializer(many=True,read_only=True)
+    principle_gl=serializers.SerializerMethodField()
     class Meta:
         model = EvaluationPrincipleQualification
         fields = (
@@ -345,9 +429,17 @@ class EvaluationPrinciple_QualificationsValueSerializer(serializers.ModelSeriali
 
         )
 
+    @extend_schema_field(EvaluationGuideline_QualificationsValueSerializer(many=True))
+    def get_principle_gl(self, obj) -> list:
+        """Ordena y serializa los lineamientos asociados al principio evaluado."""
+        queryset = obj.principle_gl.all().order_by('guideline_pr__id')
+        return EvaluationGuideline_QualificationsValueSerializer(queryset, many=True).data
+
 
 class EvaluationStudentList_EvaluationSerializer(serializers.ModelSerializer):
-    evaluation_students= EvaluationPrinciple_QualificationsValueSerializer(many=True,read_only=True)
+    """Salida detallada de una evaluación con todos sus agregados jerárquicos."""
+
+    evaluation_students= serializers.SerializerMethodField()
     class Meta:
         model = StudentEvaluation
         fields = (
@@ -358,14 +450,22 @@ class EvaluationStudentList_EvaluationSerializer(serializers.ModelSerializer):
             'evaluation_students'
         )
 
-####################serializers del crud de principios
+    @extend_schema_field(EvaluationPrinciple_QualificationsValueSerializer(many=True))
+    def get_evaluation_students(self, obj) -> list:
+        """Serializa los promedios por principio en orden estable."""
+        queryset = obj.evaluation_students.all().order_by('evaluation_principle__id')
+        return EvaluationPrinciple_QualificationsValueSerializer(queryset, many=True).data
 
 class EvaluationPrincipleRegSerializer(serializers.ModelSerializer):
+    """Serializer CRUD minimo para principios de la rúbrica."""
+
     class Meta:
         model = Principle
         fields = ['principle',]
 
 class EvaluationPrincipleGuidelineRegSchemaListSerializer(serializers.ModelSerializer):
+    """Pregunta incluida al listar la estructura completa de un principio."""
+
     class Meta:
         model = Question
         fields = ('id','question','metadata'
@@ -380,25 +480,31 @@ class EvaluationPrincipleGuidelineRegSchemaListSerializer(serializers.ModelSeria
         )
 
 class EvaluationPrincipleGuidelineRegListSerializer(serializers.ModelSerializer):
+    """Lineamiento incluido al listar la estructura completa de un principio."""
+
     questions=EvaluationPrincipleGuidelineRegSchemaListSerializer(many=True, read_only=True)
     class Meta:
         model = Guideline
         fields = ['id','guideline', 'questions']
 
 class EvaluationPrincipleRegListSerializer(serializers.ModelSerializer):
+    """Principio con sus lineamientos y preguntas para vistas administrativas."""
+
     guidelines=EvaluationPrincipleGuidelineRegListSerializer(many=True, read_only=True)
     class Meta:
         model = Principle
         fields = ['id','principle','guidelines']
 
-##################CRUD DE GUIDELINES
-
 class EvaluationQuestionGuidelinesRegSerializer(serializers.ModelSerializer):
+    """Serializer CRUD directo para lineamientos."""
+
     class Meta:
         model = Guideline
         fields = ('__all__')
 
 class EvaluationGuidelineValidRegisterSerializer(serializers.Serializer):
+    """Valida el registro de lineamientos con restricción de unicidad."""
+
     guideline = serializers.CharField(required=True,validators=[
         UniqueValidator(queryset=Guideline.objects.all(), 
         message="Esta ya esta registrado.",

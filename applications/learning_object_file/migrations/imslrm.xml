@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lom xmlns="http://ltsc.ieee.org/xsd/LOM" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ltsc.ieee.org/xsd/LOM lomCustom.xsd">
+	<general uniqueElementName="general">
+		<identifier>
+			<catalog uniqueElementName="catalog">
+				My Catalog
+			</catalog>
+			<entry uniqueElementName="entry">
+				4a7d755e-34a5-410a-a7d4-601881136623
+			</entry>
+		</identifier>
+		<title uniqueElementName="title">
+			<string language="es">
+				Guías didácticas
+			</string>
+		</title>
+		<language>
+			es
+		</language>
+		<description>
+			<string language="es">
+				Guías didácticas para bachillerato y sus diferentes materias con metadatos
+			</string>
+		</description>
+		<keyword>
+			<string language="es">
+				Educación
+			</string>
+		</keyword>
+		<keyword>
+			<string language="es">
+				Bachillerato
+			</string>
+		</keyword>
+		<keyword>
+			<string language="es">
+				Guias
+			</string>
+		</keyword>
+		<coverage>
+			<string language="es">
+				Latinoamericano
+			</string>
+		</coverage>
+		<structure uniqueElementName="structure">
+			<source uniqueElementName="source">
+				LOMv1.0
+			</source>
+			<value uniqueElementName="value">
+				hierarchical
+			</value>
+		</structure>
+		<aggregationLevel uniqueElementName="aggregationLevel">
+			<source uniqueElementName="source">
+				LOMv1.0
+			</source>
+			<value uniqueElementName="value">
+				2
+			</value>
+		</aggregationLevel>
+	</general>
+	<lifeCycle uniqueElementName="lifeCycle">
+		<version uniqueElementName="version">
+			<string language="es">
+				Version 1
+			</string>
+		</version>
+		<status uniqueElementName="status">
+			<source uniqueElementName="source">
+				LOMv1.0
+			</source>
+			<value uniqueElementName="value">
+				draft
+			</value>
+		</status>
+		<contribute>
+			<role uniqueElementName="role">
+				<source uniqueElementName="source">
+					LOMv1.0
+				</source>
+				<value uniqueElementName="value">
+					author
+				</value>
+			</role>
+			<entity>
+				BEGIN:VCARD VERSION:3.0 FN:Angel Perez EMAIL;TYPE=INTERNET:aperezm@ups.edu.ec ORG:UPS END:VCARD
+			</entity>
+			<date uniqueElementName="date">
+				<dateTime uniqueElementName="dateTime">
+					2022-03-20T19:36:25.00-05:00
+				</dateTime>
+				<description>
+					<string language="es">
+						Fecha de creación de los metadatos
+					</string>
+				</description>
+			</date>
+		</contribute>
+	</lifeCycle>
+	<metaMetadata uniqueElementName="metaMetadata">
+		<identifier>
+			<catalog uniqueElementName="catalog">
+				Mi catalogo
+			</catalog>
+			<entry uniqueElementName="entry">
+				20
+			</entry>
+		</identifier>
+		<contribute>
+			<role uniqueElementName="role">
+				<source uniqueElementName="source">
+					LOMv1.0
+				</source>
+				<value uniqueElementName="value">
+					creator
+				</value>
+			</role>
+			<entity>
+				BEGIN:VCARD VERSION:3.0 FN:Angel Perez EMAIL;TYPE=INTERNET:aperezm@ups.edu.ec ORG:UPS END:VCARD
+			</entity>
+			<date uniqueElementName="date">
+				<dateTime uniqueElementName="dateTime">
+					2022-03-20T19:36:19.00-05:00
+				</dateTime>
+				<description>
+					<string language="es">
+						Fecha de creación de los metadatos
+					</string>
+				</description>
+			</date>
+		</contribute>
+		<metadataSchema>
+			LOMv1.0
+		</metadataSchema>
+		<language>
+			es
+		</language>
+	</metaMetadata>
+	<technical uniqueElementName="technical">
+		<format>
+			zip
+		</format>
+		<size uniqueElementName="size">
+			50 MB
+		</size>
+		<location>
+			Repositorio EduTech
+		</location>
+		<requirement>
+			<orComposite>
+				<type uniqueElementName="type">
+					<source uniqueElementName="source">
+						LOMv1.0
+					</source>
+					<value uniqueElementName="value">
+						browser
+					</value>
+				</type>
+				<name uniqueElementName="name">
+					<source uniqueElementName="source">
+						LOMv1.0
+					</source>
+					<value uniqueElementName="value">
+						any
+					</value>
+				</name>
+				<minimumVersion uniqueElementName="minimumVersion">
+					12
+				</minimumVersion>
+				<maximumVersion uniqueElementName="maximumVersion">
+					20
+				</maximumVersion>
+			</orComposite>
+		</requirement>
+		<installationRemarks uniqueElementName="installationRemarks">
+			<string language="es">
+				Acceso web
+			</string>
+		</installationRemarks>
+		<otherPlatformRequirements>
+			<string language="es">
+				JavaScript
+			</string>
+		</otherPlatformRequirements>
+		<duration uniqueElementName="duration">
+			<duration uniqueElementName="duration">
+				P0Y4M0DT8H0M0S
+			</duration>
+			<description>
+				<string language="es">
+					Sin descripcion
+				</string>
+			</description>
+		</duration>
+	</technical>
+	<educational>
+		<interactivityType uniqueElementName="interactivityType">
+			<source uniqueElementName="source">
+				LOMv1.0
+			</source>
+			<value uniqueElementName="value">
+				mixed
+			</value>
+		</interactivityType>
+		<learningResourceType>
+			<source uniqueElementName="source">
+				LOMv1.0
+			</source>
+			<value uniqueElementName="value">
+				questionnaire
+			</value>
+		</learningResourceType>
+		<interactivityLevel uniqueElementName="interactivityLevel">
+			<source uniqueElementName="source">
+				LOMv1.0
+			</source>
+			<value uniqueElementName="value">
+				medium
+			</value>
+		</interactivityLevel>
+		<semanticDensity uniqueElementName="semanticDensity">
+			<source uniqueElementName="source">
+				LOMv1.0
+			</source>
+			<value uniqueElementName="value">
+				high
+			</value>
+		</semanticDensity>
+		<intendedEndUserRole>
+			<source uniqueElementName="source">
+				LOMv1.0
+			</source>
+			<value uniqueElementName="value">
+				learner
+			</value>
+		</intendedEndUserRole>
+		<context>
+			<source uniqueElementName="source">
+				LOMv1.0
+			</source>
+			<value uniqueElementName="value">
+				school
+			</value>
+		</context>
+		<context>
+			<source uniqueElementName="source">
+				LOMv1.0
+			</source>
+			<value uniqueElementName="value">
+				other
+			</value>
+		</context>
+		<typicalAgeRange>
+			<string language="es">
+				15 años
+			</string>
+		</typicalAgeRange>
+		<difficulty uniqueElementName="difficulty">
+			<source uniqueElementName="source">
+				LOMv1.0
+			</source>
+			<value uniqueElementName="value">
+				medium
+			</value>
+		</difficulty>
+		<typicalLearningTime uniqueElementName="typicalLearningTime">
+			<duration uniqueElementName="duration">
+				P0Y3M0DT0H0M0S
+			</duration>
+			<description>
+				<string language="es">
+					Desarrollo de Guia una por mes
+				</string>
+			</description>
+		</typicalLearningTime>
+		<description>
+			<string language="es">
+				Guía didáctica para desarrollar competencias dentro del aula de acuerdo con las diferentes materias impartidas en bachillerato.
+			</string>
+		</description>
+		<language>
+			es
+		</language>
+	</educational>
+	<rights uniqueElementName="rights">
+		<cost uniqueElementName="cost">
+			<source uniqueElementName="source">
+				LOMv1.0
+			</source>
+			<value uniqueElementName="value">
+				no
+			</value>
+		</cost>
+		<copyrightAndOtherRestrictions uniqueElementName="copyrightAndOtherRestrictions">
+			<source uniqueElementName="source">
+				LOMv1.0
+			</source>
+			<value uniqueElementName="value">
+				yes
+			</value>
+		</copyrightAndOtherRestrictions>
+		<description>
+			<string language="es">
+				Libre distribución - creative commons: reconocimiento - compartir igual
+			</string>
+		</description>
+	</rights>
+	<relation>
+		<kind uniqueElementName="kind">
+			<source uniqueElementName="source">
+				LOMv1.0
+			</source>
+			<value uniqueElementName="value">
+				ispartof
+			</value>
+		</kind>
+		<resource uniqueElementName="resource">
+			<identifier>
+				<catalog uniqueElementName="catalog">
+					0007
+				</catalog>
+				<entry uniqueElementName="entry">
+					OA de Guia
+				</entry>
+			</identifier>
+			<description>
+				<string language="es">
+					Parte de módulos de Guías
+				</string>
+			</description>
+		</resource>
+	</relation>
+	<annotation>
+		<entity>
+			BEGIN:VCARD VERSION:3.0 FN:Angel Perez EMAIL;TYPE=INTERNET:aperezm@ups.edu.ec ORG:UPS END:VCARD
+		</entity>
+		<date uniqueElementName="date">
+			<dateTime uniqueElementName="dateTime">
+				2022-05-12T17:43:56.00-05:00
+			</dateTime>
+			<description>
+				<string language="es">
+					Fecha de anotación
+				</string>
+			</description>
+		</date>
+		<description>
+        	<string>Objeto de aprendizaje SCORM de uso en MOODLE</string>
+    	</description>
+		<accessmode>
+			<source uniqueElementName="source">
+				LOM-ESv1.0
+			</source>
+			<value uniqueElementName="value">
+				visual
+			</value>
+		</accessmode>
+		<accessmodesufficient>
+			<source uniqueElementName="source">
+				LOM-ESv1.0
+			</source>
+			<value uniqueElementName="value">
+				visual
+			</value>
+		</accessmodesufficient>
+		<Rol>
+			<source uniqueElementName="source">
+				LOM-ESv1.0
+			</source>
+			<value uniqueElementName="value">
+				student
+			</value>
+		</Rol>
+	</annotation>
+	<classification>
+			<purpose uniqueElementName="purpose">
+				<source uniqueElementName="source">
+					LOMv1.0
+				</source>
+				<value uniqueElementName="value">
+					educational objective
+				</value>
+			</purpose>
+			<taxonPath>
+				<source uniqueElementName="source">
+					<string>
+						Ninguna
+					</string>
+				</source>
+				<taxon>
+					<id>
+						01
+					</id>
+					<entry>
+						<string language="es">
+							Taxon 1
+						</string>
+					</entry>
+				</taxon>
+			</taxonPath>
+			<description>
+				<string language="es">
+					Descripción de propósito
+				</string>
+			</description>
+			<keyword>
+				<string language="es">
+					taxon
+				</string>
+			</keyword>
+	</classification>
+	<accesibility>
+			<description>
+				<string language="es">
+					Adaptado para accesibilidad
+				</string>
+			</description>
+			<accessibilityfeatures>
+				<value uniqueElementName="value">
+					alternativeText
+				</value>
+				<value uniqueElementName="value">
+					annotations
+				</value>
+				<value uniqueElementName="value">
+					printPageNumbers
+				</value>
+				<value uniqueElementName="value">
+					audioDescription
+				</value>
+			</accessibilityfeatures>
+			<accessibilityhazard>
+				<value uniqueElementName="value">
+					noFlashingHazard
+				</value>
+				<value uniqueElementName="value">
+					noMotionSimulationHazard
+				</value>
+				<value uniqueElementName="value">
+					noSoundHazard
+				</value>
+			</accessibilityhazard>
+			<accessibilitycontrol>
+				<value uniqueElementName="value">
+					fullSwitchControl
+				</value>
+				<value uniqueElementName="value">
+					fullVideoControl
+				</value>
+			</accessibilitycontrol>
+			<accessibilityAPI>
+				<value uniqueElementName="value">
+					androidAccessibility
+				</value>
+				<value uniqueElementName="value">
+					iAccessible2</value>
+				<value uniqueElementName="value">
+					uiAutomation
+				</value>
+			</accessibilityAPI>
+	</accesibility>
+</lom>

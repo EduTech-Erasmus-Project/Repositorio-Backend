@@ -1,7 +1,41 @@
 
+"""Parser legacy de metadata LOM para objetos de aprendizaje.
+
+Este archivo mantiene una lectura directa del XML usando BeautifulSoup y
+devuelve la estructura histórica que esperan otros puntos del proyecto.
+
+No intenta validar el esquema completo del manifest. Su responsabilidad es
+extraer valores puntuales desde un XML tipo `lom` y acomodarlos en el formato
+de diccionario que luego consumen vistas y procesos de carga.
+"""
+
 from bs4 import BeautifulSoup as bs
 class GetLearningObjectMetadata():
+    """Extrae metadata LOM y la expone en la estructura legacy del proyecto.
+
+    Esta clase mantiene estado por sección para reflejar el shape de salida
+    esperado por el flujo de carga:
+
+    - `general`
+    - `lifecycle`
+    - `metaMetadata`
+    - `technical`
+    - `educational`
+    - `rights`
+    - `relation`
+    - `annotation`
+    - `classification`
+    - `accesibility`
+    """
+
     def __init__(self,filename):
+        """Prepara el nombre del archivo XML y los contenedores de salida.
+
+        Cada atributo de instancia representa una sección del manifest que se
+        va poblando cuando `get_metadata_imsmanisfest()` encuentra un nodo
+        `lom` valido.
+        """
+
         self.filename=filename
         self.general={}
         self.lifecycle={}
@@ -14,6 +48,28 @@ class GetLearningObjectMetadata():
         self.classification={}
         self.accesibility={}
     def get_metadata_imsmanisfest(self):
+        """Lee el XML y arma la estructura heredada de metadata del OA.
+
+        Entrada:
+        - `self.filename`: ruta a un archivo XML con estructura LOM.
+
+        Comportamiento:
+        - abre el archivo con BeautifulSoup
+        - busca la primera etiqueta `lom`
+        - extrae nodos hijos conocidos por sección
+        - limpia saltos de línea y normaliza algunos campos multilínea
+
+        Salida:
+        - un diccionario con la clave `metadata`
+        - dentro de ella, las secciones `general`, `lifecycle`,
+          `metaMetadata`, `technical`, `educational`, `rights`, `relation`,
+          `annotation`, `classification` y `accesibility`
+
+        Limitación:
+        - si el XML no termina en `.xml` o no contiene una etiqueta `lom`,
+          el método no construye una salida útil.
+        """
+
         if(self.filename.endswith('.xml')):
             soup = bs(open(self.filename , 'r', encoding="utf-8"), 'lxml' )
             for lom in soup.find_all('lom'):
@@ -153,6 +209,13 @@ class GetLearningObjectMetadata():
                     }
 
 def validateData(data):
+    """Extrae el texto crudo de un nodo BeautifulSoup.
+
+    Si el nodo no existe, devuelve el string `"No existe valor"` para conservar
+    el contrato heredado del parser y evitar `AttributeError` inmediatos en el
+    armado del diccionario.
+    """
+
     if data:
         return data.text
     else:
@@ -160,6 +223,13 @@ def validateData(data):
 
 
 def validateDataBr(data):
+    """Extrae texto de nodos con `<br>` y los vuelve una lista visual.
+
+    El helper reemplaza cada `<br>` por salto de línea, luego compacta el texto
+    resultante en una cadena separada por comas. Se usa sobre todo en campos
+    de accesibilidad que suelen venir como listas HTML incrustadas.
+    """
+
     if data:
         for dat in data.select("br"):
             dat.replace_with("\n")

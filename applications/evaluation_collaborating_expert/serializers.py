@@ -1,3 +1,14 @@
+"""Serializers para CRUD, evaluación experta y evaluación automática.
+
+Este módulo mezcla serializers de varios flujos históricos:
+
+- mantenimiento de conceptos, preguntas y esquemas
+- captura de evaluaciones expertas sobre un OA
+- consultas enriquecidas para paneles administrativos
+- resultados de evaluación automática de metadata
+"""
+
+from drf_spectacular.utils import extend_schema_field
 from django.db.models.base import Model
 from applications.learning_object_metadata.utils import get_rating_value
 from applications.knowledge_area.serializers import KnowledgeAreaListSerializer
@@ -25,8 +36,9 @@ from applications.evaluation_collaborating_expert import models
 from ..user.serializers import UserCommentSerializer
 
 
-# Serializer class
 class EvaluationQuestionRegisterSerializer(serializers.Serializer):
+    """Payload de alta para preguntas expertas con intérpretes y pesos."""
+
     """question = serializers.CharField(required=True,validators=[
         UniqueValidator(queryset=EvaluationQuestion.objects.all(),
         message="Esta pregunta ya esta registrado.",
@@ -53,15 +65,19 @@ class EvaluationQuestionRegisterSerializer(serializers.Serializer):
 
 
 class EvaluationQuestionSerializer(serializers.ModelSerializer):
+    """Serializer CRUD directo del modelo `EvaluationQuestion`."""
+
     class Meta:
         model = EvaluationQuestion
         fields = ('__all__')
 
 
 class EvaluationQuestionListSerializer(serializers.ModelSerializer):
+    """Salida de lectura para preguntas incluyendo intérpretes y ponderación."""
+
     class Meta:
         model = EvaluationQuestion
-        # nuevo datos interprete 
+        # nuevo datos intérprete 
         fields = (
             'id',
             'question',
@@ -79,16 +95,22 @@ class EvaluationQuestionListSerializer(serializers.ModelSerializer):
 
 
 class EvaluationConceptSerializer(serializers.ModelSerializer):
+    """Serializer mínimo de concepto de evaluación."""
+
     class Meta:
         model = EvaluationConcept
         fields = ['concept']
 
 class EvaluationSelfQuestionSerializer(serializers.ModelSerializer):
+    """Serializer CRUD de preguntas de autoevaluación."""
+
     class Meta:
         model = SelfEvaluationQuestions
         fields = ['description','descriptionEnglish','evaluation_concept']
 
 class EvaluationConceptListSerializer(serializers.ModelSerializer):
+    """Lista conceptos con sus preguntas expertas ya anidadas."""
+
     questions = EvaluationQuestionListSerializer(many=True, read_only=True)
 
     class Meta:
@@ -97,18 +119,24 @@ class EvaluationConceptListSerializer(serializers.ModelSerializer):
 
 
 class EvaluationQuestionQualificationSerializer(serializers.ModelSerializer):
+    """Calificación de pregunta con la etiqueta visible de respuesta."""
+
     evaluation_question = EvaluationQuestionListSerializer(read_only=True)
     qualification = serializers.SerializerMethodField()
 
     class Meta:
         model = EvaluationQuestionsQualification
+        ref_name = 'ExpertEvaluationQuestionQualification'
         fields = (
             'id',
             'qualification',
             'evaluation_question'
         )
 
-    def get_qualification(self, obj):
+    @extend_schema_field(serializers.CharField())
+    def get_qualification(self, obj) -> str:
+        """Convierte el valor numérico a la opción visible del frontend."""
+
         if obj.qualification is not None and float(YES) == float(obj.qualification):
             return CALIFICATION_OPTIONS['YES']
         elif obj.qualification is not None and float(NO) == float(obj.qualification):
@@ -120,6 +148,8 @@ class EvaluationQuestionQualificationSerializer(serializers.ModelSerializer):
 
 
 class QuestionQualificationListSerializer(serializers.ModelSerializer):
+    """Detalle expandido de una pregunta evaluada dentro de un concepto."""
+
     question = serializers.SerializerMethodField()
     question_id = serializers.SerializerMethodField()
     qualification = serializers.SerializerMethodField()
@@ -143,52 +173,74 @@ class QuestionQualificationListSerializer(serializers.ModelSerializer):
             'interpreter_not_apply',
         )
 
-    def get_schema(self, obj):
+    @extend_schema_field(serializers.CharField())
+    def get_schema(self, obj) -> str:
+        """Devuelve el esquema asociado a la pregunta evaluada."""
+
         query = EvaluationQuestion.objects.filter(pk=obj.evaluation_question.id).values('schema')
         if query.exists():
             return query[0]['schema']
         else:
             return ""
 
-    def get_interpreter_yes(self, obj):
+    @extend_schema_field(serializers.CharField())
+    def get_interpreter_yes(self, obj) -> str:
+        """Devuelve el texto interpretativo para la opción afirmativa."""
+
         query = EvaluationQuestion.objects.filter(pk=obj.evaluation_question.id).values('interpreter_yes')
         if query.exists():
             return query[0]['interpreter_yes']
         else:
             return ""
 
-    def get_interpreter_no(self, obj):
+    @extend_schema_field(serializers.CharField())
+    def get_interpreter_no(self, obj) -> str:
+        """Devuelve el texto interpretativo para la opción negativa."""
+
         query = EvaluationQuestion.objects.filter(pk=obj.evaluation_question.id).values('interpreter_no')
         if query.exists():
             return query[0]['interpreter_no']
         else:
             return ""
 
-    def get_interpreter_partially(self, obj):
+    @extend_schema_field(serializers.CharField())
+    def get_interpreter_partially(self, obj) -> str:
+        """Devuelve el texto interpretativo para la opción parcial."""
+
         query = EvaluationQuestion.objects.filter(pk=obj.evaluation_question.id).values('interpreter_partially')
         if query.exists():
             return query[0]['interpreter_partially']
         else:
             return ""
 
-    def get_interpreter_not_apply(self, obj):
+    @extend_schema_field(serializers.CharField())
+    def get_interpreter_not_apply(self, obj) -> str:
+        """Devuelve el texto interpretativo para la opción no aplica."""
+
         query = EvaluationQuestion.objects.filter(pk=obj.evaluation_question.id).values('interpreter_not_apply')
         if query.exists():
             return query[0]['interpreter_not_apply']
         else:
             return ""
 
-    def get_question(self, obj):
+    @extend_schema_field(serializers.CharField())
+    def get_question(self, obj) -> str:
+        """Expone el texto de la pregunta evaluada."""
+
         query = EvaluationQuestion.objects.filter(pk=obj.evaluation_question.id).values('question')
         if query.exists():
             return query[0]['question']
         else:
             return ""
 
-    def get_question_id(self, obj):
+    @extend_schema_field(serializers.IntegerField())
+    def get_question_id(self, obj) -> int:
         return obj.evaluation_question.id
 
-    def get_qualification(self, obj):
+    @extend_schema_field(serializers.CharField())
+    def get_qualification(self, obj) -> str:
+        """Convierte el valor numerico a la opción visible del frontend."""
+
         if obj.qualification is not None and float(YES) == float(obj.qualification):
             return CALIFICATION_OPTIONS['YES']
         elif obj.qualification is not None and float(NO) == float(obj.qualification):
@@ -200,6 +252,8 @@ class QuestionQualificationListSerializer(serializers.ModelSerializer):
 
 
 class LearningObjectMetadataSerializer(serializers.ModelSerializer):
+    """Referencia mínima al OA evaluado."""
+
     class Meta:
         model = LearningObjectMetadata
         fields = (
@@ -209,6 +263,8 @@ class LearningObjectMetadataSerializer(serializers.ModelSerializer):
 
 
 class LearningObjectMetadataSearchSerializer(serializers.ModelSerializer):
+    """Lectura expandida del OA para pantallas de consulta y búsqueda."""
+
     license = LicenseSerializer()
     learning_object_file = LearningObjectSerializer()
     education_levels = EducationLevelListSerializer(read_only=True)
@@ -221,6 +277,8 @@ class LearningObjectMetadataSearchSerializer(serializers.ModelSerializer):
 
 
 class EvaluationConceptQualificationSerializer(serializers.ModelSerializer):
+    """Detalle de un concepto evaluado con sus preguntas calificadas."""
+
     evaluation_concept = EvaluationConceptSerializer()
     question_evaluations = EvaluationQuestionQualificationSerializer(many=True, read_only=True)
 
@@ -234,6 +292,8 @@ class EvaluationConceptQualificationSerializer(serializers.ModelSerializer):
 
 
 class EvaluationCollaboratingExpertSerializer(serializers.ModelSerializer):
+    """evaluación experta completa con conceptos ya expandidos."""
+
     concept_evaluations = EvaluationConceptQualificationSerializer(many=True, read_only=True)
 
     class Meta:
@@ -247,6 +307,8 @@ class EvaluationCollaboratingExpertSerializer(serializers.ModelSerializer):
 
 
 class EvaluationCollaboratingExpertSearchSerializer(serializers.ModelSerializer):
+    """Salida reducida para resultados de búsqueda centrados en el OA."""
+
     learning_object = LearningObjectMetadataSearchSerializer(read_only=True)
 
     class Meta:
@@ -255,13 +317,16 @@ class EvaluationCollaboratingExpertSearchSerializer(serializers.ModelSerializer)
 
 
 class EvaluationCollaboratingExpertAllSerializer(serializers.ModelSerializer):
+    """Serializer CRUD directo del modelo `EvaluationCollaboratingExpert`."""
+
     class Meta:
         model = EvaluationCollaboratingExpert
         fields = ('__all__')
 
 
 class EvaluationConceptQualificationsValueSerializer(serializers.ModelSerializer):
-    # print("calificado----------------------")
+    """Concepto evaluado mostrando promedio visible y preguntas expandidas."""
+
     evaluation_concept = EvaluationConceptSerializer()
     question_evaluations = QuestionQualificationListSerializer(many=True, read_only=True)
     average = serializers.SerializerMethodField()
@@ -274,11 +339,16 @@ class EvaluationConceptQualificationsValueSerializer(serializers.ModelSerializer
             'question_evaluations',
         )
 
-    def get_average(self, obj):
+    @extend_schema_field(serializers.IntegerField())
+    def get_average(self, obj) -> float:
+        """Normaliza el promedio interno a la escala visible del sistema."""
+
         return get_rating_value(obj.average)
 
 
 class EvaluationCollaboratingExpertEvaluationSerializer(serializers.ModelSerializer):
+    """Detalle de evaluación experta mostrado en resultados administrativos."""
+
     concept_evaluations = EvaluationConceptQualificationsValueSerializer(many=True, read_only=True)
 
     class Meta:
@@ -292,32 +362,44 @@ class EvaluationCollaboratingExpertEvaluationSerializer(serializers.ModelSeriali
 
 
 class ArrayIntegerSerializer(serializers.ListField):
+    """Lista tipada de enteros para payloads compactos."""
+
     children = serializers.IntegerField(required=True)
 
 
 class ArrayStringSerializer(serializers.ListField):
+    """Lista tipada de cadenas para payloads compactos."""
+
     children = serializers.CharField(required=True)
 
 
 class ArrayFloatSerializer(serializers.ListField):
+    """Lista tipada de flotantes para payloads compactos."""
+
     children = serializers.FloatField(required=True)
 
 
 class ArrayDicFielSerializer(serializers.ListField):
+    """Lista de diccionarios usada para respuestas expertas por pregunta."""
+
     children = serializers.DictField(required=True)
 
 
 class EvaluationExpertCreateSerializer(serializers.Serializer):
+    """Payload de creación de una evaluación experta sobre un OA."""
+
     learning_object = serializers.IntegerField(required=True)
     results = ArrayDicFielSerializer()
     observation = serializers.CharField(required=False)
 
     def validate(self, data):
+        """Valida existencia del OA, preguntas y opciónes de respuesta."""
+
         incident = LearningObjectMetadata.objects.filter(pk=int(data['learning_object']))
         if not incident:
             raise serializers.ValidationError(f"Not exist oa with code {int(data['learning_object'])}")
         for value in data['results']:
-            if len(EvaluationQuestion.objects.filter(pk=value['id'])) == 0:
+            if not EvaluationQuestion.objects.filter(pk=value['id']).exists():
                 raise serializers.ValidationError(f"Not exist question with pk {value['id']}")
         for option in data['results']:
             if option['value'] != CALIFICATION_OPTIONS['YES'] and option['value'] != CALIFICATION_OPTIONS['NO'] and \
@@ -328,6 +410,12 @@ class EvaluationExpertCreateSerializer(serializers.Serializer):
 
 
 class LearningObjectMetadataSearchSerializer(serializers.ModelSerializer):
+    """Duplicado heredado del serializer de búsqueda de OA.
+
+    Se mantiene por compatibilidad con el resto del módulo, que lo referencia
+    mas abajo sin importar la definición previa del mismo nombre.
+    """
+
     license = LicenseSerializer()
     learning_object_file = LearningObjectSerializer()
     education_levels = EducationLevelListSerializer(read_only=True)
@@ -340,6 +428,8 @@ class LearningObjectMetadataSearchSerializer(serializers.ModelSerializer):
 
 
 class EvaluationCollaboratingExpertSearchSerializer(serializers.ModelSerializer):
+    """Duplicado heredado del serializer de búsqueda de evaluación experta."""
+
     learning_object = LearningObjectMetadataSearchSerializer(read_only=True)
 
     class Meta:
@@ -348,6 +438,8 @@ class EvaluationCollaboratingExpertSearchSerializer(serializers.ModelSerializer)
 
 
 class EvaluationConceptSearchSerializer(serializers.ModelSerializer):
+    """Salida mínima para buscar conceptos a partir de una evaluación experta."""
+
     evaluation_collaborating_expert = EvaluationCollaboratingExpertSearchSerializer(read_only=True)
 
     class Meta:
@@ -358,6 +450,8 @@ class EvaluationConceptSearchSerializer(serializers.ModelSerializer):
 
 
 class QuestionQualificationSearchSerializer(serializers.ModelSerializer):
+    """Salida mínima para buscar OAs evaluados desde sus preguntas."""
+
     concept_evaluations = EvaluationConceptSearchSerializer(read_only=True)
 
     class Meta:
@@ -365,28 +459,34 @@ class QuestionQualificationSearchSerializer(serializers.ModelSerializer):
         fields = ('concept_evaluations',)
 
 
-###################-Nuevos Serializers-##############
-
 class EvaluationSchemaListSerializer(serializers.ModelSerializer):
+    """Lectura de esquemas de metadata evaluables dentro de un concepto."""
+
     class Meta:
         model = EvaluationMetadata
+        ref_name = 'ExpertEvaluationSchemaList'
         fields = ('id', 'schema', 'description', 'value_importance_schema', 'code','evaluation_concept')
 
 
 class EvaluationConceptListSerializerSCHEMA(serializers.ModelSerializer):
+    """Conceptos con sus esquemas de metadata ya anidados."""
+
     schemas = EvaluationSchemaListSerializer(many=True, read_only=True)
     class Meta:
         model = EvaluationConcept
         fields = ['id', 'concept', 'schemas']
 
 class EvaluationSelfQuestionListSerializerSCHEMA(serializers.ModelSerializer):
+    """Preguntas de autoevaluación con sus esquemas asociados."""
+
     schemas_questions = EvaluationSchemaListSerializer(many=True, read_only=True)
     class Meta:
         model = SelfEvaluationQuestions
         fields = ['id', 'description','descriptionEnglish', 'schemas_questions','evaluation_concept']
 
-#
 class EvaluationMetadataRegisterSerializer(serializers.Serializer):
+    """Payload de alta para esquemas de metadata con validación de unicidad."""
+
     schema = serializers.CharField(required=True, validators=[
         UniqueValidator(queryset=EvaluationMetadata.objects.all(),
                         message="Este metadato ya esta registrado.",
@@ -400,20 +500,24 @@ class EvaluationMetadataRegisterSerializer(serializers.Serializer):
 
 
 class EvaluationMetadataSerializer(serializers.ModelSerializer):
+    """Serializer CRUD directo del modelo `EvaluationMetadata`."""
+
     class Meta:
         model = EvaluationMetadata
         fields = ('__all__')
 
 class RelationshipQuestionAndMetadata(serializers.Serializer):
+    """Relaciona una auto-pregunta con un esquema de metadata."""
+
     id_schema = serializers.IntegerField(required=True)
     id_question = serializers.IntegerField(required=True)
 
     class Meta:
         fields = ('id_schema','id_question')
 
-###########Nuevos Serializables para consulta de automatico
-
 class SchemaQualificationListSerializer(serializers.ModelSerializer):
+    """Detalle de la calificación automática obtenida por esquema."""
+
     schema = serializers.SerializerMethodField()
     qualification = serializers.SerializerMethodField()
     description = serializers.SerializerMethodField()
@@ -427,17 +531,24 @@ class SchemaQualificationListSerializer(serializers.ModelSerializer):
             'description'
         )
 
-    def get_qualification(self, obj):
+    @extend_schema_field(serializers.FloatField())
+    def get_qualification(self, obj) -> float:
         return obj.qualification
 
-    def get_schema(self, obj):
+    @extend_schema_field(serializers.CharField())
+    def get_schema(self, obj) -> str:
+        """Expone el texto del esquema automático evaluado."""
+
         query = EvaluationMetadata.objects.filter(pk=obj.evaluation_schema.id).values('schema')
         if query.exists():
             return query[0]['schema']
         else:
             return ""
 
-    def get_description(self, obj):
+    @extend_schema_field(serializers.CharField())
+    def get_description(self, obj) -> str:
+        """Expone la descripción del esquema automático evaluado."""
+
         query = EvaluationMetadata.objects.filter(pk=obj.evaluation_schema.id).values('description')
         if query.exists():
             return query[0]['description']
@@ -446,10 +557,11 @@ class SchemaQualificationListSerializer(serializers.ModelSerializer):
 
 
 class EvaluationSerializer2(serializers.ModelSerializer):
+    """Detalle automático por concepto con sus esquemas calificados."""
+
     evaluation_concept = EvaluationConceptSerializer(read_only=True)
     metadata_evaluations = SchemaQualificationListSerializer(read_only=True, many=True)
 
-    # print("asaaaaaaaaaaaaaaaaaaaaaaaaa",metadata_evaluations)
     class Meta:
         model = MetadataQualificationConcept
         fields = (
@@ -461,6 +573,8 @@ class EvaluationSerializer2(serializers.ModelSerializer):
 
 
 class EvaluationAutomaticEvaluationSerializer(serializers.ModelSerializer):
+    """Resultado total de la evaluación automática de metadata para un OA."""
+
     metadata_concept_evaluations = EvaluationSerializer2(many=True, read_only=True)
 
     class Meta:

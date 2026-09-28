@@ -1,73 +1,219 @@
 <!DOCTYPE html>
-<html lang='en'>
+<html lang="es">
 
 <head>
-    <meta charset='UTF-8'>
-    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>Document</title>
-    <style>
-        .h1 .h2 .h3 {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
-        }
-        .h1{
-        margin-block-start: 1em;
-        }
-        .p {
-            color: black !important;
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solicitud de aprobación de profesor - ROA</title>
 
-        }
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #4c566a1c;
+      font-family: Arial, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: black;
+    }
 
-        .text-definition {
-            margin: 2rem;
-        }
-    </style>
+    .email-wrapper {
+      width: 100%;
+      padding: 48px 16px;
+      background: #4c566a1c;
+      box-sizing: border-box;
+    }
+
+    .email-container {
+      max-width: 720px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .email-header {
+      background: #3B5B68;
+      padding: 32px 24px;
+      text-align: center;
+    }
+
+    .email-header h1 {
+      margin: 0;
+      color: white;
+      font-size: 24px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .email-content {
+      padding: 40px 48px 32px 48px;
+    }
+
+    .greeting {
+      margin: 0 0 16px 0;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .divider {
+      border: 0;
+      border-top: 1px solid gray;
+      margin: 20px 0 28px 0;
+    }
+
+    .email-content p {
+      margin: 0 0 18px 0;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .text-link {
+      color: gray;
+      text-decoration: underline;
+    }
+
+    .button-wrapper {
+      text-align: center;
+      margin: 32px 0;
+    }
+
+    .button {
+      display: inline-block;
+      background: #3B5B68;
+      color: white;
+      text-decoration: none;
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: bold;
+      letter-spacing: 0.3px;
+    }
+
+    .automatic-message {
+      margin-top: 28px;
+      font-style: italic;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .email-footer {
+      padding: 24px 48px 32px 48px;
+      text-align: center;
+      background: white;
+    }
+
+    .email-footer img {
+      display: block;
+      width: 96px;
+      max-width: 96px;
+      height: auto;
+      margin: 0 auto 8px auto;
+    }
+
+    .email-footer a {
+      color: black;
+      text-decoration: none;
+    }
+
+    .email-footer h2,
+    .email-footer h3 {
+      margin: 6px 0;
+      color: black;
+      font-size: 14px;
+      font-weight: normal;
+    }
+
+    @media only screen and (max-width: 600px) {
+      .email-wrapper {
+        padding: 24px 12px;
+      }
+
+      .email-header {
+        padding: 28px 20px;
+      }
+
+      .email-header h1 {
+        font-size: 20px;
+      }
+
+      .email-content {
+        padding: 32px 24px 24px 24px;
+      }
+
+      .email-footer {
+        padding: 24px;
+      }
+
+      .button {
+        display: block;
+        width: auto;
+        padding: 14px 20px;
+      }
+    }
+  </style>
 </head>
 
-<body style="background:#4c566a1c;margin: 0 !important;">
-    <div>
-        <div style='background-color:#3B5B68 ;padding:7rem;font-family:arial; position: relative;'>
-            <div class="body-ref" style="background: white; height: 5em; position: absolute; top: 5em; width: 48em;
-            left: 2em;
-            right: 0;
-            margin: 0 auto;
-            height: 30em;
-            ">
-                <div class="text-definition">
-                    <h1 style='text-align:center;'>Repositorio de Objetos de aprendizaje EduTech</h1>
-                    <label for="">Estimado/a administrador</label><strong> {NAME_USER}</strong>
-                    <div
-                        style='font-family:Arial;font-size:medium;margin-top:0.5rem;margin-bottom:1rem;border-bottom:1px solid gray;'>
-                    </div>
-                   <p>¡Se registró una nueva cuenta de profesor que necesita ser aprobado <i>{NAME_OA}</i>!</p>
-                    <p> Puedes revisar la lista de usuarios registrados como profesores
-                   <a style="color: gray;" href ="{HOST_ROA}/#/admin/teacher/request/pending">no aprobados</a>.</p>
-                    <div style="text-align-last: center;">
-                    <a style="    border-radius: 10px;
-    background: #3B5B68;
-    padding: 8px;
-    color: white;
-    text-decoration: none;" href="{HOST_ROA}/#/admin/teacher/request/pending">Revisar Registros</a>
-                    </div>
-                    <br>
-                <label for="">Saludos</label>
-                </div>
+<body>
+  <div class="email-wrapper">
+    <div class="email-container">
 
-                    <div class="footer" style="text-align: center;">
-                        <a href="{HOST_ROA}" target="_blank">
-                            <img src="https://repositorio.edutech-project.org/assets/img/image2vector.svg" style="width:6em; height: auto"
-                            alt="Repositorio de objetos de aprendizaje ROA">
-                        </a>
-                        <a href="{HOST_ROA}">
-                            <h2 style="font-size: small; color: black;">Equipo del repositorio de objetos de aprendizaje EduTech</h2>
-                        </a>
-                        <h3 style=" color: black;font-size: small;">Gracias por preferirnos</h3>
-                    </div>
-                <p style="font-style: italic; font-size:13px;margin: 2rem;text-align: center;">Este mensaje es generado de forma automática, porfavor no lo responda.</p>
+      <div class="email-header">
+        <h1>Repositorio de Objetos de Aprendizaje (ROA)</h1>
+      </div>
 
-                </div>
-            </div>
+      <div class="email-content">
+        <p class="greeting">
+          Estimado/a administrador/a <strong>{NAME_USER}</strong>,
+        </p>
+
+        <hr class="divider">
+
+        <p>
+          Se ha registrado una nueva cuenta de profesor que requiere aprobación.
+        </p>
+
+        <p>
+          Cuenta registrada: <strong><i>{NAME_OA}</i></strong>
+        </p>
+
+        <p>
+          Puede revisar la lista de usuarios registrados como profesores
+          <a class="text-link" href="{HOST_ROA}/#/admin/teacher/request/pending" target="_blank">
+            no aprobados
+          </a>.
+        </p>
+
+        <div class="button-wrapper">
+          <a class="button" href="{HOST_ROA}/#/admin/teacher/request/pending" target="_blank" style="display:inline-block;background:#3B5B68;color:#FFFFFF !important;text-decoration:none;padding:12px 28px;border-radius:10px;font-size:15px;font-weight:bold;letter-spacing:0.3px;font-family:Arial,'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+            REVISAR REGISTROS
+          </a>
         </div>
+
+        <p>
+          Saludos,<br>
+          <strong>Equipo ROA</strong>
+        </p>
+
+        <p class="automatic-message">
+          Este mensaje fue generado de forma automática, por favor no lo responda.
+        </p>
+      </div>
+
+      <div class="email-footer">
+        <a href="https://repositorio.edutech-project.org/" target="_blank">
+          <img src="https://repositorio.edutech-project.org/assets/img/ROA-Edu.png" width="96" height="96" style="display:block;width:96px;max-width:96px;height:auto;border:0;outline:none;text-decoration:none;margin:0 auto 8px auto;"
+               alt="Repositorio de Objetos de Aprendizaje ROA">
+        </a>
+
+        <a href="https://repositorio.edutech-project.org/" target="_blank">
+          <h2>Equipo ROA</h2>
+        </a>
+
+        <h3>Gracias por preferirnos</h3>
+      </div>
+
     </div>
+  </div>
 </body>
+
 </html>
