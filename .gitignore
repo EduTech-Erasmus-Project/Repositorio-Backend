@@ -16,6 +16,7 @@ media/maplompad/**/*.pyc
 **/migrations/**
 !**/migrations
 !**/migrations/__init__.py
+!applications/settings/migrations/0001_initial.py
 # Environments
 .env
 .venv

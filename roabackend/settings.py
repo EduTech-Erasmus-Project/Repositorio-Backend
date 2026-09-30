@@ -146,6 +146,8 @@ JWT_AUTH_COOKIE_REFRESH_PATH = env(
 )
 CSRF_COOKIE_SECURE = env.bool('CSRF_COOKIE_SECURE', default=JWT_AUTH_COOKIE_SECURE)
 CSRF_COOKIE_SAMESITE = env('CSRF_COOKIE_SAMESITE', default=JWT_AUTH_COOKIE_SAMESITE)
+# El frontend lee csrftoken para enviar el header X-CSRFToken; no debe ser HttpOnly.
+CSRF_COOKIE_HTTPONLY = False
 
 # Configuracion de la documentacion OpenAPI usada por Swagger UI y Redoc.
 SPECTACULAR_SETTINGS = {
