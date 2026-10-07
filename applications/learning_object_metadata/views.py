@@ -110,7 +110,7 @@ LEARNING_OBJECT_SEARCH_PARAMETERS = [
 ]
 LEARNING_OBJECT_ADMIN_FILTER_PARAMETERS = [
     LEARNING_OBJECT_PUBLIC_PARAMETER,
-    OpenApiParameter('general_title__icontains', str, OpenApiParameter.QUERY, description='Busca OAs por coincidencia parcial del titulo.'),
+    OpenApiParameter('general_title__icontains', str, OpenApiParameter.QUERY, description='Busca OAs por coincidencia parcial del titulo, nombres o apellidos del creador.'),
     OpenApiParameter('created_init', str, OpenApiParameter.QUERY, description='Fecha inicial del rango de creacion en formato YYYY-MM-DD.'),
     OpenApiParameter('created_end', str, OpenApiParameter.QUERY, description='Fecha final del rango de creacion en formato YYYY-MM-DD.'),
 ]
@@ -689,6 +689,28 @@ class OAFilterExpert(filters.FilterSet):
             )
 
 
+class LearningObjectPublicAndPrivateFilter(filters.FilterSet):
+    """Filtro administrativo para OAs aprobados y pendientes.
+
+    Mantiene el parametro heredado `general_title__icontains`, pero amplia la
+    busqueda a nombres y apellidos del usuario creador para no romper el
+    contrato actual del frontend.
+    """
+
+    general_title__icontains = filters.CharFilter(method='filter_text')
+
+    class Meta:
+        model = LearningObjectMetadata
+        fields = []
+
+    def filter_text(self, queryset, name, value):
+        return queryset.filter(
+            Q(general_title__icontains=value)
+            | Q(user_created__first_name__icontains=value)
+            | Q(user_created__last_name__icontains=value)
+        ).distinct()
+
+
 @extend_schema_view(
     get=extend_schema(
         tags=LEARNING_OBJECT_SEARCH_TAG,
@@ -967,9 +989,7 @@ class ListLearningObjectPublicAndPrivate(ListAPIView):
     pagination_class = ROANumberPagination
     lookup_field = "public"
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = {
-        "general_title": ["icontains"],
-    }
+    filterset_class = LearningObjectPublicAndPrivateFilter
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
