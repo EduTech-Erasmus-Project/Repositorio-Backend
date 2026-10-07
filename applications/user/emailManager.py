@@ -202,17 +202,16 @@ class SendEmailConfirm:
         except MAIL_DELIVERY_EXCEPTIONS:
             logger.exception('Error enviando correo de contacto al administrador')
 
-    def sendEmailTesting(self, host, username, password, emailtest, port, tls, email_from):
+    def sendEmailTesting(self, emailtest):
         try:
             message_email = """Hola este es un mensaje de prueba, generado automáticamente para probar la conexión con el 
             servidor. """
             logger.info(message_email)
             msg = MIMEMultipart()
-            msg['From'] = email_from
             msg['To'] = emailtest
             msg['Subject'] = format_roa_email_subject('Bienvenido al servicio de mensajería del Repositorio de Objetos de Aprendizaje - ROA 🚀')
             msg.attach(MIMEText(message_email, 'plain'))
-            smt_send_email_to_receiver_testing_server(host, msg, username, password,port, tls)
+            smt_send_email_to_receiver_testing_server(msg)
         except MAIL_DELIVERY_EXCEPTIONS as exc:
             raise exc
 
@@ -298,24 +297,36 @@ def smt_send_email_to_receiver(msg):
     smtphost = email_settings.host
     password = email_settings.decrypt_password()
     username = email_settings.username
+    port = int(email_settings.port or 25)
+    tls = email_settings.tls
     msg['From'] = email_settings.email_from
 
-    server = smtplib.SMTP(smtphost)
-    server.starttls()
-    server.login(username, password)
-    server.sendmail(msg['From'], msg['To'], msg.as_string())
-    server.quit()
+    server = smtplib.SMTP(smtphost, port, timeout=20)
+    try:
+        if tls:
+            server.starttls()
+        server.login(username, password)
+        server.sendmail(msg['From'], msg['To'], msg.as_string())
+    finally:
+        server.quit()
 
 
-def smt_send_email_to_receiver_testing_server(host, msg, username, password, port, tls, ):
-    """Envia un correo de prueba usando credenciales proporcionadas en runtime."""
+def smt_send_email_to_receiver_testing_server(msg):
+    """Envia un correo de prueba usando la configuracion SMTP persistida."""
 
-    smtphost = host
-    password = password
-    username = username
+    email_settings = Email.objects.first()
+    smtphost = email_settings.host
+    password = email_settings.decrypt_password()
+    username = email_settings.username
+    port = int(email_settings.port or 25)
+    tls = email_settings.tls
+    msg['From'] = email_settings.email_from
 
-    server = smtplib.SMTP(smtphost)
-    server.starttls()
-    server.login(username, password)
-    server.sendmail(msg['From'], msg['To'], msg.as_string())
-    server.quit()
+    server = smtplib.SMTP(smtphost, port, timeout=20)
+    try:
+        if tls:
+            server.starttls()
+        server.login(username, password)
+        server.sendmail(msg['From'], msg['To'], msg.as_string())
+    finally:
+        server.quit()

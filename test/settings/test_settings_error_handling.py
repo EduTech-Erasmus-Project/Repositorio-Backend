@@ -104,7 +104,7 @@ class SettingsErrorHandlingTests(TestCase):
         self.assertEqual(email.decrypt_password(), "new-pass")
 
     def test_email_testing_rejects_invalid_payload(self):
-        """El endpoint de prueba SMTP valida campos requeridos con serializer."""
+        """El endpoint de prueba SMTP valida el destinatario requerido."""
         response = self.client.post(
             "/api/v1/settings/email-testing/",
             {"host": "smtp.local"},
@@ -113,20 +113,11 @@ class SettingsErrorHandlingTests(TestCase):
 
         self.assertEqual(response.status_code, 400, response.data)
         self.assertEqual(response.data["message"], "Validation error")
-        self.assertIn("username", response.data["errors"])
         self.assertIn("emailtest", response.data["errors"])
 
     def test_email_testing_returns_400_for_expected_smtp_error(self):
         """Errores SMTP esperables deben responder 400 sin romper el endpoint."""
-        payload = {
-            "host": "smtp.local",
-            "username": "mailer",
-            "password": "secret",
-            "emailtest": "destino@example.com",
-            "port": "587",
-            "tls": True,
-            "email_from": "from@example.com",
-        }
+        payload = {"emailtest": "destino@example.com"}
 
         with patch(
             "applications.settings.views.mail_aproved.sendEmailTesting",
@@ -143,15 +134,7 @@ class SettingsErrorHandlingTests(TestCase):
 
     def test_email_testing_does_not_swallow_unexpected_runtime_error(self):
         """Un RuntimeError inesperado ya no debe quedar oculto por un except genérico."""
-        payload = {
-            "host": "smtp.local",
-            "username": "mailer",
-            "password": "secret",
-            "emailtest": "destino@example.com",
-            "port": "587",
-            "tls": True,
-            "email_from": "from@example.com",
-        }
+        payload = {"emailtest": "destino@example.com"}
 
         with patch(
             "applications.settings.views.mail_aproved.sendEmailTesting",

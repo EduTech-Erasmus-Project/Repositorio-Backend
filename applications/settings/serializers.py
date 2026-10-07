@@ -146,13 +146,6 @@ class UserTypeOptionUpdateInputSerializer(serializers.Serializer):
 
 
 class EmailTestingConnectionSerializer(serializers.Serializer):
-    """Valida el payload de la prueba de conexión SMTP del administrador."""
+    """Valida el destinatario de prueba para la configuracion SMTP guardada."""
 
-    host = serializers.CharField(help_text="Servidor SMTP que se desea probar.")
-    username = serializers.CharField(help_text="Usuario SMTP usado en la prueba de conexion.")
-    password = serializers.CharField(help_text="Password SMTP temporal usado solo para la prueba.")
     emailtest = serializers.EmailField(help_text="Correo destinatario que recibira el email de prueba.")
-    port = serializers.CharField(help_text="Puerto SMTP usado en la prueba.")
-    tls = serializers.BooleanField(help_text="Indica si la prueba debe usar TLS.")
-    email_from = serializers.EmailField(help_text="Correo remitente usado para enviar la prueba.")
-

@@ -453,9 +453,8 @@ class EmailDomainUpdateView(generics.UpdateAPIView):
         tags=SETTINGS_EMAIL_TAG,
         summary='Probar conexion SMTP',
         description=(
-            'Recibe credenciales SMTP temporales e intenta enviar un correo de '
-            'prueba. No modifica la configuracion persistida; solo valida que '
-            'los datos enviados puedan entregar un email.'
+            'Usa la configuracion SMTP persistida e intenta enviar un correo de '
+            'prueba al destinatario indicado.'
         ),
         request=EmailTestingConnectionSerializer,
         responses={
@@ -488,8 +487,7 @@ class sendEmailTestingConecction(CreateAPIView):
 
         data = input_serializer.validated_data
         try:
-            mail_aproved.sendEmailTesting(data['host'], data['username'], data['password'], data['emailtest'],
-                                          data['port'], data['tls'], data['email_from'])
+            mail_aproved.sendEmailTesting(data['emailtest'])
 
             return Response({'code': 200, 'message': 'Email testing sent successfully'}, status=HTTP_200_OK)
         except MAIL_DELIVERY_EXCEPTIONS as e:
