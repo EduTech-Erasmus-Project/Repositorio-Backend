@@ -24,7 +24,7 @@ from rest_framework.response import Response
 from rest_framework import serializers, viewsets
 from rest_framework.views import APIView
 from django.db import transaction
-from django.db.models import Case, Count, IntegerField, Q, When
+from django.db.models import Case, Count, IntegerField, Q, Value, When
 from django.http import Http404
 from rest_framework.generics import ListAPIView, RetrieveAPIView, RetrieveUpdateAPIView
 from rest_condition import Or
@@ -61,7 +61,7 @@ from applications.learning_object_metadata.testMailMetadata import SendEmailCrea
 from applications.user.models import User
 from rest_framework import generics
 from django.db.models import Func
-from django.db.models.functions import Lower
+from django.db.models.functions import Concat, Lower
 
 from applications.evaluation_student.serializers import StudentEvaluationSerializer
 
@@ -704,10 +704,18 @@ class LearningObjectPublicAndPrivateFilter(filters.FilterSet):
         fields = []
 
     def filter_text(self, queryset, name, value):
+        queryset = queryset.annotate(
+            user_created_full_name=Concat(
+                'user_created__first_name',
+                Value(' '),
+                'user_created__last_name',
+            )
+        )
         return queryset.filter(
             Q(general_title__icontains=value)
             | Q(user_created__first_name__icontains=value)
             | Q(user_created__last_name__icontains=value)
+            | Q(user_created_full_name__icontains=value)
         ).distinct()
 
 
