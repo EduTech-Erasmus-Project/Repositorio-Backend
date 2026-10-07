@@ -253,9 +253,20 @@ class RoleSerializer(serializers.Serializer):
     role_list = []
 
     def validate_roles(self, value):
-        self.role_list.clear()
-        for role in value:
-            self.role_list.append(role)
+        allowed_roles = {'student', 'teacher', 'expert'}
+        roles = [role.strip() if isinstance(role, str) else role for role in value]
+
+        if not roles:
+            raise serializers.ValidationError("Debe seleccionar un rol para registrar el usuario.")
+
+        if len(roles) != 1:
+            raise serializers.ValidationError("El registro permite seleccionar un solo rol.")
+
+        invalid_roles = [role for role in roles if role not in allowed_roles]
+        if invalid_roles:
+            raise serializers.ValidationError("Rol no valido. Use student, teacher o expert.")
+
+        self.role_list = roles
         return self.role_list
 
     def validate_email(self, value):
