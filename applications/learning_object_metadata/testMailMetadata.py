@@ -9,6 +9,7 @@ import logging
 import os
 import smtplib
 import threading
+from html import escape
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -39,6 +40,20 @@ def _read_html_template(path_email):
 
     with open(path_email, mode="r", encoding="utf-8") as template_file:
         return template_file.read()
+
+
+def _format_multiline_message(message):
+    """Convierte texto plano con saltos de linea a HTML seguro para correo."""
+
+    normalized_message = str(message or "").replace("\r\n", "\n").replace("\r", "\n")
+    lines = []
+    for line in normalized_message.split("\n"):
+        escaped_line = escape(line).replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;")
+        leading_spaces = len(escaped_line) - len(escaped_line.lstrip(" "))
+        if leading_spaces:
+            escaped_line = "&nbsp;" * leading_spaces + escaped_line[leading_spaces:]
+        lines.append(escaped_line)
+    return "<br>".join(lines)
 
 env = environ.Env()
 BASE_DIR = Path(__file__).ancestor(3)
@@ -178,7 +193,10 @@ class SendEmailLearningObjectReviewFindings:
             message_html = _read_html_template(path_email)
             new_message_html = message_html.replace("{NAME_USER}", user)
             new_message_html = new_message_html.replace("{NAME_OA}", name_oa)
-            new_message_html = new_message_html.replace("{FINDINGS_MESSAGE}", findings_message)
+            new_message_html = new_message_html.replace(
+                "{FINDINGS_MESSAGE}",
+                _format_multiline_message(findings_message),
+            )
             new_message_html = new_message_html.replace("{HOST}", get_domain_host_roa())
 
             msg = MIMEMultipart()
