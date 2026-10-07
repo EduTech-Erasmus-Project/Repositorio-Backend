@@ -14,6 +14,7 @@ import logging
 import math
 from webbrowser import get
 
+from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema, extend_schema_view, inline_serializer
 
@@ -508,6 +509,41 @@ class ManagementUserView(viewsets.ViewSet):
             emails_extension = EmailExtensionsTeacher.objects.filter(is_active=True)
             return self.asing_array_filter_only_all(emails_extension, email_string, 'ALL')
 
+    def _get_required_location_objects(self, data):
+        """Valida y resuelve ubicacion academica para registros teacher/expert."""
+
+        required_fields = ("city", "university", "campus")
+        missing_fields = {
+            field: ["Este campo es requerido para docentes y expertos."]
+            for field in required_fields
+            if data.get(field) in (None, "")
+        }
+        if missing_fields:
+            raise serializers.ValidationError(missing_fields)
+
+        country_obj = Country.objects.filter(province__city__id=data.get("city")).first()
+        province_obj = Province.objects.filter(city__id=data.get("city")).first()
+        city_obj = City.objects.filter(id=data.get("city")).first()
+        university_obj = University.objects.filter(id=data.get("university")).first()
+        campus_obj = Campus.objects.filter(id=data.get("campus")).first()
+
+        invalid_fields = {}
+        if country_obj is None or province_obj is None or city_obj is None:
+            invalid_fields["city"] = ["Ciudad invalida."]
+        if university_obj is None:
+            invalid_fields["university"] = ["Universidad invalida."]
+        if campus_obj is None:
+            invalid_fields["campus"] = ["Campus invalido."]
+        elif campus_obj.university_id != university_obj.id:
+            invalid_fields["campus"] = ["El campus no pertenece a la universidad seleccionada."]
+        elif campus_obj.city_id is not None and campus_obj.city_id != city_obj.id:
+            invalid_fields["campus"] = ["El campus no pertenece a la ciudad seleccionada."]
+        if invalid_fields:
+            raise serializers.ValidationError(invalid_fields)
+
+        return country_obj, province_obj, city_obj, university_obj, campus_obj
+
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
         """
             Servicio para crear un nuevo usuario (Estudiante, Docente, Experto Colaborador).
@@ -520,6 +556,10 @@ class ManagementUserView(viewsets.ViewSet):
         new_student = Student()
         new_teacher = Teacher()
         new_expert = CollaboratingExpert()
+        location_objects = None
+
+        if role_serializer.validated_data['roles'][0] in ('teacher', 'expert'):
+            location_objects = self._get_required_location_objects(dataRes)
 
         for role in role_serializer.validated_data['roles']:
 
@@ -661,11 +701,7 @@ class ManagementUserView(viewsets.ViewSet):
             new_user.student = new_student
             new_user.save()
         if new_teacher.pk is not None:
-            countryObj = Country.objects.get(province__city__id=dataRes["city"])
-            provinceObj = Province.objects.get(city__id=dataRes["city"])
-            cityObj = City.objects.get(id=dataRes["city"])
-            universityObj = University.objects.get(id=dataRes["university"])
-            campusObj = Campus.objects.get(id=dataRes["campus"])
+            countryObj, provinceObj, cityObj, universityObj, campusObj = location_objects
 
             new_user.teacher = new_teacher
             new_user.country = countryObj
@@ -675,11 +711,7 @@ class ManagementUserView(viewsets.ViewSet):
             new_user.campus = campusObj
             new_user.save()
         if new_expert.pk is not None:
-            countryObj = Country.objects.get(province__city__id=dataRes["city"])
-            provinceObj = Province.objects.get(city__id=dataRes["city"])
-            cityObj = City.objects.get(id=dataRes["city"])
-            universityObj = University.objects.get(id=dataRes["university"])
-            campusObj = Campus.objects.get(id=dataRes["campus"])
+            countryObj, provinceObj, cityObj, universityObj, campusObj = location_objects
 
             new_user.collaboratingExpert = new_expert
             new_user.country = countryObj

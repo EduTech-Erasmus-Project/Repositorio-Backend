@@ -132,7 +132,7 @@ class AddressFullFlowTests(TestCase):
         self.assertNotIn(country_id, active_ids)
 
         delete_response = self.client.delete(f"/api/v1/address/countries/{country_id}")
-        self.assertEqual(delete_response.status_code, 200)
+        self.assertEqual(delete_response.status_code, 204)
         self.assertFalse(Country.objects.filter(id=country_id).exists())
 
     def test_province_crud_list_and_filter_by_country(self):
@@ -174,7 +174,7 @@ class AddressFullFlowTests(TestCase):
         self.assertFalse(updated_province.is_active)
 
         delete_response = self.client.delete(f"/api/v1/address/province/{province_id}")
-        self.assertEqual(delete_response.status_code, 200)
+        self.assertEqual(delete_response.status_code, 204)
         self.assertFalse(Province.objects.filter(id=province_id).exists())
 
     def test_city_crud_list_and_active_endpoint(self):
@@ -214,7 +214,7 @@ class AddressFullFlowTests(TestCase):
         self.assertNotIn(city_id, active_ids)
 
         delete_response = self.client.delete(f"/api/v1/address/city/{city_id}")
-        self.assertEqual(delete_response.status_code, 200)
+        self.assertEqual(delete_response.status_code, 204)
         self.assertFalse(City.objects.filter(id=city_id).exists())
 
     def test_university_crud_and_filters(self):
@@ -271,7 +271,7 @@ class AddressFullFlowTests(TestCase):
         self.assertFalse(updated_university.is_active)
 
         delete_response = self.client.delete(f"/api/v1/address/university/{university_id}")
-        self.assertEqual(delete_response.status_code, 200)
+        self.assertEqual(delete_response.status_code, 204)
         self.assertFalse(University.objects.filter(id=university_id).exists())
 
     def test_campus_crud_and_active_filters(self):
@@ -332,5 +332,5 @@ class AddressFullFlowTests(TestCase):
         self.assertFalse(updated_campus.is_active)
 
         delete_response = self.client.delete(f"/api/v1/address/campus/{campus_id}")
-        self.assertEqual(delete_response.status_code, 200)
+        self.assertEqual(delete_response.status_code, 204)
         self.assertFalse(Campus.objects.filter(id=campus_id).exists())

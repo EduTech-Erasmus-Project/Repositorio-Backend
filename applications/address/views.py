@@ -178,13 +178,19 @@ class GetCampusListAPIView(generics.ListAPIView):
     get=extend_schema(
         tags=ADDRESS_CAMPUS_TAG,
         summary='Listar campus activos por universidad',
-        description='Devuelve los campus activos asociados a una universidad.',
+        description='Devuelve los campus activos asociados a una universidad. Si se envia `city`, filtra tambien por la ciudad seleccionada.',
         parameters=[
             OpenApiParameter(
                 name='pk',
                 type=int,
                 location=OpenApiParameter.PATH,
                 description='Identificador de la universidad usada para filtrar campus.',
+            ),
+            OpenApiParameter(
+                name='city',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                description='Identificador opcional de la ciudad usada para restringir los campus de la universidad.',
             )
         ],
         responses={200: CampusSerializer(many=True)},
@@ -198,8 +204,11 @@ class GetCampusByUniversityListAPIView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
     def get(self, request, pk):
-        """Filtra campus activos por `university_id`."""
+        """Filtra campus activos por `university_id` y opcionalmente por ciudad."""
         query = self.queryset.filter(university_id=pk).order_by('id')
+        city_id = request.query_params.get('city')
+        if city_id:
+            query = query.filter(city_id=city_id)
         serializer = self.serializer_class(query, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
