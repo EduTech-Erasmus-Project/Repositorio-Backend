@@ -31,6 +31,12 @@ SECRET_KEY = env('SECRET_KEY')
 # URL completa.
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
+# En produccion el TLS termina antes de Django (proxy/CDN -> nginx :80 ->
+# gunicorn). Sin esta cabecera, `request.scheme` queda en `http` y las URLs
+# absolutas de los OAs se guardan como `http://`, lo que el navegador bloquea
+# como Mixed Content al cargarlas en iframes desde la pagina HTTPS.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # `DEBUG` puede llegar desde `.env` o desde variables del proceso con formatos
 # distintos (`1`, `true`, `release`, etc.). Se normaliza de forma tolerante para
 # que valores de entorno no rompan el arranque de Django.
