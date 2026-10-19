@@ -77,6 +77,7 @@ LOCAL_APPS = [
     'applications.license',
     'applications.recommendation_system',
     'applications.interaction',
+    # Sin modelos activos: se conserva por su historial de migraciones.
     'applications.address',
     'applications.settings',
 ]

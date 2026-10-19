@@ -19,7 +19,6 @@ from applications.preferences.models import Preferences
 from applications.knowledge_area.models import KnowledgeArea
 from applications.education_level.models import EducationLevel
 from .managers import UserManager
-from ..address.models import Country, Province, City, University, Campus
 
 
 class Student(TimeStampedModel):
@@ -230,19 +229,22 @@ class User(AbstractBaseUser, TimeStampedModel):
 
     # La ubicación se modela en la cuenta principal porque la usan reportes,
     # filtros y contratos del API que no siempre consultan el perfil por rol.
-    country = models.ForeignKey(Country, on_delete=models.SET_NULL, related_name="user_country", null=True,
-                                blank=True,
-                                help_text="Pais asociado a la cuenta para reportes y filtros geograficos.")
-    province = models.ForeignKey(Province, on_delete=models.SET_NULL, related_name="user_province", null=True,
-                                 blank=True,
-                                 help_text="Provincia asociada a la cuenta para segmentacion geografica.")
-    city = models.ForeignKey(City, on_delete=models.SET_NULL, related_name="user_city", null=True, blank=True,
-                             help_text="Ciudad asociada a la cuenta para reportes y filtros.")
-    university = models.ForeignKey(University, on_delete=models.SET_NULL, related_name="user_university", null=True,
-                                   blank=True,
-                                   help_text="Universidad asociada al usuario para reportes academicos.")
-    campus = models.ForeignKey(Campus, on_delete=models.SET_NULL, related_name="user_campus", null=True, blank=True,
-                               help_text="Campus asociado al usuario dentro de la universidad.")
+    # Se guarda como texto: el frontend la toma de un catalogo geografico
+    # externo (`@countrystatecity/countries-browser`), por lo que se guardan
+    # codigos ISO y nombres en lugar de ids, que cambian entre versiones de
+    # ese catalogo. La universidad la escribe el usuario.
+    country_code = models.CharField(max_length=2, blank=True, default="",
+                                    help_text="Codigo ISO 3166-1 alpha-2 del pais (por ejemplo `EC`).")
+    country_name = models.CharField(max_length=100, blank=True, default="",
+                                    help_text="Nombre del pais seleccionado por el usuario.")
+    province_code = models.CharField(max_length=10, blank=True, default="",
+                                     help_text="Codigo de la provincia o estado dentro del pais (por ejemplo `P`).")
+    province_name = models.CharField(max_length=100, blank=True, default="",
+                                     help_text="Nombre de la provincia o estado seleccionado por el usuario.")
+    city_name = models.CharField(max_length=150, blank=True, default="",
+                                 help_text="Nombre de la ciudad seleccionada por el usuario.")
+    university_name = models.CharField(max_length=200, blank=True, default="",
+                                       help_text="Nombre de la universidad o institucion escrita por el usuario.")
 
     objects = UserManager()
 

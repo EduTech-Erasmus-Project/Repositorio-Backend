@@ -30,8 +30,6 @@ from .models import (
     Teacher,
     CollaboratingExpert
 )
-from ..address.serializers import CountrySerializer, ProvinceSerializer, CitiesSerializer, UniversitySerializer, \
-    CampusSerializer
 from ..learning_object_file.serializers import LearningObjectFileSerializer
 from ..learning_object_metadata.models import LearningObjectMetadata
 
@@ -47,6 +45,62 @@ class ArrayStringSerializer(serializers.ListField):
     """Lista tipada de strings para colecciones simples como `roles`."""
 
     child = serializers.CharField(required=True)
+
+
+"""Ubicacion de la cuenta principal."""
+# Campos de ubicacion de `User`, en el orden en que se exponen en el API.
+USER_LOCATION_FIELDS = (
+    'country_code',
+    'country_name',
+    'province_code',
+    'province_name',
+    'city_name',
+    'university_name',
+)
+
+
+class UserLocationSerializer(serializers.Serializer):
+    """Ubicacion como texto, tomada del catalogo geografico del frontend.
+
+    Todos los campos son opcionales; las subclases definen en
+    `required_fields` cuales exige su flujo. `country_code` se normaliza a
+    mayusculas y debe ser un codigo ISO 3166-1 alpha-2.
+    """
+
+    required_fields = ()
+
+    country_code = serializers.RegexField(
+        r'^[A-Za-z]{2}$', max_length=2, required=False, allow_blank=True, allow_null=True,
+        error_messages={'invalid': 'Debe ser un codigo de pais ISO de 2 letras.'},
+    )
+    country_name = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
+    province_code = serializers.CharField(max_length=10, required=False, allow_blank=True, allow_null=True)
+    province_name = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
+    city_name = serializers.CharField(max_length=150, required=False, allow_blank=True, allow_null=True)
+    university_name = serializers.CharField(max_length=200, required=False, allow_blank=True, allow_null=True)
+
+    def validate_country_code(self, value):
+        return value.upper() if value else value
+
+    def validate(self, attrs):
+        missing_fields = {
+            field: ["Este campo es requerido para docentes y expertos."]
+            for field in self.required_fields
+            if attrs.get(field) in (None, "")
+        }
+        if missing_fields:
+            raise serializers.ValidationError(missing_fields)
+        return attrs
+
+
+class UserLocationRequiredSerializer(UserLocationSerializer):
+    """Ubicacion exigida en el registro de docentes y expertos.
+
+    La provincia queda opcional porque el catalogo geografico no tiene
+    provincias para algunos paises.
+    """
+
+    required_fields = ('country_code', 'country_name', 'city_name', 'university_name')
 
 
 """Serializers básicos de administración y cuenta principal."""
@@ -115,9 +169,7 @@ class UserUpdateSerializer(serializers.Serializer):
     roles = ArrayStringSerializer()
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
-    city = serializers.IntegerField(required=False, allow_null=True)
-    university = serializers.IntegerField(required=False, allow_null=True)
-    campus = serializers.IntegerField(required=False, allow_null=True)
+    # La ubicacion se valida aparte con `UserLocationSerializer`.
     # image = serializers.ImageField(required=True)
 
 
@@ -243,12 +295,8 @@ class RoleSerializer(serializers.Serializer):
     image = serializers.ImageField(default='img/user.png')
     email = serializers.EmailField(required=True, validators=[UniqueValidator(queryset=User.objects.all())])
     password = serializers.CharField(required=True, min_length=8)
-    # Campos de direccion
-    # country = serializers.CharField(required=False)
-    # province = serializers.CharField(required=False)
-    city = serializers.CharField(required=False)
-    university = serializers.CharField(required=False)
-    campus = serializers.CharField(required=False)
+    # La ubicacion de docentes y expertos se valida con
+    # `UserLocationRequiredSerializer`.
 
     role_list = []
 
@@ -410,9 +458,6 @@ class GeneralUserListSerializer(serializers.ModelSerializer):
     collaboratingExpert = ExpertListSerializer()
     roles = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
-    city = CitiesSerializer()
-    university = UniversitySerializer()
-    campus = CampusSerializer()
 
     class Meta:
         model = User
@@ -429,10 +474,7 @@ class GeneralUserListSerializer(serializers.ModelSerializer):
             'created',
             'modified',
             'user_key',
-            'city',
-            'university',
-            'campus'
-        )
+        ) + USER_LOCATION_FIELDS
 
     @extend_schema_field(OpenApiTypes.URI)
     def get_image(self, obj):
@@ -954,11 +996,6 @@ class UserReportSerializer(serializers.ModelSerializer):
 
     # metadata_created = LearningObjectMetadataReport(many=True)
     learning_objects = serializers.SerializerMethodField()
-    country = CountrySerializer()
-    province = ProvinceSerializer()
-    city = CitiesSerializer()
-    university = UniversitySerializer()
-    campus = CampusSerializer()
 
     @extend_schema_field(LearningObjectMetadataReport(many=True))
     def get_learning_objects(self, obj):
@@ -975,8 +1012,9 @@ class UserReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'first_name', 'last_name', 'email', 'country', 'province', 'city', 'university', 'campus',
-            'created', 'learning_objects'
+            ('first_name', 'last_name', 'email')
+            + USER_LOCATION_FIELDS
+            + ('created', 'learning_objects')
         )
 
 

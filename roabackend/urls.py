@@ -42,7 +42,6 @@ urlpatterns = [
     re_path('', include('applications.preferences.urls')),
     re_path('', include('applications.license.urls')),
     re_path('', include('applications.learning_object_file.urls')),
-    re_path('', include('applications.address.urls')),
     re_path('', include('applications.settings.urls')),
 
     # Recursos expuestos con DRF Router.

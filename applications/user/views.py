@@ -94,6 +94,8 @@ from .serializers import (
     AdminUpdateAdministratorSerializer,
     OrcidValidationSerializer,
     EmailContacSerializer,
+    UserLocationSerializer,
+    UserLocationRequiredSerializer,
 )
 from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
@@ -116,8 +118,6 @@ import os
 from unipath import Path
 import environ
 import threading
-
-from ..address.models import Country, Province, City, University, Campus
 
 # Instancias reutilizadas para los distintos correos transaccionales del
 # módulo. Se inicializan una vez y luego se usan desde varios endpoints.
@@ -257,9 +257,10 @@ USER_PASSWORD_TOKEN_RESPONSE = inline_serializer(
 USER_REPORT_PARAMETERS = [
     OpenApiParameter('upload', str, OpenApiParameter.QUERY, description='Usa `upload` para docentes con OAs o `not_upload` para docentes sin OAs.'),
     OpenApiParameter('query', str, OpenApiParameter.QUERY, description='Busca por nombres, apellidos o correo exacto.'),
-    OpenApiParameter('city', int, OpenApiParameter.QUERY, description='Filtra por ciudad del docente.'),
-    OpenApiParameter('university', int, OpenApiParameter.QUERY, description='Filtra por universidad del docente.'),
-    OpenApiParameter('campus', int, OpenApiParameter.QUERY, description='Filtra por campus del docente.'),
+    OpenApiParameter('country', str, OpenApiParameter.QUERY, description='Filtra por codigo ISO del pais del docente (por ejemplo `EC`).'),
+    OpenApiParameter('province', str, OpenApiParameter.QUERY, description='Filtra por provincia del docente (coincidencia parcial).'),
+    OpenApiParameter('city', str, OpenApiParameter.QUERY, description='Filtra por ciudad del docente (coincidencia parcial).'),
+    OpenApiParameter('university', str, OpenApiParameter.QUERY, description='Filtra por universidad del docente (coincidencia parcial).'),
     OpenApiParameter('created_init', str, OpenApiParameter.QUERY, description='Fecha inicial de creacion en formato YYYY-MM-DD.'),
     OpenApiParameter('created_end', str, OpenApiParameter.QUERY, description='Fecha final de creacion en formato YYYY-MM-DD.'),
     OpenApiParameter('page', int, OpenApiParameter.QUERY, description='Numero de pagina a consultar.'),
@@ -456,8 +457,8 @@ class ManagementUserView(viewsets.ViewSet):
     """Registro y mantenimiento del perfil general para student/teacher/expert.
 
     El flujo crea primero el perfil específico del rol y luego lo enlaza con la
-    cuenta `User`. En el caso de docente, además persiste ciudad,
-    universidad y campus en el modelo principal porque forman parte del
+    cuenta `User`. En el caso de docente y experto, además persiste país,
+    provincia, ciudad y universidad (como texto) en el modelo principal porque forman parte del
     contrato histórico de ese rol.
     """
     serializer_class = GeneralUserListSerializer
@@ -509,39 +510,16 @@ class ManagementUserView(viewsets.ViewSet):
             emails_extension = EmailExtensionsTeacher.objects.filter(is_active=True)
             return self.asing_array_filter_only_all(emails_extension, email_string, 'ALL')
 
-    def _get_required_location_objects(self, data):
-        """Valida y resuelve ubicacion academica para registros teacher/expert."""
+    def _get_required_location(self, data):
+        """Valida la ubicacion academica exigida a docentes y expertos.
 
-        required_fields = ("city", "university", "campus")
-        missing_fields = {
-            field: ["Este campo es requerido para docentes y expertos."]
-            for field in required_fields
-            if data.get(field) in (None, "")
-        }
-        if missing_fields:
-            raise serializers.ValidationError(missing_fields)
+        Devuelve los campos de texto listos para asignar a `User`; los valores
+        omitidos opcionales (provincia) quedan como cadena vacia.
+        """
 
-        country_obj = Country.objects.filter(province__city__id=data.get("city")).first()
-        province_obj = Province.objects.filter(city__id=data.get("city")).first()
-        city_obj = City.objects.filter(id=data.get("city")).first()
-        university_obj = University.objects.filter(id=data.get("university")).first()
-        campus_obj = Campus.objects.filter(id=data.get("campus")).first()
-
-        invalid_fields = {}
-        if country_obj is None or province_obj is None or city_obj is None:
-            invalid_fields["city"] = ["Ciudad invalida."]
-        if university_obj is None:
-            invalid_fields["university"] = ["Universidad invalida."]
-        if campus_obj is None:
-            invalid_fields["campus"] = ["Campus invalido."]
-        elif campus_obj.university_id != university_obj.id:
-            invalid_fields["campus"] = ["El campus no pertenece a la universidad seleccionada."]
-        elif campus_obj.city_id is not None and campus_obj.city_id != city_obj.id:
-            invalid_fields["campus"] = ["El campus no pertenece a la ciudad seleccionada."]
-        if invalid_fields:
-            raise serializers.ValidationError(invalid_fields)
-
-        return country_obj, province_obj, city_obj, university_obj, campus_obj
+        serializer = UserLocationRequiredSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        return {field: value or "" for field, value in serializer.validated_data.items()}
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
@@ -556,10 +534,10 @@ class ManagementUserView(viewsets.ViewSet):
         new_student = Student()
         new_teacher = Teacher()
         new_expert = CollaboratingExpert()
-        location_objects = None
+        location = None
 
         if role_serializer.validated_data['roles'][0] in ('teacher', 'expert'):
-            location_objects = self._get_required_location_objects(dataRes)
+            location = self._get_required_location(dataRes)
 
         for role in role_serializer.validated_data['roles']:
 
@@ -685,9 +663,6 @@ class ManagementUserView(viewsets.ViewSet):
                 self.set_email_conform(new_expert.id, request, "expert")
                 new_expert.save()
 
-        # Para docentes, el alta históricamente deriva país y provincia a
-        # partir de la ciudad enviada en el payload.
-
         new_user = User.objects.create_general_user(
             first_name=role_serializer.validated_data['first_name'],
             last_name=role_serializer.validated_data['last_name'],
@@ -701,24 +676,14 @@ class ManagementUserView(viewsets.ViewSet):
             new_user.student = new_student
             new_user.save()
         if new_teacher.pk is not None:
-            countryObj, provinceObj, cityObj, universityObj, campusObj = location_objects
-
             new_user.teacher = new_teacher
-            new_user.country = countryObj
-            new_user.province = provinceObj
-            new_user.city = cityObj
-            new_user.university = universityObj
-            new_user.campus = campusObj
+            for field, value in location.items():
+                setattr(new_user, field, value)
             new_user.save()
         if new_expert.pk is not None:
-            countryObj, provinceObj, cityObj, universityObj, campusObj = location_objects
-
             new_user.collaboratingExpert = new_expert
-            new_user.country = countryObj
-            new_user.province = provinceObj
-            new_user.city = cityObj
-            new_user.university = universityObj
-            new_user.campus = campusObj
+            for field, value in location.items():
+                setattr(new_user, field, value)
             new_user.save()
         serializer = GeneralUserListSerializer(new_user)
         return Response(serializer.data, status=HTTP_200_OK)
@@ -777,12 +742,13 @@ class ManagementUserView(viewsets.ViewSet):
             user_serializer.is_valid(raise_exception=True)
             instance.first_name = user_serializer.validated_data['first_name']
             instance.last_name = user_serializer.validated_data['last_name']
-            if user_serializer.validated_data.get('city') is not None:
-                instance.city_id = user_serializer.validated_data['city']
-            if user_serializer.validated_data.get('university') is not None:
-                instance.university_id = user_serializer.validated_data['university']
-            if user_serializer.validated_data.get('campus') is not None:
-                instance.campus_id = user_serializer.validated_data['campus']
+            # Solo se actualizan los campos de ubicacion enviados con valor; los
+            # omitidos o `null` conservan lo guardado.
+            location_serializer = UserLocationSerializer(data=request.data)
+            location_serializer.is_valid(raise_exception=True)
+            for field, value in location_serializer.validated_data.items():
+                if value is not None:
+                    setattr(instance, field, value)
 
             for role in user_serializer.validated_data['roles']:
                 if instance.student is not None and role == 'student':
@@ -2240,9 +2206,10 @@ class ReportListAPIView(ListAPIView):
             return User.objects.none()
         upload = self.request.query_params.get("upload")
         query = self.request.query_params.get("query")
+        country = self.request.query_params.get("country")
+        province = self.request.query_params.get("province")
         city = self.request.query_params.get("city")
         university = self.request.query_params.get("university")
-        campus = self.request.query_params.get("campus")
         created_init = self.request.query_params.get("created_init")
         created_end = self.request.query_params.get("created_end")
 
@@ -2266,20 +2233,26 @@ class ReportListAPIView(ListAPIView):
                 Q(email__exact=query),
             )
 
-        if city is not None and city.isnumeric():
+        if country not in (None, ""):
             users = users.filter(
-                city_id=int(city)
+                country_code__iexact=country.strip()
             )
 
-        if university is not None and university.isnumeric():
+        if province not in (None, ""):
             users = users.filter(
-                university_id=int(university)
+                province_name__icontains=province.strip()
             )
 
-        if campus is not None and campus.isnumeric():
+        if city not in (None, ""):
             users = users.filter(
-                campus_id=int(campus)
+                city_name__icontains=city.strip()
             )
+
+        if university not in (None, ""):
+            users = users.filter(
+                university_name__icontains=university.strip()
+            )
+
         if created_init is not None and created_end is not None:
             date_init = datetime.strptime(created_init, '%Y-%m-%d').date()
             date_end = datetime.strptime(created_end, '%Y-%m-%d').date()
