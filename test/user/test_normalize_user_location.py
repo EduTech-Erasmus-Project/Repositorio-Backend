@@ -111,6 +111,19 @@ class NormalizeUserLocationCommandTests(TestCase):
         self.assertEqual(user.province_code, "A")
         self.assertEqual(user.province_name, "Azuay")
 
+    def test_unknown_province_is_replaced_by_city_province(self):
+        user = self._user(
+            country_code="EC", country_name="Ecuador",
+            province_name="Austro", city_name="Cuenca",
+        )
+
+        output = self._run()
+
+        user.refresh_from_db()
+        self.assertEqual(user.province_code, "A")
+        self.assertEqual(user.province_name, "Azuay")
+        self.assertNotIn("provincia 'Austro'", output)
+
     def test_values_not_in_catalog_are_kept_and_reported(self):
         user = self._user(
             country_code="EC", country_name="Ecuador",

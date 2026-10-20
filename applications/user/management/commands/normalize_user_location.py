@@ -144,10 +144,10 @@ class LocationNormalizer:
         values["country_name"] = self.country_name_es(country)
 
         state = None
+        province_missing = False
         if user.province_code or user.province_name:
             state = self.find_state(country["iso2"], user.province_code, user.province_name)
-            if state is None:
-                pending.append(f"provincia '{user.province_name or user.province_code}'")
+            province_missing = state is None
 
         if user.city_name:
             city, city_state = self.find_city(country["iso2"], state, user.city_name)
@@ -156,6 +156,11 @@ class LocationNormalizer:
             else:
                 values["city_name"] = city["name"]
                 state = state or city_state
+
+        # Una provincia desconocida (por ejemplo una subregion) se reemplaza por
+        # la provincia de la ciudad; solo queda pendiente si no hay de donde deducirla.
+        if province_missing and state is None:
+            pending.append(f"provincia '{user.province_name or user.province_code}'")
 
         if state is not None:
             values["province_code"] = state["iso2"]
