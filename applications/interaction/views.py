@@ -6,22 +6,25 @@ Este módulo separa interacciones por usuario de contadores agregados:
 - `GetUpdateDownloadNumber` y `CreateDownload` mantienen descargas por usuario
 - `CreateViewInteraction` y `GetUpdateViewNumberView` mantienen vistas agregadas
 - `MostLikeLearningObjects` y `LearingObjectLike` exponen rankings publicos
-- `UserRefTokenInteraction` valida una clave compartida y genera un token de referencia
+- `UserRefTokenInteraction` valida una clave compartida y genera una referencia firmada
+
+Las reglas para sumar vistas y descargas viven en `applications.interaction.counters`.
 """
 
 import logging
-import shortuuid
-from django.db.models import Case, Count, IntegerField, When
+from django.db.models import Case, Count, IntegerField, Sum, When
 from django.http.response import Http404
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveUpdateAPIView, ListCreateAPIView
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema, extend_schema_view, inline_serializer
 from applications.learning_object_metadata.models import LearningObjectMetadata
+from applications.interaction.counters import get_view_total, issue_reference, register_download, register_view
 from applications.interaction.models import Interaction, ViewInteraction
 from applications.interaction.serializers import InteractionAllService, InteractionSerializer, InteractionMostLiked, \
     InteractionViewCreateSerializer, InteractionViewSerializer, UserRefSerializer, \
-    InteractionLikeUpdateSerializer, InteractionDownloadUpdateSerializer
+    InteractionLikeUpdateSerializer, InteractionDownloadUpdateSerializer, InteractionDownloadCreateSerializer, \
+    InteractionViewUpdateSerializer
 from applications.learning_object_metadata.serializers import LearningObjectMetadataAllSerializer
 from applications.user.mixins import IsStudentUser, IsTeacherUser, IsCollaboratingExpertUser
 from rest_framework import viewsets
@@ -29,6 +32,7 @@ from rest_framework import serializers
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated ,AllowAny
 from rest_framework.response import Response
+from rest_framework.throttling import SimpleRateThrottle
 from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
@@ -81,6 +85,20 @@ InteractionViewErrorSerializer = inline_serializer(
     fields={
         'message': serializers.CharField(),
     },
+)
+
+VIEW_REGISTER_DESCRIPTION = (
+    'Suma 1 al total de vistas del OA; el número que envíe el cliente se ignora. Con `reference` '
+    'firmada válida suma una vez por referencia, por OA y por día; con una referencia inválida no '
+    'suma. Sin `reference` no suma. Si el '
+    'OA no tenía contador, se crea.'
+)
+
+DOWNLOAD_REGISTER_DESCRIPTION = (
+    'Suma 1 a las descargas del usuario autenticado en el OA; el número que envíe el cliente se '
+    'ignora. Con `reference` firmada válida suma una vez por referencia, por OA y por día; con una '
+    'referencia inválida no suma. Sin `reference` no suma. Si el usuario no tenía fila de '
+    'interacción con el OA, se crea.'
 )
 
 InteractionRefResponseSerializer = inline_serializer(
@@ -270,45 +288,36 @@ class InteractionAPIView(viewsets.ModelViewSet):
     ),
     put=extend_schema(
         tags=INTERACTION_DOWNLOAD_TAG,
-        summary='Incrementar descargas de un OA para el usuario actual',
-        description=(
-            'Busca la interacción del usuario autenticado con el OA indicado en la URL e incrementa '
-            'en uno el valor `downloaded` enviado. Si la relación usuario-OA no existe, responde error.'
-        ),
+        summary='Registrar una descarga del OA',
+        description=DOWNLOAD_REGISTER_DESCRIPTION,
         request=InteractionDownloadUpdateSerializer,
         parameters=[LEARNING_OBJECT_PK_PARAMETER],
         responses={
             200: OpenApiResponse(
                 response=InteractionAllService(many=True),
-                description='Interacción actualizada con el nuevo contador de descargas.',
+                description='Interacción del usuario con el contador de descargas actualizado.',
             ),
-            400: OpenApiResponse(
-                response=InteractionMessageSerializer,
-                description='No existe una interacción previa que pueda actualizarse.',
-            ),
+            404: OpenApiResponse(description='Objeto de aprendizaje no encontrado.'),
         },
     ),
     patch=extend_schema(
         tags=INTERACTION_DOWNLOAD_TAG,
-        summary='Incrementar descargas de un OA para el usuario actual',
-        description=(
-            'Alias PATCH expuesto por la vista generica. Usa el mismo contrato de actualización '
-            'que PUT para incrementar el contador de descargas.'
-        ),
+        summary='Registrar una descarga del OA',
+        description='Alias PATCH expuesto por la vista generica. Usa el mismo contrato que PUT.',
         request=InteractionDownloadUpdateSerializer,
         parameters=[LEARNING_OBJECT_PK_PARAMETER],
         responses={
             200: InteractionAllService(many=True),
-            400: InteractionMessageSerializer,
+            404: OpenApiResponse(description='Objeto de aprendizaje no encontrado.'),
         },
     ),
 )
 class GetUpdateDownloadNumber(RetrieveUpdateAPIView):
-    """Lee y actualiza el total de descargas asociado a un OA.
+    """Lee el total de descargas de un OA y registra descargas nuevas.
 
     `GET` suma el contador `downloaded` de todas las interacciones del OA.
-    `PUT` incrementa el contador del usuario autenticado dentro de su propia
-    fila de interacción.
+    `PUT` suma 1 en la fila del usuario autenticado según las reglas de
+    `applications.interaction.counters`.
     """
     serializer_class = InteractionDownloadUpdateSerializer
     queryset = Interaction.objects.all()
@@ -322,68 +331,32 @@ class GetUpdateDownloadNumber(RetrieveUpdateAPIView):
 
         return [permission() for permission in permission_classes]
 
-    @extend_schema(
-        tags=INTERACTION_DOWNLOAD_TAG,
-        summary='Incrementar descargas de un OA para el usuario actual',
-        description=(
-            'Busca la interacción del usuario autenticado con el OA indicado en la URL e incrementa '
-            'en uno el valor `downloaded` enviado. Si la relación usuario-OA no existe, responde error.'
-        ),
-        request=InteractionDownloadUpdateSerializer,
-        parameters=[LEARNING_OBJECT_PK_PARAMETER],
-        responses={
-            200: OpenApiResponse(
-                response=InteractionAllService(many=True),
-                description='Interacción actualizada con el nuevo contador de descargas.',
-            ),
-            400: OpenApiResponse(
-                response=InteractionMessageSerializer,
-                description='No existe una interacción previa que pueda actualizarse.',
-            ),
-        },
-    )
     def update(self, request, *args, **kwargs):
-        """Incrementa las descargas del usuario autenticado para el OA consultado.
+        """Registra una descarga del OA de la URL para el usuario autenticado.
 
-        Espera que la fila `Interaction` del usuario ya exista; si no existe,
-        la vista responde error y el cliente debe crearla por el flujo base.
+        El número que envía el cliente se ignora. Si el usuario todavía no
+        tiene fila de interacción con el OA, se crea.
         """
         serializer = InteractionDownloadUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = self.request.user
-        interaction_update = Interaction.objects.filter(learning_object_id = kwargs.get('pk'), user__id=user.id)
-        if interaction_update:
-            number_downloaded = serializer.validated_data['downloaded']
-            number_downloaded = int(number_downloaded) + 1
-            interaction_update[0].downloaded = number_downloaded
-            interaction_update[0].save()
-            serializer = InteractionAllService(interaction_update, many=True)
-            return Response(serializer.data, status=HTTP_200_OK)
-        return Response({'message':'Error update Count Download'}, status=HTTP_400_BAD_REQUEST)
+        learning_object = get_object_or_404(LearningObjectMetadata, pk=kwargs.get('pk'))
+        interaction = register_download(
+            learning_object,
+            request.user,
+            serializer.validated_data.get('reference'),
+        )
+        serializer = InteractionAllService([interaction], many=True)
+        return Response(serializer.data, status=HTTP_200_OK)
 
-    @extend_schema(
-        tags=INTERACTION_DOWNLOAD_TAG,
-        summary='Obtener total de descargas de un OA',
-        description=(
-            'Suma el campo `downloaded` de todas las interacciones registradas para el OA indicado. '
-            'El resultado es un total agregado, no un detalle por usuario.'
-        ),
-        parameters=[LEARNING_OBJECT_PK_PARAMETER],
-        responses={200: DownloadCountResponseSerializer},
-    )
     def get(self, request, *args, **kwargs):
         """Retorna la suma total de descargas registradas para un OA.
 
         El valor expuesto es agregado; no distingue cuantas descargas hizo cada
         usuario individualmente.
         """
-        interactions = Interaction.objects.filter(learning_object_id = kwargs.get('pk'))
-        number_downloaded = 0
-        if len(interactions) > 1 :
-            for interaction in interactions:
-                number_downloaded = number_downloaded + int(interaction.downloaded)
-        elif len(interactions) == 1:
-            number_downloaded = interactions[0].downloaded
+        number_downloaded = Interaction.objects.filter(
+            learning_object_id=kwargs.get('pk'),
+        ).aggregate(total=Sum('downloaded'))['total'] or 0
 
         return Response({'message': 'success', 'number': number_downloaded},status=HTTP_200_OK)
 
@@ -426,65 +399,38 @@ class GetLikedLearningObjetById(APIView):
 @extend_schema_view(
     post=extend_schema(
         tags=INTERACTION_DOWNLOAD_TAG,
-        summary='Crear registro de descarga',
-        description=(
-            'Crea la interacción inicial de descarga para el usuario autenticado. Si la relación '
-            'usuario-OA ya existe, reutiliza esa fila y actualiza el contador `downloaded`.'
-        ),
-        request=InteractionSerializer,
-        responses={200: OpenApiResponse(response=InteractionAllService, description='Registro de descarga creado o actualizado.')},
+        summary='Registrar una descarga del OA',
+        description=DOWNLOAD_REGISTER_DESCRIPTION,
+        request=InteractionDownloadCreateSerializer,
+        responses={
+            200: OpenApiResponse(
+                response=InteractionAllService(many=True),
+                description='Interacción del usuario con el contador de descargas actualizado.',
+            ),
+        },
     )
 )
 class CreateDownload(CreateAPIView):
-    """Crea o inicializa el registro de descargas del usuario sobre un OA.
+    """Registra una descarga indicando el OA en el cuerpo.
 
-    Si la relación usuario-OA ya existe, reutiliza esa fila y actualiza el
-    contador `downloaded`; si no existe, crea la fila desde cero.
+    Hace lo mismo que `PUT downloaded/<pk>`; se mantiene porque el frontend lo
+    usa para la primera descarga del OA.
     """
 
     permission_classes = [IsAuthenticated, IsStudentUser | IsTeacherUser | IsCollaboratingExpertUser]
-    serializer_class = InteractionSerializer
+    serializer_class = InteractionDownloadCreateSerializer
+    queryset = Interaction.objects.all()
 
-    @extend_schema(
-        tags=INTERACTION_DOWNLOAD_TAG,
-        summary='Crear registro de descarga',
-        description=(
-            'Crea la interacción inicial de descarga para el usuario autenticado. Si la relación '
-            'usuario-OA ya existe, reutiliza esa fila y actualiza el contador `downloaded`.'
-        ),
-        request=InteractionSerializer,
-        responses={200: OpenApiResponse(response=InteractionAllService, description='Registro de descarga creado o actualizado.')},
-    )
     def create(self, request, *args, **kwargs):
-        """Crea la relación de descarga o reutiliza una interacción ya existente.
-
-        Sirve como punto de entrada cuando todavía no existe la fila de
-        interacción y por eso `GetUpdateDownloadNumber` no puede incrementar.
-        """
-        serializer = InteractionSerializer(data=request.data)
+        """Registra la descarga y devuelve la fila del usuario con el OA."""
+        serializer = InteractionDownloadCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = self.request.user
-
-        learning_object = serializer.validated_data['learning_object']
-
-        exist_liked = Interaction.objects.filter(
-            learning_object=learning_object,
-            user__id=user.id
+        interaction = register_download(
+            serializer.validated_data['learning_object'],
+            request.user,
+            serializer.validated_data.get('reference'),
         )
-
-        if exist_liked.exists():
-            exist_liked[0].downloaded =serializer.validated_data['downloaded']
-            exist_liked[0].save()
-            serializer = InteractionAllService(exist_liked,many=True)
-            return Response(serializer.data, status=HTTP_200_OK)
-
-        instance = Interaction.objects.create(
-            downloaded=serializer.validated_data['downloaded'],
-            learning_object=learning_object,
-            user=user
-        )
-        instance.save()
-        serializer = InteractionAllService(instance)
+        serializer = InteractionAllService([interaction], many=True)
         return Response(serializer.data, status=HTTP_200_OK)
 
 
@@ -575,44 +521,30 @@ class LearingObjectLike(ListAPIView):
 @extend_schema_view(
     post=extend_schema(
         tags=INTERACTION_VIEW_TAG,
-        summary='Crear contador de vistas',
-        description=(
-            'Crea el registro inicial en `ViewInteraction` para almacenar el total de vistas de un OA. '
-            'Este contador es agregado y no depende del usuario autenticado.'
-        ),
+        summary='Registrar una vista del OA',
+        description=VIEW_REGISTER_DESCRIPTION,
         request=InteractionViewCreateSerializer,
         responses={200: InteractionViewSerializer},
     )
 )
 class CreateViewInteraction(CreateAPIView):
-    """Crea el contador inicial de vistas para un OA.
+    """Registra una vista indicando el OA en el cuerpo.
 
-    Las vistas se almacenan en `ViewInteraction`, separadas de `Interaction`,
-    porque aquí no se modela una relación por usuario sino un total agregado.
+    Hace lo mismo que `PUT viewed/<pk>`; se mantiene porque el frontend lo usa
+    cuando el OA todavía no tiene contador.
     """
     permission_classes = [AllowAny]
     serializer_class = InteractionViewCreateSerializer
 
-    @extend_schema(
-        tags=INTERACTION_VIEW_TAG,
-        summary='Crear contador de vistas',
-        description=(
-            'Crea el registro inicial en `ViewInteraction` para almacenar el total de vistas de un OA. '
-            'Este contador es agregado y no depende del usuario autenticado.'
-        ),
-        request=InteractionViewCreateSerializer,
-        responses={200: InteractionViewSerializer},
-    )
     def create(self, request, *args, **kwargs):
-        """Persiste un registro inicial de vistas para el OA recibido."""
+        """Registra la vista y devuelve el contador del OA."""
         serializer = InteractionViewCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        interaction_view = ViewInteraction.objects.create(
-            view=serializer.validated_data['view'],
-            learning_object=serializer.validated_data['learning_object']
+        counter = register_view(
+            serializer.validated_data['learning_object'],
+            serializer.validated_data.get('reference'),
         )
-        interaction_view.save()
-        view_interaction_s = InteractionViewSerializer(interaction_view)
+        view_interaction_s = InteractionViewSerializer(counter)
         return Response(view_interaction_s.data, status=HTTP_200_OK)
 
 
@@ -621,8 +553,8 @@ class CreateViewInteraction(CreateAPIView):
         tags=INTERACTION_VIEW_TAG,
         summary='Obtener contador de vistas de un OA',
         description=(
-            'Busca el registro `ViewInteraction` asociado al OA recibido y devuelve su contador de '
-            'vistas. Si no existe un registro previo, responde error.'
+            'Devuelve el total de vistas del OA en una lista de un elemento. Si el OA todavía no '
+            'tiene contador, responde error.'
         ),
         parameters=[LEARNING_OBJECT_PK_PARAMETER],
         responses={
@@ -632,105 +564,80 @@ class CreateViewInteraction(CreateAPIView):
     ),
     put=extend_schema(
         tags=INTERACTION_VIEW_TAG,
-        summary='Actualizar contador de vistas de un OA',
-        description=(
-            'Reemplaza el valor guardado en `ViewInteraction` por el numero enviado en el cuerpo. '
-            'No suma automaticamente; el cliente debe enviar el total final que desea persistir.'
-        ),
-        request=InteractionViewCreateSerializer,
+        summary='Registrar una vista del OA',
+        description=VIEW_REGISTER_DESCRIPTION,
+        request=InteractionViewUpdateSerializer,
         parameters=[LEARNING_OBJECT_PK_PARAMETER],
         responses={
             200: InteractionViewSerializer(many=True),
-            400: InteractionViewErrorSerializer,
+            404: OpenApiResponse(description='Objeto de aprendizaje no encontrado.'),
         },
     ),
     patch=extend_schema(
         tags=INTERACTION_VIEW_TAG,
-        summary='Actualizar contador de vistas de un OA',
-        description=(
-            'Alias PATCH expuesto por la vista generica. Usa el mismo contrato que PUT para reemplazar '
-            'el contador de vistas del OA.'
-        ),
-        request=InteractionViewCreateSerializer,
+        summary='Registrar una vista del OA',
+        description='Alias PATCH expuesto por la vista generica. Usa el mismo contrato que PUT.',
+        request=InteractionViewUpdateSerializer,
         parameters=[LEARNING_OBJECT_PK_PARAMETER],
         responses={
             200: InteractionViewSerializer(many=True),
-            400: InteractionViewErrorSerializer,
+            404: OpenApiResponse(description='Objeto de aprendizaje no encontrado.'),
         },
     ),
 )
 class GetUpdateViewNumberView(RetrieveUpdateAPIView):
-    """Lee y actualiza el contador agregado de vistas de un OA.
+    """Lee el total de vistas de un OA y registra vistas nuevas.
 
-    A diferencia de descargas y likes, este contador no es por usuario. La
-    vista asume una sola fila `ViewInteraction` por OA.
+    El contador no es por usuario: es una sola fila `ViewInteraction` por OA.
     """
 
     permission_classes = [AllowAny]
-    serializer_class = InteractionViewCreateSerializer
+    serializer_class = InteractionViewUpdateSerializer
     queryset = ViewInteraction.objects.all()
 
-    @extend_schema(
-        tags=INTERACTION_VIEW_TAG,
-        summary='Obtener contador de vistas de un OA',
-        description=(
-            'Busca el registro `ViewInteraction` asociado al OA recibido y devuelve su contador de '
-            'vistas. Si no existe un registro previo, responde error.'
-        ),
-        parameters=[LEARNING_OBJECT_PK_PARAMETER],
-        responses={
-            200: InteractionViewSerializer(many=True),
-            400: InteractionViewErrorSerializer,
-        },
-    )
     def get(self, request, *args, **kwargs):
-        """Devuelve el contador de vistas registrado para un OA."""
-        view_interaction = ViewInteraction.objects.filter(learning_object=kwargs.get('pk'))
-        if len(view_interaction) > 0:
-            serializer = InteractionViewSerializer(view_interaction, many=True);
-            return Response(serializer.data, status=HTTP_200_OK)
-        else:
+        """Devuelve el total de vistas registrado para un OA."""
+        total = get_view_total(kwargs.get('pk'))
+        if total is None:
             return Response({'message': 'error'}, status=HTTP_400_BAD_REQUEST)
+        return Response([{'view': total}], status=HTTP_200_OK)
 
-    @extend_schema(
-        tags=INTERACTION_VIEW_TAG,
-        summary='Actualizar contador de vistas de un OA',
-        description=(
-            'Reemplaza el valor guardado en `ViewInteraction` por el número enviado en el cuerpo. '
-            'No suma automáticamente; el cliente debe enviar el total final que desea persistir.'
-        ),
-        request=InteractionViewCreateSerializer,
-        parameters=[LEARNING_OBJECT_PK_PARAMETER],
-        responses={
-            200: InteractionViewSerializer(many=True),
-            400: InteractionViewErrorSerializer,
-        },
-    )
     def update(self, request, *args, **kwargs):
-        """Reemplaza el contador de vistas almacenado para el OA indicado.
+        """Registra una vista del OA de la URL.
 
-        No incrementa automáticamente; persiste exactamente el valor enviado
-        por el cliente.
+        El número que envía el cliente se ignora; el backend suma 1 si
+        corresponde.
         """
-        serializer = InteractionViewCreateSerializer(data=request.data)
+        serializer = InteractionViewUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        instance = ViewInteraction.objects.filter(learning_object=serializer.validated_data['learning_object'])
-        if len(instance) > 0:
-            instance[0].view = serializer.validated_data['view']
-            instance[0].save()
-            serializer_data = InteractionViewSerializer(instance, many=True)
-            return Response(serializer_data.data, status=HTTP_200_OK)
-        return Response({'message': 'error'}, status= HTTP_400_BAD_REQUEST)
+        learning_object = get_object_or_404(LearningObjectMetadata, pk=kwargs.get('pk'))
+        counter = register_view(learning_object, serializer.validated_data.get('reference'))
+        serializer_data = InteractionViewSerializer([counter], many=True)
+        return Response(serializer_data.data, status=HTTP_200_OK)
+
+
+class InteractionRefRateThrottle(SimpleRateThrottle):
+    """Limita por IP cuántas referencias se emiten, con o sin sesión.
+
+    La tasa sale de `DEFAULT_THROTTLE_RATES['interaction_ref']`.
+    """
+
+    scope = 'interaction_ref'
+
+    def get_cache_key(self, request, view):
+        return self.cache_format % {'scope': self.scope, 'ident': self.get_ident(request)}
 
 
 class UserRefTokenInteraction(ListCreateAPIView):
-    """Genera un token usado por el flujo `interaction-ref`.
+    """Genera la referencia firmada usada para contar vistas y descargas.
 
     El endpoint valida una clave compartida de entorno (`KEY_REF`) antes de
-    devolver un identificador aleatorio que otros flujos usan como referencia.
+    devolver la referencia. La firma es lo que impide inventarlas; la emisión
+    se limita por IP para que no se pidan de forma masiva.
     """
     permission_classes = [AllowAny]
     serializer_class = UserRefSerializer
+    throttle_classes = [InteractionRefRateThrottle]
     http_method_names = ['post', 'options']
 
     @extend_schema(
@@ -738,12 +645,14 @@ class UserRefTokenInteraction(ListCreateAPIView):
         summary='Generar token de referencia de interacción',
         description=(
             'Valida la clave compartida `key_ref` contra la variable de entorno `KEY_REF`. Si coincide, '
-            'genera una referencia aleatoria usada por flujos auxiliares del frontend.'
+            'genera una referencia firmada (`valor:firma`) que el frontend envía al registrar vistas y '
+            'descargas. La emisión está limitada por IP.'
         ),
         request=UserRefSerializer,
         responses={
             200: OpenApiResponse(response=InteractionRefResponseSerializer, description='Referencia generada correctamente.'),
             404: OpenApiResponse(response=InteractionRefResponseSerializer, description='Clave inválida o KEY_REF no configurado.'),
+            429: OpenApiResponse(description='Demasiadas referencias pedidas desde la misma IP.'),
         },
     )
     def post(self, request, *args, **kwargs):
@@ -759,8 +668,7 @@ class UserRefTokenInteraction(ListCreateAPIView):
                 logger.error("KEY_REF no esta configurado para interaction-ref")
                 return Response({'message':'Error', 'code':400}, status= HTTP_404_NOT_FOUND)
             if serializer.validated_data['key_ref'] == configured_key_ref:
-                user_token = str(shortuuid.ShortUUID().random(length=64))
-                return Response({'message':'successful', 'code':200,'reference':user_token},status= HTTP_200_OK)
+                return Response({'message':'successful', 'code':200,'reference':issue_reference()},status= HTTP_200_OK)
         return Response({'message':'Error', 'code':400}, status= HTTP_404_NOT_FOUND)
 
 
@@ -779,6 +687,7 @@ class UserRefTokenInteractionLegacy(UserRefTokenInteraction):
         responses={
             200: InteractionRefResponseSerializer,
             404: InteractionRefResponseSerializer,
+            429: OpenApiResponse(description='Demasiadas referencias pedidas desde la misma IP.'),
         },
     )
     def post(self, request, *args, **kwargs):

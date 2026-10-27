@@ -210,6 +210,37 @@ class SendEmailLearningObjectReviewFindings:
             logger.exception("Error enviando correo de hallazgos administrativos del OA")
 
 
+class SendEmailLearningObjectApproved:
+    """Notifica al docente cuando administracion publica su OA."""
+
+    def sendMailApproved(self, to_email, user, name_oa, slug):
+        """Renderiza la plantilla de aprobacion final y envia el correo al docente."""
+
+        try:
+            path_email = os.path.join(
+                BASE_DIR,
+                "applications",
+                "learning_object_metadata",
+                "template",
+                "learningObjectApprovedUSER.html",
+            )
+            learning_object_url = f"{get_domain_host_roa().rstrip('/')}/#/object/{slug}"
+            message_html = _read_html_template(path_email)
+            new_message_html = message_html.replace("{NAME_USER}", user)
+            new_message_html = new_message_html.replace("{NAME_OA}", name_oa)
+            new_message_html = new_message_html.replace("{OBJECT_URL}", learning_object_url)
+
+            msg = MIMEMultipart()
+            msg["To"] = to_email
+            msg["Cc"] = INSTITUTIONAL_COPY_EMAIL
+            msg["Subject"] = f"Objeto de Aprendizaje Aprobado {name_oa} - ROA"
+            msg.attach(MIMEText(new_message_html.encode("utf-8"), "html", "utf-8"))
+            hilo1_email = threading.Thread(target=smt_send_email_to_receiver, args=[msg])
+            hilo1_email.start()
+        except MAIL_DELIVERY_EXCEPTIONS:
+            logger.exception("Error enviando correo de aprobacion final del OA")
+
+
 def smt_send_email_to_receiver(msg):
     """Abre la sesion SMTP usando la configuración persistida en `Email`.
 

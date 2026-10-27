@@ -2,7 +2,8 @@
 
 Este archivo cubre dos caminos sensibles del update de perfiles:
 - actualización de estudiante con campos de ubicación nulos
-- actualización de docente manteniendo IDs de ciudad, universidad y campus
+- actualización de docente con la ubicación como texto (país, provincia,
+  ciudad y universidad)
 
 La suite existe para proteger cambios recientes en serializers y validaciones
 que ya rompieron estos payloads en el pasado.
@@ -14,7 +15,6 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from applications.address.models import Campus, City, Country, Province, University
 from applications.education_level.models import EducationLevel
 from applications.knowledge_area.models import KnowledgeArea
 from applications.preferences.models import Preferences, PreferencesArea
@@ -83,16 +83,6 @@ class UserManagementUpdateTests(TestCase):
     def _create_teacher_user(self):
         """Crea un docente con profesión y ubicación completas para el caso PUT."""
         profession = Profession.objects.create(description="Teacher Update")
-        country = Country.objects.create(name="Ecuador")
-        province = Province.objects.create(name="Pichincha", country=country)
-        city = City.objects.create(name="Quito", province=province)
-        university = University.objects.create(name="UPS", country=country)
-        campus = Campus.objects.create(
-            name="Sur",
-            address="Av. Moran",
-            university=university,
-            city=city,
-        )
         teacher = Teacher.objects.create(
             is_active=True,
             is_account_active=True,
@@ -106,13 +96,14 @@ class UserManagementUpdateTests(TestCase):
             password="StrongPass123",
         )
         user.teacher = teacher
-        user.country = country
-        user.province = province
-        user.city = city
-        user.university = university
-        user.campus = campus
+        user.country_code = "EC"
+        user.country_name = "Ecuador"
+        user.province_code = "P"
+        user.province_name = "Pichincha"
+        user.city_name = "Quito"
+        user.university_name = "UPS"
         user.save()
-        return user, profession, city, university, campus
+        return user, profession
 
     def test_student_update_accepts_null_location_fields_and_blank_disability_description(self):
         """El update de estudiante debe aceptar ubicación nula y descripción vacía."""
@@ -129,9 +120,12 @@ class UserManagementUpdateTests(TestCase):
             "education_levels": [self.education_level.id],
             "knowledge_areas": [self.knowledge_area_1.id, self.knowledge_area_2.id],
             "preferences": [self.preference_1.id, self.preference_2.id],
-            "city": None,
-            "university": None,
-            "campus": None,
+            "country_code": None,
+            "country_name": None,
+            "province_code": None,
+            "province_name": None,
+            "city_name": None,
+            "university_name": None,
         }
 
         response = self.client.put(self.student_url.format(pk=user.id), payload, format="json")
@@ -142,9 +136,9 @@ class UserManagementUpdateTests(TestCase):
         student.refresh_from_db()
 
         self.assertEqual(user.last_name, "After")
-        self.assertIsNone(user.city_id)
-        self.assertIsNone(user.university_id)
-        self.assertIsNone(user.campus_id)
+        self.assertEqual(user.country_code, "")
+        self.assertEqual(user.city_name, "")
+        self.assertEqual(user.university_name, "")
         self.assertEqual(student.disability_description, "")
         self.assertCountEqual(
             list(student.knowledge_areas.values_list("id", flat=True)),
@@ -155,18 +149,21 @@ class UserManagementUpdateTests(TestCase):
             [self.preference_1.id, self.preference_2.id],
         )
 
-    def test_teacher_update_still_accepts_location_ids(self):
-        """El update de docente debe seguir aceptando IDs validos de ubicación."""
-        user, profession, city, university, campus = self._create_teacher_user()
+    def test_teacher_update_saves_location_as_text(self):
+        """El update de docente guarda la ubicación como texto y normaliza el país."""
+        user, profession = self._create_teacher_user()
         self.client.force_authenticate(user=user)
 
         payload = {
             "roles": ["teacher"],
             "first_name": "Teacher",
             "last_name": "After",
-            "city": city.id,
-            "university": university.id,
-            "campus": campus.id,
+            "country_code": "co",
+            "country_name": "Colombia",
+            "province_code": "ANT",
+            "province_name": "Antioquia",
+            "city_name": "Medellín",
+            "university_name": "Universidad de Antioquia",
             "professions": [profession.id],
         }
 
@@ -175,6 +172,50 @@ class UserManagementUpdateTests(TestCase):
         self.assertEqual(response.status_code, 200, response.data)
         user.refresh_from_db()
         self.assertEqual(user.last_name, "After")
-        self.assertEqual(user.city_id, city.id)
-        self.assertEqual(user.university_id, university.id)
-        self.assertEqual(user.campus_id, campus.id)
+        self.assertEqual(user.country_code, "CO")
+        self.assertEqual(user.country_name, "Colombia")
+        self.assertEqual(user.province_code, "ANT")
+        self.assertEqual(user.province_name, "Antioquia")
+        self.assertEqual(user.city_name, "Medellín")
+        self.assertEqual(user.university_name, "Universidad de Antioquia")
+
+    def test_teacher_update_without_location_keeps_saved_location(self):
+        """Si el payload no trae ubicación, se conserva la guardada."""
+        user, profession = self._create_teacher_user()
+        self.client.force_authenticate(user=user)
+
+        payload = {
+            "roles": ["teacher"],
+            "first_name": "Teacher",
+            "last_name": "After",
+            "professions": [profession.id],
+        }
+
+        response = self.client.put(self.student_url.format(pk=user.id), payload, format="json")
+
+        self.assertEqual(response.status_code, 200, response.data)
+        user.refresh_from_db()
+        self.assertEqual(user.country_code, "EC")
+        self.assertEqual(user.city_name, "Quito")
+        self.assertEqual(user.university_name, "UPS")
+
+    def test_teacher_update_rejects_invalid_country_code(self):
+        """El código de país debe ser ISO de 2 letras."""
+        user, profession = self._create_teacher_user()
+        self.client.force_authenticate(user=user)
+
+        payload = {
+            "roles": ["teacher"],
+            "first_name": "Teacher",
+            "last_name": "After",
+            "country_code": "ECU",
+            "professions": [profession.id],
+        }
+
+        response = self.client.put(self.student_url.format(pk=user.id), payload, format="json")
+
+        self.assertEqual(response.status_code, 400, response.data)
+        self.assertIn("country_code", response.data)
+        user.refresh_from_db()
+        self.assertEqual(user.country_code, "EC")
+        self.assertEqual(user.last_name, "Before")

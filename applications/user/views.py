@@ -16,7 +16,9 @@ from webbrowser import get
 
 from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema, extend_schema_view, inline_serializer
+from rest_framework.exceptions import NotFound
 
 from applications.user.emailManager import SendMail, SendEmailCreateUser, SendEmailCreateUserCheck, SendEmailConfirm, \
     SendEmailCreateUserCheck_Expert, SendEmail_activation_email, SendEmailCreateUserCheck_Admin_to_Expert, \
@@ -52,7 +54,7 @@ from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from django.shortcuts import get_object_or_404
 from applications.education_level.models import EducationLevel
 from applications.knowledge_area.models import KnowledgeArea
@@ -66,7 +68,8 @@ from .models import (
     Student,
     Teacher,
     CollaboratingExpert,
-    Administrator
+    Administrator,
+    PublicProfile,
 )
 from .serializers import (
     UserAdminSerializer,
@@ -92,8 +95,12 @@ from .serializers import (
     AdminUpdateCollaboratingExpertSerializer,
     AdminAdministratorListSerializer,
     AdminUpdateAdministratorSerializer,
-    OrcidValidationSerializer,
     EmailContacSerializer,
+    UserLocationSerializer,
+    UserLocationRequiredSerializer,
+    OwnPublicProfileSerializer,
+    PublicAuthorSerializer,
+    AdminTeacherDetailSerializer,
 )
 from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
@@ -117,7 +124,9 @@ from unipath import Path
 import environ
 import threading
 
-from ..address.models import Country, Province, City, University, Campus
+from applications.interaction.counters import counter_total_subquery
+from applications.interaction.models import Interaction, ViewInteraction
+from applications.learning_object_metadata.models import LearningObjectMetadata
 
 # Instancias reutilizadas para los distintos correos transaccionales del
 # módulo. Se inicializan una vez y luego se usan desde varios endpoints.
@@ -257,9 +266,10 @@ USER_PASSWORD_TOKEN_RESPONSE = inline_serializer(
 USER_REPORT_PARAMETERS = [
     OpenApiParameter('upload', str, OpenApiParameter.QUERY, description='Usa `upload` para docentes con OAs o `not_upload` para docentes sin OAs.'),
     OpenApiParameter('query', str, OpenApiParameter.QUERY, description='Busca por nombres, apellidos o correo exacto.'),
-    OpenApiParameter('city', int, OpenApiParameter.QUERY, description='Filtra por ciudad del docente.'),
-    OpenApiParameter('university', int, OpenApiParameter.QUERY, description='Filtra por universidad del docente.'),
-    OpenApiParameter('campus', int, OpenApiParameter.QUERY, description='Filtra por campus del docente.'),
+    OpenApiParameter('country', str, OpenApiParameter.QUERY, description='Filtra por codigo ISO del pais del docente (por ejemplo `EC`).'),
+    OpenApiParameter('province', str, OpenApiParameter.QUERY, description='Filtra por provincia del docente (coincidencia parcial).'),
+    OpenApiParameter('city', str, OpenApiParameter.QUERY, description='Filtra por ciudad del docente (coincidencia parcial).'),
+    OpenApiParameter('university', str, OpenApiParameter.QUERY, description='Filtra por universidad del docente (coincidencia parcial).'),
     OpenApiParameter('created_init', str, OpenApiParameter.QUERY, description='Fecha inicial de creacion en formato YYYY-MM-DD.'),
     OpenApiParameter('created_end', str, OpenApiParameter.QUERY, description='Fecha final de creacion en formato YYYY-MM-DD.'),
     OpenApiParameter('page', int, OpenApiParameter.QUERY, description='Numero de pagina a consultar.'),
@@ -276,21 +286,20 @@ class UserReportPagination(PageNumberPagination):
 
 
 def filter_users_by_query_param(queryset, request):
-    """Aplica busqueda opcional por nombre, apellido o correo antes de paginar."""
+    """Aplica busqueda opcional por nombre, apellido o correo antes de paginar.
 
-    query = request.query_params.get('query')
-    if query is None:
-        return queryset
+    Siempre ordena (los más recientes primero): sin orden fijo, Postgres puede
+    repetir o saltarse usuarios entre páginas.
+    """
 
-    query = query.strip()
-    if not query:
-        return queryset
-
-    return queryset.filter(
-        Q(first_name__icontains=query) |
-        Q(last_name__icontains=query) |
-        Q(email__icontains=query)
-    )
+    query = (request.query_params.get('query') or '').strip()
+    if query:
+        queryset = queryset.filter(
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(email__icontains=query)
+        )
+    return queryset.order_by('-pk')
 
 
 @extend_schema_view(
@@ -456,8 +465,8 @@ class ManagementUserView(viewsets.ViewSet):
     """Registro y mantenimiento del perfil general para student/teacher/expert.
 
     El flujo crea primero el perfil específico del rol y luego lo enlaza con la
-    cuenta `User`. En el caso de docente, además persiste ciudad,
-    universidad y campus en el modelo principal porque forman parte del
+    cuenta `User`. En el caso de docente y experto, además persiste país,
+    provincia, ciudad y universidad (como texto) en el modelo principal porque forman parte del
     contrato histórico de ese rol.
     """
     serializer_class = GeneralUserListSerializer
@@ -509,39 +518,16 @@ class ManagementUserView(viewsets.ViewSet):
             emails_extension = EmailExtensionsTeacher.objects.filter(is_active=True)
             return self.asing_array_filter_only_all(emails_extension, email_string, 'ALL')
 
-    def _get_required_location_objects(self, data):
-        """Valida y resuelve ubicacion academica para registros teacher/expert."""
+    def _get_required_location(self, data):
+        """Valida la ubicacion academica exigida a docentes y expertos.
 
-        required_fields = ("city", "university", "campus")
-        missing_fields = {
-            field: ["Este campo es requerido para docentes y expertos."]
-            for field in required_fields
-            if data.get(field) in (None, "")
-        }
-        if missing_fields:
-            raise serializers.ValidationError(missing_fields)
+        Devuelve los campos de texto listos para asignar a `User`; los valores
+        omitidos opcionales (provincia) quedan como cadena vacia.
+        """
 
-        country_obj = Country.objects.filter(province__city__id=data.get("city")).first()
-        province_obj = Province.objects.filter(city__id=data.get("city")).first()
-        city_obj = City.objects.filter(id=data.get("city")).first()
-        university_obj = University.objects.filter(id=data.get("university")).first()
-        campus_obj = Campus.objects.filter(id=data.get("campus")).first()
-
-        invalid_fields = {}
-        if country_obj is None or province_obj is None or city_obj is None:
-            invalid_fields["city"] = ["Ciudad invalida."]
-        if university_obj is None:
-            invalid_fields["university"] = ["Universidad invalida."]
-        if campus_obj is None:
-            invalid_fields["campus"] = ["Campus invalido."]
-        elif campus_obj.university_id != university_obj.id:
-            invalid_fields["campus"] = ["El campus no pertenece a la universidad seleccionada."]
-        elif campus_obj.city_id is not None and campus_obj.city_id != city_obj.id:
-            invalid_fields["campus"] = ["El campus no pertenece a la ciudad seleccionada."]
-        if invalid_fields:
-            raise serializers.ValidationError(invalid_fields)
-
-        return country_obj, province_obj, city_obj, university_obj, campus_obj
+        serializer = UserLocationRequiredSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        return {field: value or "" for field, value in serializer.validated_data.items()}
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
@@ -556,10 +542,10 @@ class ManagementUserView(viewsets.ViewSet):
         new_student = Student()
         new_teacher = Teacher()
         new_expert = CollaboratingExpert()
-        location_objects = None
+        location = None
 
         if role_serializer.validated_data['roles'][0] in ('teacher', 'expert'):
-            location_objects = self._get_required_location_objects(dataRes)
+            location = self._get_required_location(dataRes)
 
         for role in role_serializer.validated_data['roles']:
 
@@ -685,9 +671,6 @@ class ManagementUserView(viewsets.ViewSet):
                 self.set_email_conform(new_expert.id, request, "expert")
                 new_expert.save()
 
-        # Para docentes, el alta históricamente deriva país y provincia a
-        # partir de la ciudad enviada en el payload.
-
         new_user = User.objects.create_general_user(
             first_name=role_serializer.validated_data['first_name'],
             last_name=role_serializer.validated_data['last_name'],
@@ -701,24 +684,14 @@ class ManagementUserView(viewsets.ViewSet):
             new_user.student = new_student
             new_user.save()
         if new_teacher.pk is not None:
-            countryObj, provinceObj, cityObj, universityObj, campusObj = location_objects
-
             new_user.teacher = new_teacher
-            new_user.country = countryObj
-            new_user.province = provinceObj
-            new_user.city = cityObj
-            new_user.university = universityObj
-            new_user.campus = campusObj
+            for field, value in location.items():
+                setattr(new_user, field, value)
             new_user.save()
         if new_expert.pk is not None:
-            countryObj, provinceObj, cityObj, universityObj, campusObj = location_objects
-
             new_user.collaboratingExpert = new_expert
-            new_user.country = countryObj
-            new_user.province = provinceObj
-            new_user.city = cityObj
-            new_user.university = universityObj
-            new_user.campus = campusObj
+            for field, value in location.items():
+                setattr(new_user, field, value)
             new_user.save()
         serializer = GeneralUserListSerializer(new_user)
         return Response(serializer.data, status=HTTP_200_OK)
@@ -777,12 +750,13 @@ class ManagementUserView(viewsets.ViewSet):
             user_serializer.is_valid(raise_exception=True)
             instance.first_name = user_serializer.validated_data['first_name']
             instance.last_name = user_serializer.validated_data['last_name']
-            if user_serializer.validated_data.get('city') is not None:
-                instance.city_id = user_serializer.validated_data['city']
-            if user_serializer.validated_data.get('university') is not None:
-                instance.university_id = user_serializer.validated_data['university']
-            if user_serializer.validated_data.get('campus') is not None:
-                instance.campus_id = user_serializer.validated_data['campus']
+            # Solo se actualizan los campos de ubicacion enviados con valor; los
+            # omitidos o `null` conservan lo guardado.
+            location_serializer = UserLocationSerializer(data=request.data)
+            location_serializer.is_valid(raise_exception=True)
+            for field, value in location_serializer.validated_data.items():
+                if value is not None:
+                    setattr(instance, field, value)
 
             for role in user_serializer.validated_data['roles']:
                 if instance.student is not None and role == 'student':
@@ -1095,9 +1069,13 @@ def roleUser(user):
     retrieve=extend_schema(
         tags=USER_ADMIN_APPROVAL_TAG,
         summary='Consultar docente pendiente',
-        description='Devuelve el detalle administrativo de un docente pendiente o desaprobado.',
+        description=(
+            'Devuelve el detalle administrativo de un docente pendiente o desaprobado, con su perfil público '
+            'completo, su ubicacion (pais, provincia, ciudad y universidad), y todos sus OA (públicos y no públicos) con los totales de '
+            '`views` y `downloads`, del más reciente al más antiguo y sin paginar.'
+        ),
         parameters=[USER_ID_PARAMETER],
-        responses={200: AdminDisaprovedTeacherCollaboratingExpertSerializer, 404: OpenApiResponse(description='Usuario no encontrado.')},
+        responses={200: AdminTeacherDetailSerializer, 404: OpenApiResponse(description='Usuario no encontrado.')},
     ),
     update=extend_schema(
         tags=USER_ADMIN_APPROVAL_TAG,
@@ -1133,9 +1111,23 @@ class AdminDisaprovedTeacher(viewsets.ViewSet):
         """
             Servicio para listar Docentes no aprobados por id. Se necesita autenticación como administrador
         """
-        queryset = User.objects.all()
+        learning_objects = (
+            LearningObjectMetadata.objects
+            .annotate(
+                views=counter_total_subquery(ViewInteraction, 'view'),
+                downloads=counter_total_subquery(Interaction, 'downloaded'),
+            )
+            .order_by('-created', '-id')
+        )
+        queryset = User.objects.select_related(
+            'public_profile',
+        ).prefetch_related(
+            'public_profile__links',
+            'public_profile__degrees',
+            Prefetch('metadata_created', queryset=learning_objects, to_attr='admin_learning_objects'),
+        )
         user = get_object_or_404(queryset, pk=pk)
-        serializer = AdminDisaprovedTeacherCollaboratingExpertSerializer(user)
+        serializer = AdminTeacherDetailSerializer(user)
         return Response(serializer.data, status=HTTP_200_OK)
 
     def update(self, request, pk=None, project_pk=None):
@@ -1730,39 +1722,6 @@ class UserCountView(APIView):
         return Response(result, status=HTTP_200_OK)
 
 
-import urllib.request
-from bs4 import BeautifulSoup
-import requests
-
-
-class VerifyOrcid(APIView):
-    """Valida superficialmente un ORCID consultando la URL pública."""
-    permission_classes = [AllowAny]
-    serializer_class = OrcidValidationSerializer
-
-    @extend_schema(
-        tags=USER_ACCOUNT_TAG,
-        summary='Validar ORCID',
-        description='Recibe un ORCID y valida de forma superficial la disponibilidad de ORCID mediante una consulta HTTP externa.',
-        request=OrcidValidationSerializer,
-        responses={200: USER_MESSAGE_RESPONSE, 400: OpenApiResponse(description='Payload invalido.')},
-    )
-
-    def post(self, request, format=None):
-        serializer = OrcidValidationSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        orcid = serializer.validated_data['orcid']
-        url = 'https://orcid.org/0000-0002-9659-7109'
-        opener = urllib.request.FancyURLopener({})
-        f = opener.open(url)
-        content = f.read()
-
-        try:
-            return Response({"message": "OK"}, status=HTTP_200_OK)
-        except:
-            return Response({"message": "invalid"}, status=HTTP_200_OK)
-
-
 @extend_schema_view(
     get=extend_schema(
         tags=USER_ACCOUNT_TAG,
@@ -1816,7 +1775,17 @@ class TotalExpertTeacher(APIView):
         summary='Iniciar sesion',
         description='Valida credenciales y emite tokens JWT solo si la cuenta y el rol operativo estan activos.',
         request=MyTokenObtainPairSerializer,
-        responses={200: USER_TOKEN_RESPONSE, 401: OpenApiResponse(description='Credenciales invalidas o usuario inactivo.')},
+        responses={
+            200: USER_TOKEN_RESPONSE,
+            401: OpenApiResponse(description='Credenciales invalidas. El cuerpo incluye `detail` y `code` = `no_active_account`.'),
+            403: OpenApiResponse(
+                description=(
+                    'Credenciales correctas pero la cuenta no puede operar. El cuerpo incluye `detail` y `code`: '
+                    '`account_not_verified` (correo sin verificar) o '
+                    '`account_pending_approval` (pendiente de aprobacion o desactivada por el administrador).'
+                ),
+            ),
+        },
     )
 )
 class MyObtainTokenPairView(TokenObtainPairView):
@@ -2240,9 +2209,10 @@ class ReportListAPIView(ListAPIView):
             return User.objects.none()
         upload = self.request.query_params.get("upload")
         query = self.request.query_params.get("query")
+        country = self.request.query_params.get("country")
+        province = self.request.query_params.get("province")
         city = self.request.query_params.get("city")
         university = self.request.query_params.get("university")
-        campus = self.request.query_params.get("campus")
         created_init = self.request.query_params.get("created_init")
         created_end = self.request.query_params.get("created_end")
 
@@ -2266,20 +2236,26 @@ class ReportListAPIView(ListAPIView):
                 Q(email__exact=query),
             )
 
-        if city is not None and city.isnumeric():
+        if country not in (None, ""):
             users = users.filter(
-                city_id=int(city)
+                country_code__iexact=country.strip()
             )
 
-        if university is not None and university.isnumeric():
+        if province not in (None, ""):
             users = users.filter(
-                university_id=int(university)
+                province_name__icontains=province.strip()
             )
 
-        if campus is not None and campus.isnumeric():
+        if city not in (None, ""):
             users = users.filter(
-                campus_id=int(campus)
+                city_name__icontains=city.strip()
             )
+
+        if university not in (None, ""):
+            users = users.filter(
+                university_name__icontains=university.strip()
+            )
+
         if created_init is not None and created_end is not None:
             date_init = datetime.strptime(created_init, '%Y-%m-%d').date()
             date_end = datetime.strptime(created_end, '%Y-%m-%d').date()
@@ -2323,3 +2299,111 @@ class sendEmailContact(CreateAPIView):
             logger.exception("Error enviando correo de contacto al buzon institucional")
             return Response({'code': 400, 'message': 'Failed to send email'}, status=HTTP_400_BAD_REQUEST)
         return Response({'code': 200, 'message': 'Email sent successfully'}, status=HTTP_200_OK)
+
+
+OWN_PUBLIC_PROFILE_ERRORS = {
+    401: OpenApiResponse(description='No autenticado.'),
+    403: OpenApiResponse(description='El usuario no tiene perfil docente activo.'),
+}
+
+
+@extend_schema_view(
+    get=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Obtener mi perfil publico',
+        description=(
+            'Devuelve el perfil publico del docente autenticado con todos sus campos, tambien los marcados '
+            'como "Solo yo", y la visibilidad por campo con los valores por defecto aplicados. Si aun no '
+            'guardo su perfil responde 200 con campos vacios.'
+        ),
+        responses={200: OwnPublicProfileSerializer, **OWN_PUBLIC_PROFILE_ERRORS},
+    ),
+    put=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Guardar mi perfil publico',
+        description=(
+            'Guarda el perfil publico en una sola operacion atomica. `field_visibility` se mezcla con lo '
+            'guardado. `links` y `degrees` reemplazan la lista completa si vienen; si la clave no viene, '
+            'esa lista no cambia. Si algo es invalido no se guarda nada.'
+        ),
+        request=OwnPublicProfileSerializer,
+        responses={
+            200: OwnPublicProfileSerializer,
+            400: OpenApiResponse(description='Datos invalidos; errores por campo y por posicion en las listas.'),
+            **OWN_PUBLIC_PROFILE_ERRORS,
+        },
+    ),
+    patch=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Actualizar parcialmente mi perfil publico',
+        description='Igual que PUT; solo se actualizan las claves enviadas.',
+        request=OwnPublicProfileSerializer,
+        responses={
+            200: OwnPublicProfileSerializer,
+            400: OpenApiResponse(description='Datos invalidos; errores por campo y por posicion en las listas.'),
+            **OWN_PUBLIC_PROFILE_ERRORS,
+        },
+    ),
+)
+class OwnPublicProfileView(RetrieveUpdateAPIView):
+    """Lectura y guardado del perfil público del docente autenticado.
+
+    No recibe id: siempre opera sobre el perfil del usuario de la sesión, así
+    que nadie puede editar el perfil de otro. Si la fila aún no existe, se
+    trabaja con una instancia sin guardar y el primer guardado la crea.
+    """
+
+    permission_classes = [IsAuthenticated, IsTeacherUser]
+    serializer_class = OwnPublicProfileSerializer
+
+    def get_object(self):
+        profile = (
+            PublicProfile.objects
+            .select_related('user')
+            .prefetch_related('links', 'degrees')
+            .filter(user=self.request.user)
+            .first()
+        )
+        return profile or PublicProfile(user=self.request.user)
+
+
+USER_KEY_PARAMETER = OpenApiParameter(
+    name='user_key',
+    type=OpenApiTypes.UUID,
+    location=OpenApiParameter.PATH,
+    description='Identificador publico (`user_key`) del docente, el mismo que viene en `user_created` de los OA.',
+)
+
+
+@extend_schema_view(
+    get=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Obtener el perfil publico de un docente',
+        description=(
+            'Devuelve los datos fijos del docente y solo los campos opcionales marcados como "Publico" y no '
+            'vacios; los demas no vienen en la respuesta (la clave no aparece). Links y titulos solo los '
+            'visibles. Responde 404 si el docente no existe, esta inactivo, desactivo su perfil publico o '
+            'no tiene OA publicos.'
+        ),
+        parameters=[USER_KEY_PARAMETER],
+        responses={200: PublicAuthorSerializer, 404: OpenApiResponse(description='Perfil no disponible.')},
+    )
+)
+class PublicAuthorView(RetrieveAPIView):
+    """Perfil público de un docente, accesible sin sesión."""
+
+    permission_classes = [AllowAny]
+    serializer_class = PublicAuthorSerializer
+
+    def get_object(self):
+        author = (
+            User.objects.public_authors()
+            .filter(user_key=self.kwargs['user_key'])
+            .select_related('teacher', 'public_profile')
+            .prefetch_related('teacher__professions', 'public_profile__links', 'public_profile__degrees')
+            .first()
+        )
+        # Mismo 404 para cualquier causa, para no revelar por qué no se muestra.
+        if author is None:
+            raise NotFound()
+        return author

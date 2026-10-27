@@ -69,12 +69,6 @@ $env:DEBUG='1'; .\venv\Scripts\python.exe manage.py test test.education_level.te
 $env:DEBUG='1'; .\venv\Scripts\python.exe manage.py test test.knowledge_area.test_knowledge_area_full --verbosity 3
 ```
 
-## Run address full tests (PowerShell)
-
-```powershell
-$env:DEBUG='1'; .\venv\Scripts\python.exe manage.py test test.address.test_address_full --verbosity 3
-```
-
 ## Run license full tests (PowerShell)
 
 ```powershell
@@ -129,10 +123,10 @@ $env:DEBUG='1'; .\venv\Scripts\python.exe manage.py test test.user.test_user_env
 $env:DEBUG='1'; .\venv\Scripts\python.exe manage.py test test.user.test_user_management_update --verbosity 3 --keepdb
 ```
 
-## Run address URL compatibility tests (PowerShell)
+## Run user location tests (PowerShell)
 
 ```powershell
-$env:DEBUG='1'; .\venv\Scripts\python.exe manage.py test test.address.test_address_url_compatibility --verbosity 3 --keepdb
+$env:DEBUG='1'; .\venv\Scripts\python.exe manage.py test test.user.test_user_location --verbosity 3 --keepdb
 ```
 
 ## Run preferences URL compatibility tests (PowerShell)
