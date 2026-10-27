@@ -175,9 +175,12 @@ class User(AbstractBaseUser, TimeStampedModel):
 
     # Identificador funcional adicional al PK interno. Se usa en respuestas y
     # flujos externos sin exponer la semántica del id autoincremental.
+    # `unique`: antes se generaba con `uuid.uuid4()` y había claves repetidas;
+    # en bases antiguas, ejecutar `fix_duplicate_user_keys` antes de migrar.
     user_key = models.UUIDField(
         editable=False,
         primary_key=False,
+        unique=True,
         default=uuid.uuid4,
         help_text="Identificador UUID usado para exponer o relacionar usuarios sin depender del id interno.",
     )
@@ -280,3 +283,220 @@ class User(AbstractBaseUser, TimeStampedModel):
         return self.is_superuser
 
 
+
+
+class PublicProfile(TimeStampedModel):
+    """Datos opcionales del perfil público de un usuario.
+
+    Vive en una tabla aparte, uno a uno con `User`, para no tocar la tabla de
+    autenticación. La fila se crea la primera vez que el usuario guarda su
+    perfil; si no existe, el perfil público muestra solo los datos fijos de la
+    cuenta. Hoy lo usan los docentes; el diseño sirve también para expertos.
+    """
+
+    VISIBILITY_PUBLIC = 'public'
+    VISIBILITY_PRIVATE = 'private'
+    VISIBILITY_CHOICES = (VISIBILITY_PUBLIC, VISIBILITY_PRIVATE)
+
+    # Campos opcionales cuya visibilidad decide el usuario. Si una clave no está
+    # guardada en `field_visibility`, se usa el valor de este diccionario.
+    VISIBILITY_DEFAULTS = {
+        'headline': VISIBILITY_PUBLIC,
+        'faculty': VISIBILITY_PUBLIC,
+        'bio': VISIBILITY_PUBLIC,
+        'research_lines': VISIBILITY_PUBLIC,
+        'subjects': VISIBILITY_PUBLIC,
+        'research_group': VISIBILITY_PUBLIC,
+    }
+
+    user = models.OneToOneField(
+        'User',
+        on_delete=models.CASCADE,
+        related_name='public_profile',
+        help_text="Cuenta a la que pertenece el perfil publico.",
+    )
+    headline = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="Titular corto del perfil, por ejemplo 'Docente de Ingenieria Civil'.",
+    )
+    faculty = models.CharField(
+        max_length=150,
+        blank=True,
+        help_text="Facultad o carrera en la que trabaja el usuario.",
+    )
+    bio = models.TextField(
+        max_length=600,
+        blank=True,
+        help_text="Biografia academica en texto plano.",
+    )
+    research_lines = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Lista de lineas de investigacion (textos cortos).",
+    )
+    subjects = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Lista de asignaturas que dicta el usuario.",
+    )
+    research_group = models.CharField(
+        max_length=150,
+        blank=True,
+        help_text="Grupo de investigacion al que pertenece el usuario.",
+    )
+    field_visibility = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Visibilidad por campo opcional: {'campo': 'public' | 'private'}.",
+    )
+    is_public = models.BooleanField(
+        default=True,
+        help_text="Indica si el perfil se puede ver publicamente.",
+    )
+
+    def __str__(self):
+        return str(self.id)
+
+    def get_field_visibility(self):
+        """Devuelve la visibilidad de todos los campos opcionales.
+
+        Parte de `VISIBILITY_DEFAULTS` y aplica encima lo guardado. Ignora
+        claves o valores fuera de la lista cerrada para que un dato inválido en
+        la base nunca exponga un campo por error.
+        """
+
+        visibility = dict(self.VISIBILITY_DEFAULTS)
+        for field_name, value in (self.field_visibility or {}).items():
+            if field_name in self.VISIBILITY_DEFAULTS and value in self.VISIBILITY_CHOICES:
+                visibility[field_name] = value
+        return visibility
+
+    def is_field_public(self, field_name):
+        """Indica si un campo opcional está marcado como público."""
+
+        return self.get_field_visibility().get(field_name) == self.VISIBILITY_PUBLIC
+
+    def get_highest_degree(self, only_visible=True):
+        """Devuelve el nivel del título más alto, o `None` si no hay títulos.
+
+        El grado académico no se guarda aparte para no duplicar datos: se
+        calcula desde `AcademicDegree`. Recorre `degrees.all()` para
+        aprovechar un `prefetch_related` si la vista lo hizo.
+        """
+
+        # Un perfil sin guardar (usuario que aún no lo editó) no tiene títulos.
+        if self.pk is None:
+            return None
+        levels = [
+            degree.level
+            for degree in self.degrees.all()
+            if degree.is_visible or not only_visible
+        ]
+        if not levels:
+            return None
+        return max(levels, key=AcademicDegree.LEVEL_RANK.__getitem__)
+
+
+class UserLink(TimeStampedModel):
+    """Enlace académico o profesional del perfil público (uno por tipo)."""
+
+    TYPES = (
+        ('orcid', 'ORCID'),
+        ('scholar', 'Google Scholar'),
+        ('scopus', 'Scopus Author ID'),
+        ('researchgate', 'ResearchGate'),
+        ('linkedin', 'LinkedIn'),
+        ('institutional', 'Pagina institucional'),
+        ('website', 'Web personal'),
+    )
+
+    profile = models.ForeignKey(
+        PublicProfile,
+        on_delete=models.CASCADE,
+        related_name='links',
+        help_text="Perfil publico al que pertenece el enlace.",
+    )
+    type = models.CharField(
+        max_length=20,
+        choices=TYPES,
+        help_text="Tipo de enlace; solo puede haber uno de cada tipo por perfil.",
+    )
+    url = models.URLField(
+        max_length=300,
+        help_text="URL https del enlace.",
+    )
+    order = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Posicion del enlace en el perfil, definida por el usuario.",
+    )
+    is_visible = models.BooleanField(
+        default=True,
+        help_text="Indica si el enlace se muestra en el perfil publico.",
+    )
+
+    class Meta:
+        ordering = ['order']
+        constraints = [
+            models.UniqueConstraint(fields=['profile', 'type'], name='unique_link_type_per_profile'),
+        ]
+
+    def __str__(self):
+        return str(self.id)
+
+
+class AcademicDegree(TimeStampedModel):
+    """Título académico del perfil público."""
+
+    # Niveles de educación superior del Reglamento de Régimen Académico (CES),
+    # de menor a mayor. Diplomados y cursos no son títulos: no van aquí.
+    LEVELS = (
+        ('technical', 'Técnico o tecnólogo superior'),
+        ('third', 'Tercer nivel de grado'),
+        ('specialty', 'Especialización'),
+        ('master', 'Magister'),
+        ('phd', 'PhD'),
+    )
+    # Rango de cada nivel para calcular el grado más alto.
+    LEVEL_RANK = {
+        'technical': 1,
+        'third': 2,
+        'specialty': 3,
+        'master': 4,
+        'phd': 5,
+    }
+
+    profile = models.ForeignKey(
+        PublicProfile,
+        on_delete=models.CASCADE,
+        related_name='degrees',
+        help_text="Perfil publico al que pertenece el titulo.",
+    )
+    level = models.CharField(
+        max_length=10,
+        choices=LEVELS,
+        help_text="Nivel del titulo: tecnico o tecnologo superior, tercer nivel, especializacion, magister o PhD.",
+    )
+    title = models.CharField(
+        max_length=200,
+        help_text="Nombre del titulo obtenido.",
+    )
+    institution = models.CharField(
+        max_length=200,
+        help_text="Institucion que otorgo el titulo.",
+    )
+    year = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        help_text="Anio en que se obtuvo el titulo.",
+    )
+    is_visible = models.BooleanField(
+        default=True,
+        help_text="Indica si el titulo se muestra en el perfil publico.",
+    )
+
+    class Meta:
+        ordering = ['-year']
+
+    def __str__(self):
+        return str(self.id)

@@ -47,12 +47,34 @@ class InteractionLikeUpdateSerializer(serializers.Serializer):
     )
 
 
+REFERENCE_HELP_TEXT = (
+    'Referencia firmada emitida por `interaction-ref`. Con referencia válida se suma una vez '
+    'por OA y por día; sin referencia no se suma.'
+)
+
+
 class InteractionDownloadUpdateSerializer(serializers.Serializer):
-    """Valida el contador base usado para actualizar descargas."""
+    """Valida el registro de una descarga sobre el OA de la URL."""
 
     downloaded = serializers.IntegerField(
         min_value=0,
-        help_text='Valor actual de descargas enviado por el cliente antes de incrementarlo en backend.',
+        required=False,
+        help_text='Obsoleto: se acepta por compatibilidad pero se ignora; el backend suma 1.',
+    )
+    reference = serializers.CharField(
+        max_length=200,
+        required=False,
+        allow_blank=True,
+        help_text=REFERENCE_HELP_TEXT,
+    )
+
+
+class InteractionDownloadCreateSerializer(InteractionDownloadUpdateSerializer):
+    """Valida el registro de una descarga indicando el OA en el cuerpo."""
+
+    learning_object = serializers.PrimaryKeyRelatedField(
+        queryset=LearningObjectMetadata.objects.all(),
+        help_text='Identificador del objeto de aprendizaje descargado.',
     )
 
 
@@ -67,16 +89,33 @@ class InteractionMostLiked(serializers.Serializer):
     )
 
 
-class InteractionViewCreateSerializer(serializers.Serializer):
-    """Valida la creación y actualización del contador de vistas."""
+class InteractionViewUpdateSerializer(serializers.Serializer):
+    """Valida el registro de una vista sobre el OA de la URL."""
 
     view = serializers.IntegerField(
         min_value=0,
-        help_text='Total de vistas que se desea guardar para el objeto de aprendizaje.',
+        required=False,
+        help_text='Obsoleto: se acepta por compatibilidad pero se ignora; el backend suma 1.',
     )
     learning_object = serializers.PrimaryKeyRelatedField(
         queryset=LearningObjectMetadata.objects.all(),
-        help_text='Identificador del objeto de aprendizaje al que pertenece el contador de vistas.',
+        required=False,
+        help_text='Obsoleto: se acepta por compatibilidad; manda el OA de la URL.',
+    )
+    reference = serializers.CharField(
+        max_length=200,
+        required=False,
+        allow_blank=True,
+        help_text=REFERENCE_HELP_TEXT,
+    )
+
+
+class InteractionViewCreateSerializer(InteractionViewUpdateSerializer):
+    """Valida el registro de una vista indicando el OA en el cuerpo."""
+
+    learning_object = serializers.PrimaryKeyRelatedField(
+        queryset=LearningObjectMetadata.objects.all(),
+        help_text='Identificador del objeto de aprendizaje visto.',
     )
 
 

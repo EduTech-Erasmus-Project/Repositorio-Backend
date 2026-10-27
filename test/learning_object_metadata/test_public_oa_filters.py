@@ -30,6 +30,7 @@ from applications.interaction.models import Interaction
 from applications.knowledge_area.models import KnowledgeArea
 from applications.learning_object_file.models import LearningObjectFile
 from applications.learning_object_metadata.models import LearningObjectMetadata
+from applications.learning_object_metadata.views import SerachAPIView
 from applications.license.models import License
 from applications.user.models import CollaboratingExpert, Teacher
 from test.helpers.temp_media_root import build_test_media_root
@@ -280,6 +281,22 @@ class PublicOAFilterTests(TestCase):
         self.assertIn(self.oa_color_dependent.id, ids)
         self.assertNotIn(self.oa_privado.id, ids)
 
+    def test_public_search_uses_15_per_page_by_default_capped_at_50(self):
+        """El buscador pagina de 15 en 15 y no deja pedir más de 50."""
+        pagination = SerachAPIView.pagination_class
+        self.assertEqual(pagination.page_size, 15)
+        self.assertEqual(pagination.page_size_query_param, "page_size")
+        self.assertEqual(pagination.max_page_size, 50)
+
+    def test_public_search_accepts_page_size(self):
+        """`page_size` cambia cuántos OAs llegan por página."""
+        response = self.client.get("/api/v1/learning-objects/search/", {"page_size": 3})
+        self.assertEqual(len(self._result_ids(response)), 3)
+        self.assertEqual(response.data["pages"], 2)
+
+        response = self.client.get("/api/v1/learning-objects/search/", {"page_size": 3, "page": 2})
+        self.assertEqual(len(self._result_ids(response)), 1)
+
     def test_annotation_modeaccess_accepts_color_depend_alias_from_front(self):
         """Acepta el alias legacy colorDepend usado por el frontend histórico."""
         response = self.client.get(
@@ -398,6 +415,21 @@ class PublicOAFilterTests(TestCase):
         self.assertIn(self.oa_python.id, ids)
         self.assertNotIn(self.oa_privado.id, ids)
 
+    def test_populars_endpoint_includes_author_user_key(self):
+        """El autor trae `user_key` para que el front enlace a `/author/<user_key>`."""
+        EvaluationCollaboratingExpert.objects.create(
+            learning_object=self.oa_python,
+            rating=4.0,
+            observation="Publico",
+            collaborating_expert=self.teacher_user,
+        )
+
+        response = self.client.get("/api/v1/learning-objects/populars/")
+
+        self.assertEqual(response.status_code, 200, response.data)
+        author = response.data[0]["learning_object"]["user_created"]
+        self.assertEqual(author["user_key"], str(self.teacher_user.user_key))
+
     def test_learning_objects_most_recent_endpoint_returns_only_public_oas(self):
         """learning-objects-most-recent/ no debe incluir privados aunque sean más nuevos."""
         LearningObjectMetadata.objects.filter(pk=self.oa_python.pk).update(
@@ -449,6 +481,37 @@ class PublicOAFilterTests(TestCase):
         self.assertIn(self.oa_robotica.id, ids)
         self.assertIn(self.oa_python_avanzado.id, ids)
         self.assertIn(self.oa_color_dependent.id, ids)
+
+    def test_expert_search_only_lists_public_learning_objects(self):
+        """El buscador de experto nunca devuelve OAs privados, con o sin is_evaluated."""
+        EvaluationCollaboratingExpert.objects.create(
+            learning_object=self.oa_python,
+            rating=3.0,
+            observation="Evaluado por experto",
+            collaborating_expert=self.expert_user,
+        )
+        EvaluationCollaboratingExpert.objects.create(
+            learning_object=self.oa_privado,
+            rating=4.0,
+            observation="Privado evaluado por experto",
+            collaborating_expert=self.expert_user,
+        )
+        api_client = APIClient()
+        api_client.force_authenticate(user=self.expert_user)
+        url = "/api/v1/learning-objects/search/expert/"
+
+        pending_ids = self._result_ids(api_client.get(url, {"is_evaluated": "False"}))
+        self.assertNotIn(self.oa_privado.id, pending_ids)
+        self.assertNotIn(self.oa_python.id, pending_ids)
+        self.assertIn(self.oa_robotica.id, pending_ids)
+
+        evaluated_ids = self._result_ids(api_client.get(url, {"is_evaluated": "True"}))
+        self.assertEqual(evaluated_ids, [self.oa_python.id])
+
+        all_ids = self._result_ids(api_client.get(url))
+        self.assertNotIn(self.oa_privado.id, all_ids)
+        self.assertIn(self.oa_python.id, all_ids)
+        self.assertIn(self.oa_robotica.id, all_ids)
 
     def test_filter_combination_title_year_and_access_control(self):
         """Permite combinar palabra clave, año de creación y control de acceso."""

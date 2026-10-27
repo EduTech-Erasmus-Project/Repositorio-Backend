@@ -408,8 +408,9 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
         """Crea una evaluación experta completa para un OA.
 
         Valida la carga, impide que el mismo experto evalue dos veces el mismo
-        objeto y persiste tanto la cabecera de evaluación como los promedios
-        por concepto y las calificaciones por pregunta.
+        objeto o evalúe un OA que él mismo subió (un usuario puede ser docente
+        y experto a la vez) y persiste tanto la cabecera de evaluación como los
+        promedios por concepto y las calificaciones por pregunta.
         """
 
         serializer = EvaluationExpertCreateSerializer(data=request.data)
@@ -421,6 +422,14 @@ class EvaluationCollaboratingExpertView(viewsets.ViewSet):
             qualifications.append(result['value'])
 
         user = User.objects.get(id=self.request.user.id)
+        is_own_learning_object = LearningObjectMetadata.objects.filter(
+            id=serializer.validated_data['learning_object'],
+            user_created_id=user.id,
+        ).exists()
+        if is_own_learning_object:
+            return Response({"message": "An expert cannot evaluate their own learning object"},
+                            status=HTTP_400_BAD_REQUEST)
+
         oa_is_evaluated = EvaluationCollaboratingExpert.objects.filter(
             learning_object__id=serializer.validated_data['learning_object'],
             collaborating_expert__id=user.id
@@ -705,7 +714,10 @@ class LerningObjectRated(ListAPIView):
     )
 )
 class LerningObjectNotRated(ListAPIView):
-    """Lista OAs públicos que todavía no han sido evaluados por el experto actual."""
+    """Lista OAs públicos que todavía no han sido evaluados por el experto actual.
+
+    Excluye los OAs que subió el propio experto: no puede evaluarlos.
+    """
     permission_classes = [IsAuthenticated, IsCollaboratingExpertUser]
     serializer_class = LearningObjectMetadataAllSerializer
     pagination_class = ROANumberPagination
@@ -718,6 +730,8 @@ class LerningObjectNotRated(ListAPIView):
             public=True
         ).exclude(
             learning_objects__collaborating_expert__collaboratingExpert__id=self.request.user.collaboratingExpert.id
+        ).exclude(
+            user_created_id=self.request.user.id
         ).order_by('-id')
         return query
 

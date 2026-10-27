@@ -97,6 +97,25 @@ class UserManager(BaseUserManager):
             roles__description__contains=role,
         ).order_by("-created")
 
+    def public_authors(self):
+        """Docentes cuyo perfil público se puede mostrar.
+
+        Reúne en un solo lugar las condiciones del perfil público para que el
+        detalle del autor y su listado de OA respondan igual:
+        - tiene perfil docente activo;
+        - tiene al menos un OA con `public=True`;
+        - no desactivó su perfil público (sin fila de `PublicProfile` cuenta
+          como activado).
+        """
+
+        return self.filter(
+            teacher__isnull=False,
+            teacher__is_active=True,
+            metadata_created__public=True,
+        ).exclude(
+            public_profile__is_public=False,
+        ).distinct()
+
     def user_number_filter_role(self, role):
         """Devuelve el queryset base para conteos por descripción de rol."""
 

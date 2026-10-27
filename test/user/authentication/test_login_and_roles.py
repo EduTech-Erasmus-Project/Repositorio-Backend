@@ -11,6 +11,7 @@ from datetime import date
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from rest_framework import status
 from rest_framework.test import APIClient
 
 from applications.profession.models import Profession
@@ -231,3 +232,77 @@ class UserRoleLoginTests(TestCase):
         )
 
         self.assert_login_ok("superuser-login@example.com", "StrongPass123")
+
+
+class InactiveAccountLoginTests(TestCase):
+    """Valida que el login informe por qué una cuenta no puede ingresar."""
+
+    def setUp(self):
+        """Inicializa cliente API, modelo de usuario y endpoint de login."""
+        self.client = APIClient()
+        self.user_model = get_user_model()
+        self.login_url = "/api/v1/login/"
+        self.password = "StrongPass123"
+
+    def create_teacher_user(self, email, is_active, is_account_active):
+        """Crea un docente con los flags de activación indicados."""
+        teacher = Teacher.objects.create(
+            is_active=is_active,
+            is_account_active=is_account_active,
+        )
+        user = self.user_model.objects.create_general_user(
+            email=email,
+            first_name="Teacher",
+            last_name="Inactive",
+            password=self.password,
+        )
+        user.teacher = teacher
+        user.save()
+        return user
+
+    def login(self, email, password):
+        """Ejecuta el login y devuelve la response."""
+        return self.client.post(
+            self.login_url,
+            {"email": email, "password": password},
+            format="json",
+        )
+
+    def test_login_account_not_verified_returns_403(self):
+        """Correo sin verificar: 403 con code `account_not_verified`."""
+        user = self.create_teacher_user("teacher-unverified@example.com", is_active=False, is_account_active=False)
+
+        response = self.login(user.email, self.password)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.data)
+        self.assertEqual(response.data["code"], "account_not_verified")
+        self.assertEqual(response.data["detail"], "Account inactive user")
+        self.assertNotIn("access", response.data)
+
+    def test_login_account_pending_approval_returns_403(self):
+        """Correo verificado pero sin aprobación: 403 con code `account_pending_approval`."""
+        user = self.create_teacher_user("teacher-pending@example.com", is_active=False, is_account_active=True)
+
+        response = self.login(user.email, self.password)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.data)
+        self.assertEqual(response.data["code"], "account_pending_approval")
+        self.assertEqual(response.data["detail"], "Inactive user")
+        self.assertNotIn("access", response.data)
+
+    def test_login_inactive_account_with_wrong_password_returns_401(self):
+        """Con contraseña incorrecta se mantiene el 401 y no se revela el estado de la cuenta."""
+        user = self.create_teacher_user("teacher-wrong-pass@example.com", is_active=False, is_account_active=False)
+
+        response = self.login(user.email, "WrongPass123")
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED, response.data)
+        self.assertEqual(response.data["code"], "no_active_account")
+        self.assertEqual(response.data["detail"], "No active account found with the given credentials")
+
+    def test_login_unknown_email_returns_401_with_code(self):
+        """Un correo inexistente responde igual que una contraseña incorrecta."""
+        response = self.login("missing-user@example.com", self.password)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED, response.data)
+        self.assertEqual(response.data["code"], "no_active_account")

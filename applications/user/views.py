@@ -16,7 +16,9 @@ from webbrowser import get
 
 from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema, extend_schema_view, inline_serializer
+from rest_framework.exceptions import NotFound
 
 from applications.user.emailManager import SendMail, SendEmailCreateUser, SendEmailCreateUserCheck, SendEmailConfirm, \
     SendEmailCreateUserCheck_Expert, SendEmail_activation_email, SendEmailCreateUserCheck_Admin_to_Expert, \
@@ -52,7 +54,7 @@ from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from django.shortcuts import get_object_or_404
 from applications.education_level.models import EducationLevel
 from applications.knowledge_area.models import KnowledgeArea
@@ -66,7 +68,8 @@ from .models import (
     Student,
     Teacher,
     CollaboratingExpert,
-    Administrator
+    Administrator,
+    PublicProfile,
 )
 from .serializers import (
     UserAdminSerializer,
@@ -92,10 +95,12 @@ from .serializers import (
     AdminUpdateCollaboratingExpertSerializer,
     AdminAdministratorListSerializer,
     AdminUpdateAdministratorSerializer,
-    OrcidValidationSerializer,
     EmailContacSerializer,
     UserLocationSerializer,
     UserLocationRequiredSerializer,
+    OwnPublicProfileSerializer,
+    PublicAuthorSerializer,
+    AdminTeacherDetailSerializer,
 )
 from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
@@ -118,6 +123,10 @@ import os
 from unipath import Path
 import environ
 import threading
+
+from applications.interaction.counters import counter_total_subquery
+from applications.interaction.models import Interaction, ViewInteraction
+from applications.learning_object_metadata.models import LearningObjectMetadata
 
 # Instancias reutilizadas para los distintos correos transaccionales del
 # módulo. Se inicializan una vez y luego se usan desde varios endpoints.
@@ -277,21 +286,20 @@ class UserReportPagination(PageNumberPagination):
 
 
 def filter_users_by_query_param(queryset, request):
-    """Aplica busqueda opcional por nombre, apellido o correo antes de paginar."""
+    """Aplica busqueda opcional por nombre, apellido o correo antes de paginar.
 
-    query = request.query_params.get('query')
-    if query is None:
-        return queryset
+    Siempre ordena (los más recientes primero): sin orden fijo, Postgres puede
+    repetir o saltarse usuarios entre páginas.
+    """
 
-    query = query.strip()
-    if not query:
-        return queryset
-
-    return queryset.filter(
-        Q(first_name__icontains=query) |
-        Q(last_name__icontains=query) |
-        Q(email__icontains=query)
-    )
+    query = (request.query_params.get('query') or '').strip()
+    if query:
+        queryset = queryset.filter(
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(email__icontains=query)
+        )
+    return queryset.order_by('-pk')
 
 
 @extend_schema_view(
@@ -1061,9 +1069,13 @@ def roleUser(user):
     retrieve=extend_schema(
         tags=USER_ADMIN_APPROVAL_TAG,
         summary='Consultar docente pendiente',
-        description='Devuelve el detalle administrativo de un docente pendiente o desaprobado.',
+        description=(
+            'Devuelve el detalle administrativo de un docente pendiente o desaprobado, con su perfil público '
+            'completo, su universidad y sede, y todos sus OA (públicos y no públicos) con los totales de '
+            '`views` y `downloads`, del más reciente al más antiguo y sin paginar.'
+        ),
         parameters=[USER_ID_PARAMETER],
-        responses={200: AdminDisaprovedTeacherCollaboratingExpertSerializer, 404: OpenApiResponse(description='Usuario no encontrado.')},
+        responses={200: AdminTeacherDetailSerializer, 404: OpenApiResponse(description='Usuario no encontrado.')},
     ),
     update=extend_schema(
         tags=USER_ADMIN_APPROVAL_TAG,
@@ -1099,9 +1111,25 @@ class AdminDisaprovedTeacher(viewsets.ViewSet):
         """
             Servicio para listar Docentes no aprobados por id. Se necesita autenticación como administrador
         """
-        queryset = User.objects.all()
+        learning_objects = (
+            LearningObjectMetadata.objects
+            .annotate(
+                views=counter_total_subquery(ViewInteraction, 'view'),
+                downloads=counter_total_subquery(Interaction, 'downloaded'),
+            )
+            .order_by('-created', '-id')
+        )
+        queryset = User.objects.select_related(
+            'public_profile',
+            'university',
+            'campus',
+        ).prefetch_related(
+            'public_profile__links',
+            'public_profile__degrees',
+            Prefetch('metadata_created', queryset=learning_objects, to_attr='admin_learning_objects'),
+        )
         user = get_object_or_404(queryset, pk=pk)
-        serializer = AdminDisaprovedTeacherCollaboratingExpertSerializer(user)
+        serializer = AdminTeacherDetailSerializer(user)
         return Response(serializer.data, status=HTTP_200_OK)
 
     def update(self, request, pk=None, project_pk=None):
@@ -1696,39 +1724,6 @@ class UserCountView(APIView):
         return Response(result, status=HTTP_200_OK)
 
 
-import urllib.request
-from bs4 import BeautifulSoup
-import requests
-
-
-class VerifyOrcid(APIView):
-    """Valida superficialmente un ORCID consultando la URL pública."""
-    permission_classes = [AllowAny]
-    serializer_class = OrcidValidationSerializer
-
-    @extend_schema(
-        tags=USER_ACCOUNT_TAG,
-        summary='Validar ORCID',
-        description='Recibe un ORCID y valida de forma superficial la disponibilidad de ORCID mediante una consulta HTTP externa.',
-        request=OrcidValidationSerializer,
-        responses={200: USER_MESSAGE_RESPONSE, 400: OpenApiResponse(description='Payload invalido.')},
-    )
-
-    def post(self, request, format=None):
-        serializer = OrcidValidationSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        orcid = serializer.validated_data['orcid']
-        url = 'https://orcid.org/0000-0002-9659-7109'
-        opener = urllib.request.FancyURLopener({})
-        f = opener.open(url)
-        content = f.read()
-
-        try:
-            return Response({"message": "OK"}, status=HTTP_200_OK)
-        except:
-            return Response({"message": "invalid"}, status=HTTP_200_OK)
-
-
 @extend_schema_view(
     get=extend_schema(
         tags=USER_ACCOUNT_TAG,
@@ -1782,7 +1777,17 @@ class TotalExpertTeacher(APIView):
         summary='Iniciar sesion',
         description='Valida credenciales y emite tokens JWT solo si la cuenta y el rol operativo estan activos.',
         request=MyTokenObtainPairSerializer,
-        responses={200: USER_TOKEN_RESPONSE, 401: OpenApiResponse(description='Credenciales invalidas o usuario inactivo.')},
+        responses={
+            200: USER_TOKEN_RESPONSE,
+            401: OpenApiResponse(description='Credenciales invalidas. El cuerpo incluye `detail` y `code` = `no_active_account`.'),
+            403: OpenApiResponse(
+                description=(
+                    'Credenciales correctas pero la cuenta no puede operar. El cuerpo incluye `detail` y `code`: '
+                    '`account_not_verified` (correo sin verificar) o '
+                    '`account_pending_approval` (pendiente de aprobacion o desactivada por el administrador).'
+                ),
+            ),
+        },
     )
 )
 class MyObtainTokenPairView(TokenObtainPairView):
@@ -2296,3 +2301,111 @@ class sendEmailContact(CreateAPIView):
             logger.exception("Error enviando correo de contacto al buzon institucional")
             return Response({'code': 400, 'message': 'Failed to send email'}, status=HTTP_400_BAD_REQUEST)
         return Response({'code': 200, 'message': 'Email sent successfully'}, status=HTTP_200_OK)
+
+
+OWN_PUBLIC_PROFILE_ERRORS = {
+    401: OpenApiResponse(description='No autenticado.'),
+    403: OpenApiResponse(description='El usuario no tiene perfil docente activo.'),
+}
+
+
+@extend_schema_view(
+    get=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Obtener mi perfil publico',
+        description=(
+            'Devuelve el perfil publico del docente autenticado con todos sus campos, tambien los marcados '
+            'como "Solo yo", y la visibilidad por campo con los valores por defecto aplicados. Si aun no '
+            'guardo su perfil responde 200 con campos vacios.'
+        ),
+        responses={200: OwnPublicProfileSerializer, **OWN_PUBLIC_PROFILE_ERRORS},
+    ),
+    put=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Guardar mi perfil publico',
+        description=(
+            'Guarda el perfil publico en una sola operacion atomica. `field_visibility` se mezcla con lo '
+            'guardado. `links` y `degrees` reemplazan la lista completa si vienen; si la clave no viene, '
+            'esa lista no cambia. Si algo es invalido no se guarda nada.'
+        ),
+        request=OwnPublicProfileSerializer,
+        responses={
+            200: OwnPublicProfileSerializer,
+            400: OpenApiResponse(description='Datos invalidos; errores por campo y por posicion en las listas.'),
+            **OWN_PUBLIC_PROFILE_ERRORS,
+        },
+    ),
+    patch=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Actualizar parcialmente mi perfil publico',
+        description='Igual que PUT; solo se actualizan las claves enviadas.',
+        request=OwnPublicProfileSerializer,
+        responses={
+            200: OwnPublicProfileSerializer,
+            400: OpenApiResponse(description='Datos invalidos; errores por campo y por posicion en las listas.'),
+            **OWN_PUBLIC_PROFILE_ERRORS,
+        },
+    ),
+)
+class OwnPublicProfileView(RetrieveUpdateAPIView):
+    """Lectura y guardado del perfil público del docente autenticado.
+
+    No recibe id: siempre opera sobre el perfil del usuario de la sesión, así
+    que nadie puede editar el perfil de otro. Si la fila aún no existe, se
+    trabaja con una instancia sin guardar y el primer guardado la crea.
+    """
+
+    permission_classes = [IsAuthenticated, IsTeacherUser]
+    serializer_class = OwnPublicProfileSerializer
+
+    def get_object(self):
+        profile = (
+            PublicProfile.objects
+            .select_related('user')
+            .prefetch_related('links', 'degrees')
+            .filter(user=self.request.user)
+            .first()
+        )
+        return profile or PublicProfile(user=self.request.user)
+
+
+USER_KEY_PARAMETER = OpenApiParameter(
+    name='user_key',
+    type=OpenApiTypes.UUID,
+    location=OpenApiParameter.PATH,
+    description='Identificador publico (`user_key`) del docente, el mismo que viene en `user_created` de los OA.',
+)
+
+
+@extend_schema_view(
+    get=extend_schema(
+        tags=USER_ACCOUNT_TAG,
+        summary='Obtener el perfil publico de un docente',
+        description=(
+            'Devuelve los datos fijos del docente y solo los campos opcionales marcados como "Publico" y no '
+            'vacios; los demas no vienen en la respuesta (la clave no aparece). Links y titulos solo los '
+            'visibles. Responde 404 si el docente no existe, esta inactivo, desactivo su perfil publico o '
+            'no tiene OA publicos.'
+        ),
+        parameters=[USER_KEY_PARAMETER],
+        responses={200: PublicAuthorSerializer, 404: OpenApiResponse(description='Perfil no disponible.')},
+    )
+)
+class PublicAuthorView(RetrieveAPIView):
+    """Perfil público de un docente, accesible sin sesión."""
+
+    permission_classes = [AllowAny]
+    serializer_class = PublicAuthorSerializer
+
+    def get_object(self):
+        author = (
+            User.objects.public_authors()
+            .filter(user_key=self.kwargs['user_key'])
+            .select_related('teacher', 'university', 'campus', 'city', 'country', 'public_profile')
+            .prefetch_related('teacher__professions', 'public_profile__links', 'public_profile__degrees')
+            .first()
+        )
+        # Mismo 404 para cualquier causa, para no revelar por qué no se muestra.
+        if author is None:
+            raise NotFound()
+        return author

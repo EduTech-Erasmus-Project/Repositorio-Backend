@@ -5,6 +5,12 @@ proyecto: autenticación, registro por rol, actualización de perfiles,
 listados administrativos, reportes y recuperación de contraseña.
 """
 
+import re
+from urllib.parse import urlparse
+
+from django.db import transaction
+from django.utils import timezone
+from django.utils.html import strip_tags
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from applications.user.utils import Util
@@ -17,7 +23,7 @@ from applications.knowledge_area.serializers import KnowledgeAreaListSerializer
 from applications.preferences.serializers import PreferencesListSerializer, PreferencesListSerializersTest
 from applications.profession.serializers import ProfessionListSerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework.exceptions import APIException, AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from applications.education_level.models import EducationLevel
 from applications.knowledge_area.models import KnowledgeArea
 from applications.preferences.models import Preferences
@@ -28,7 +34,10 @@ from .models import (
     Administrator,
     Student,
     Teacher,
-    CollaboratingExpert
+    CollaboratingExpert,
+    PublicProfile,
+    UserLink,
+    AcademicDegree,
 )
 from ..learning_object_file.serializers import LearningObjectFileSerializer
 from ..learning_object_metadata.models import LearningObjectMetadata
@@ -121,11 +130,15 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserFullName(serializers.ModelSerializer):
-    """Salida reducida con nombres y apellidos del usuario."""
+    """Salida reducida con nombres, apellidos y `user_key` del usuario.
+
+    `user_key` es el identificador público con el que el frontend enlaza el
+    autor de un OA a su página `/author/<user_key>`.
+    """
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name')
+        fields = ('user_key', 'first_name', 'last_name')
 
 
 class UserAdminSerializer(serializers.Serializer):
@@ -270,6 +283,7 @@ class UserCommentSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'id',
+            'user_key',
             'first_name',
             'last_name',
             'image_url',
@@ -855,19 +869,44 @@ class AdminUpdateAdministratorSerializer(serializers.Serializer):
 
 
 """Serializers de autenticación, recuperación de cuenta y reportes."""
-class OrcidValidationSerializer(serializers.Serializer):
-    """Valida la recepción del identificador ORCID en flujos externos."""
-
-    orcid = serializers.CharField(max_length=200)
-
-
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     """Emite JWT solo para cuentas y perfiles marcados como activos.
 
     El proyecto distingue entre activación de cuenta (`is_account_active`) y
     aprobación operativa del rol (`is_active`). Este serializer conserva ambas
     verificaciones antes de emitir el token.
+
+    Todos los errores de login responden `detail` y `code`. El frontend
+    traduce el mensaje a partir de `code`; `detail` conserva los textos legacy
+    en inglés para no romper clientes que todavía comparan ese texto.
+
+    - 401 `no_active_account`: credenciales invalidas.
+    - 403 `account_not_verified`: correo sin verificar.
+    - 403 `account_pending_approval`: pendiente de aprobación o desactivada.
     """
+
+    ACCOUNT_NOT_VERIFIED_CODE = 'account_not_verified'
+    ACCOUNT_NOT_VERIFIED_MESSAGE = 'Account inactive user'
+    ACCOUNT_PENDING_APPROVAL_CODE = 'account_pending_approval'
+    ACCOUNT_PENDING_APPROVAL_MESSAGE = 'Inactive user'
+
+    @classmethod
+    def _account_denied(cls, message, code):
+        """Construye el 403 de login con `detail` y `code` en el cuerpo."""
+
+        return PermissionDenied({'detail': message, 'code': code})
+
+    def validate(self, attrs):
+        """Expone el `code` de SimpleJWT en el cuerpo del 401.
+
+        DRF solo serializa `detail`; sin esto el frontend no recibe
+        `no_active_account` y tendria que depender del status o del texto.
+        """
+
+        try:
+            return super().validate(attrs)
+        except AuthenticationFailed as exc:
+            raise AuthenticationFailed({'detail': exc.detail, 'code': exc.get_codes()})
 
     @classmethod
     def get_token(cls, user):
@@ -884,9 +923,9 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
                 token = super().get_token(user)
                 return token
             else:
-                raise APIException("Inactive user")
+                raise cls._account_denied(cls.ACCOUNT_PENDING_APPROVAL_MESSAGE, cls.ACCOUNT_PENDING_APPROVAL_CODE)
         else:
-            raise APIException("Account inactive user")
+            raise cls._account_denied(cls.ACCOUNT_NOT_VERIFIED_MESSAGE, cls.ACCOUNT_NOT_VERIFIED_CODE)
 
 
 class ChangePasswordSerializer(serializers.ModelSerializer):
@@ -1027,3 +1066,429 @@ class EmailContacSerializer(serializers.Serializer):
 
     class Meta:
         fields = ('email', 'name', 'content')
+
+
+"""Serializers del perfil público del autor (edición del perfil propio)."""
+
+
+def _clean_text(value):
+    """Guarda texto plano: quita etiquetas HTML y espacios sobrantes."""
+
+    return strip_tags(value).strip()
+
+
+def _host_matches(host, domain):
+    """Indica si `host` es `domain` o un subdominio suyo (www., ec., ...)."""
+
+    return host == domain or host.endswith('.' + domain)
+
+
+def is_valid_orcid_checksum(orcid):
+    """Comprueba el dígito de control de un ORCID `0000-0000-0000-000X`.
+
+    Algoritmo ISO 7064 Mod 11-2 que publica ORCID: detecta un dígito mal
+    escrito o dos dígitos intercambiados sin consultar a orcid.org.
+    """
+
+    digits = orcid.replace('-', '')
+    total = 0
+    for digit in digits[:-1]:
+        total = (total + int(digit)) * 2
+    result = (12 - total % 11) % 11
+    expected = 'X' if result == 10 else str(result)
+    return digits[-1].upper() == expected
+
+
+class UserLinkSerializer(serializers.ModelSerializer):
+    """Enlace del perfil público con validación de dominio según su tipo."""
+
+    # Dominio esperado por tipo. `scholar` se valida aparte porque cambia el
+    # dominio de primer nivel según el país (scholar.google.com, .es, ...).
+    # `institutional` y `website` aceptan cualquier dominio.
+    LINK_DOMAINS = {
+        'orcid': 'orcid.org',
+        'scopus': 'scopus.com',
+        'researchgate': 'researchgate.net',
+        'linkedin': 'linkedin.com',
+    }
+    SCHOLAR_HOST_REGEX = re.compile(r'^scholar\.google\.[a-z.]+$')
+    # El último carácter es el dígito de control y puede ser X; se acepta en
+    # minúscula y se guarda en mayúscula.
+    ORCID_PATH_REGEX = re.compile(r'^/(\d{4}-\d{4}-\d{4}-\d{3}[\dX])/?$', re.IGNORECASE)
+    ORCID_FORMAT_MESSAGE = (
+        'El enlace de ORCID debe tener el formato https://orcid.org/0000-0000-0000-0000; '
+        'el último carácter puede ser X.'
+    )
+    ORCID_CHECKSUM_MESSAGE = 'El número de ORCID no es válido. Revisa que esté bien copiado.'
+
+    class Meta:
+        model = UserLink
+        fields = ('type', 'url', 'order', 'is_visible')
+
+    def validate(self, attrs):
+        link_type = attrs['type']
+        parsed_url = urlparse(attrs['url'])
+        host = (parsed_url.hostname or '').lower()
+        label = dict(UserLink.TYPES)[link_type]
+
+        if parsed_url.scheme != 'https':
+            raise serializers.ValidationError({'url': ['El enlace debe empezar con https://.']})
+
+        if link_type == 'scholar':
+            if not self.SCHOLAR_HOST_REGEX.match(host):
+                raise serializers.ValidationError({'url': [f'El enlace de {label} debe ser de scholar.google.']})
+        elif link_type in self.LINK_DOMAINS:
+            domain = self.LINK_DOMAINS[link_type]
+            if not _host_matches(host, domain):
+                raise serializers.ValidationError({'url': [f'El enlace de {label} debe ser de {domain}.']})
+
+        if link_type == 'orcid':
+            match = self.ORCID_PATH_REGEX.match(parsed_url.path)
+            if not match:
+                raise serializers.ValidationError({'url': [self.ORCID_FORMAT_MESSAGE]})
+            orcid = match.group(1).upper()
+            if not is_valid_orcid_checksum(orcid):
+                raise serializers.ValidationError({'url': [self.ORCID_CHECKSUM_MESSAGE]})
+            attrs['url'] = parsed_url._replace(path=f'/{orcid}').geturl()
+        return attrs
+
+
+class AcademicDegreeSerializer(serializers.ModelSerializer):
+    """Título académico del perfil público."""
+
+    MIN_YEAR = 1950
+
+    class Meta:
+        model = AcademicDegree
+        fields = ('level', 'title', 'institution', 'year', 'is_visible')
+
+    def validate_title(self, value):
+        return _clean_text(value)
+
+    def validate_institution(self, value):
+        return _clean_text(value)
+
+    def validate_year(self, value):
+        current_year = timezone.localdate().year
+        if value is not None and not (self.MIN_YEAR <= value <= current_year):
+            raise serializers.ValidationError(f'El año debe estar entre {self.MIN_YEAR} y {current_year}.')
+        return value
+
+
+class ReplaceableItemsField(serializers.ListField):
+    """Lista de items que se valida completa con `item_serializer_class`.
+
+    Se usa en lugar de un serializer anidado (`many=True`) por dos motivos:
+    - los errores salen como lista alineada con los items
+      (`[{}, {"url": [...]}]`), que es lo que espera el frontend;
+    - en un `PATCH` DRF deja pasar items anidados sin campos requeridos;
+      aquí cada item se valida siempre completo.
+    """
+
+    item_serializer_class = None
+
+    def to_internal_value(self, data):
+        items = super().to_internal_value(data)
+        serializer = self.item_serializer_class(data=items, many=True)
+        if not serializer.is_valid():
+            raise serializers.ValidationError(serializer.errors)
+        return serializer.validated_data
+
+    def to_representation(self, value):
+        # Un perfil sin guardar todavía no puede consultar sus relaciones.
+        if value.instance.pk is None:
+            return []
+        return self.item_serializer_class(value.all(), many=True).data
+
+
+@extend_schema_field(UserLinkSerializer(many=True))
+class UserLinkListField(ReplaceableItemsField):
+    item_serializer_class = UserLinkSerializer
+
+
+@extend_schema_field(AcademicDegreeSerializer(many=True))
+class AcademicDegreeListField(ReplaceableItemsField):
+    item_serializer_class = AcademicDegreeSerializer
+
+
+class OwnPublicProfileSerializer(serializers.ModelSerializer):
+    """Lectura y guardado del perfil público propio.
+
+    Devuelve todo, también lo marcado como "Solo yo", con la visibilidad ya
+    combinada con los valores por defecto. En el guardado:
+    - `field_visibility` se mezcla con lo guardado;
+    - `links` y `degrees` reemplazan la lista completa si vienen; si la clave
+      no viene, esa lista no se toca;
+    - todo ocurre en una transacción: si algo falla no se guarda nada.
+    """
+
+    MAX_DEGREES = 10
+
+    user_key = serializers.UUIDField(source='user.user_key', read_only=True)
+    highest_degree = serializers.SerializerMethodField()
+    research_lines = serializers.ListField(
+        child=serializers.CharField(max_length=60),
+        max_length=5,
+        required=False,
+    )
+    subjects = serializers.ListField(
+        child=serializers.CharField(max_length=100),
+        max_length=10,
+        required=False,
+    )
+    field_visibility = serializers.DictField(
+        child=serializers.ChoiceField(choices=PublicProfile.VISIBILITY_CHOICES),
+        required=False,
+    )
+    links = UserLinkListField(required=False, max_length=len(UserLink.TYPES))
+    degrees = AcademicDegreeListField(required=False, max_length=MAX_DEGREES)
+
+    class Meta:
+        model = PublicProfile
+        fields = (
+            'user_key',
+            'is_public',
+            'headline',
+            'faculty',
+            'bio',
+            'research_lines',
+            'subjects',
+            'research_group',
+            'field_visibility',
+            'highest_degree',
+            'links',
+            'degrees',
+        )
+
+    @extend_schema_field(serializers.ChoiceField(choices=AcademicDegree.LEVELS, allow_null=True))
+    def get_highest_degree(self, obj):
+        # En el perfil propio cuentan también los títulos ocultos.
+        return obj.get_highest_degree(only_visible=False)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['field_visibility'] = instance.get_field_visibility()
+        return data
+
+    def validate_headline(self, value):
+        return _clean_text(value)
+
+    def validate_faculty(self, value):
+        return _clean_text(value)
+
+    def validate_bio(self, value):
+        return _clean_text(value)
+
+    def validate_research_group(self, value):
+        return _clean_text(value)
+
+    def validate_research_lines(self, value):
+        return [_clean_text(item) for item in value]
+
+    def validate_subjects(self, value):
+        return [_clean_text(item) for item in value]
+
+    def validate_field_visibility(self, value):
+        unknown_fields = sorted(set(value) - set(PublicProfile.VISIBILITY_DEFAULTS))
+        if unknown_fields:
+            raise serializers.ValidationError(
+                f'Campos sin visibilidad configurable: {", ".join(unknown_fields)}.'
+            )
+        return value
+
+    def validate_links(self, value):
+        link_types = [link['type'] for link in value]
+        if len(link_types) != len(set(link_types)):
+            raise serializers.ValidationError('Hay más de un enlace del mismo tipo.')
+        return value
+
+    def update(self, instance, validated_data):
+        links = validated_data.pop('links', None)
+        degrees = validated_data.pop('degrees', None)
+        field_visibility = validated_data.pop('field_visibility', None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        if field_visibility is not None:
+            merged = {**(instance.field_visibility or {}), **field_visibility}
+            instance.field_visibility = {
+                key: value for key, value in merged.items() if key in PublicProfile.VISIBILITY_DEFAULTS
+            }
+
+        with transaction.atomic():
+            # Si el usuario aún no tenía fila, este `save` la crea.
+            instance.save()
+            if links is not None:
+                instance.links.all().delete()
+                UserLink.objects.bulk_create([UserLink(profile=instance, **link) for link in links])
+            if degrees is not None:
+                instance.degrees.all().delete()
+                AcademicDegree.objects.bulk_create(
+                    [AcademicDegree(profile=instance, **degree) for degree in degrees]
+                )
+
+        # Las listas cambiaron: descarta lo precargado para responder lo nuevo.
+        instance._prefetched_objects_cache = {}
+        return instance
+
+
+class NamedCatalogItemSerializer(serializers.Serializer):
+    """Salida mínima `{id, name}` para catálogos de ubicación."""
+
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.CharField(read_only=True)
+
+
+class PublicKnowledgeAreaSerializer(serializers.Serializer):
+    """Área de conocimiento con ambos idiomas para el frontend con i18n."""
+
+    id = serializers.IntegerField(read_only=True)
+    name_es = serializers.CharField(read_only=True)
+    name_en = serializers.CharField(read_only=True)
+
+
+class PublicAuthorSerializer(serializers.ModelSerializer):
+    """Perfil público de un docente, tal como lo ve cualquier visitante.
+
+    Los datos fijos salen de la cuenta y siempre vienen. Los opcionales de
+    `PublicProfile` solo vienen si están en "Público" y no están vacíos; si no,
+    la clave no aparece en la respuesta. Links y títulos solo los visibles.
+    """
+
+    OPTIONAL_FIELDS = ('headline', 'faculty', 'bio', 'research_lines', 'subjects', 'research_group')
+
+    image_url = serializers.SerializerMethodField()
+    university = NamedCatalogItemSerializer(read_only=True)
+    campus = NamedCatalogItemSerializer(read_only=True)
+    professions = ProfessionListSerializer(source='teacher.professions', many=True, read_only=True)
+    knowledge_areas = serializers.SerializerMethodField()
+    member_since = serializers.IntegerField(source='created.year', read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'user_key',
+            'first_name',
+            'last_name',
+            'email',
+            'image_url',
+            'university',
+            'campus',
+            'professions',
+            'knowledge_areas',
+            'member_since',
+        )
+
+    @extend_schema_field(OpenApiTypes.URI)
+    def get_image_url(self, obj):
+        if obj.image:
+            return DOMAIN + obj.image.url
+        return None
+
+    @extend_schema_field(PublicKnowledgeAreaSerializer(many=True))
+    def get_knowledge_areas(self, obj):
+        """Áreas distintas de los OA públicos del autor."""
+
+        knowledge_areas = KnowledgeArea.objects.filter(
+            knowledge_learningobject__user_created=obj,
+            knowledge_learningobject__public=True,
+        ).distinct().order_by('name_es')
+        return PublicKnowledgeAreaSerializer(knowledge_areas, many=True).data
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        try:
+            profile = instance.public_profile
+        except PublicProfile.DoesNotExist:
+            profile = None
+
+        data['links'] = []
+        data['degrees'] = []
+        if profile is None:
+            return data
+
+        for field_name in self.OPTIONAL_FIELDS:
+            value = getattr(profile, field_name)
+            if value and profile.is_field_public(field_name):
+                data[field_name] = value
+
+        highest_degree = profile.get_highest_degree()
+        if highest_degree:
+            data['highest_degree'] = highest_degree
+        data['links'] = [
+            {'type': link.type, 'url': link.url}
+            for link in profile.links.all()
+            if link.is_visible
+        ]
+        data['degrees'] = [
+            {
+                'level': degree.level,
+                'title': degree.title,
+                'institution': degree.institution,
+                'year': degree.year,
+            }
+            for degree in profile.degrees.all()
+            if degree.is_visible
+        ]
+        return data
+
+
+class AdminTeacherLearningObjectSerializer(serializers.ModelSerializer):
+    """OA de un docente en el detalle del admin, con sus totales.
+
+    `views` y `downloads` vienen anotados por la vista; el serializer no
+    consulta los contadores por su cuenta.
+    """
+
+    avatar = serializers.SerializerMethodField()
+    views = serializers.IntegerField(read_only=True)
+    downloads = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = LearningObjectMetadata
+        fields = ('id', 'slug', 'general_title', 'avatar', 'created', 'public', 'views', 'downloads')
+
+    @extend_schema_field(OpenApiTypes.URI)
+    def get_avatar(self, obj):
+        # Sin `request` en el contexto, la URL absoluta se arma con DOMAIN.
+        if obj.avatar:
+            return DOMAIN + obj.avatar.url
+        return None
+
+
+class AdminTeacherDetailSerializer(AdminDisaprovedTeacherCollaboratingExpertSerializer):
+    """Detalle administrativo de un docente, con su perfil público completo.
+
+    `public_profile` usa el mismo formato del perfil propio: trae también lo
+    marcado como "Solo yo" y el flag `is_public`, para que el admin vea todo.
+    Es `null` si el docente nunca guardó su perfil.
+
+    `learning_objects` trae todos los OA del docente (públicos y no públicos)
+    y requiere el `Prefetch` con `to_attr='admin_learning_objects'` que hace
+    `AdminDisaprovedTeacher.retrieve`.
+    """
+
+    public_profile = serializers.SerializerMethodField()
+    university = NamedCatalogItemSerializer(read_only=True, allow_null=True)
+    campus = NamedCatalogItemSerializer(read_only=True, allow_null=True)
+    learning_objects = AdminTeacherLearningObjectSerializer(
+        source='admin_learning_objects',
+        many=True,
+        read_only=True,
+    )
+
+    class Meta(AdminDisaprovedTeacherCollaboratingExpertSerializer.Meta):
+        fields = AdminDisaprovedTeacherCollaboratingExpertSerializer.Meta.fields + (
+            'public_profile',
+            'university',
+            'campus',
+            'learning_objects',
+        )
+
+    @extend_schema_field(OwnPublicProfileSerializer(allow_null=True))
+    def get_public_profile(self, obj):
+        try:
+            profile = obj.public_profile
+        except PublicProfile.DoesNotExist:
+            return None
+        return OwnPublicProfileSerializer(profile).data

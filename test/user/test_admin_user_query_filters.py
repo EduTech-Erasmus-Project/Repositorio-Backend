@@ -208,3 +208,27 @@ class AdminUserQueryFilterTests(TestCase):
         )
 
         self._assert_paginated_query_response(response, expected.email)
+
+    def test_paginated_lists_have_stable_order_without_repeats(self):
+        """Las páginas no repiten ni saltan usuarios: orden fijo, recientes primero."""
+        created = [
+            self._create_teacher_user(
+                first_name=f"Docente{index}",
+                last_name="Orden",
+                email_prefix=f"teacher-order-{index}",
+                is_active=True,
+            )
+            for index in range(13)
+        ]
+        view = AdminAprovedTeacher.as_view({"get": "list"})
+
+        emails = []
+        for page in (1, 2):
+            request = self.factory.get("/api/v1/teacher-approved/", {"page": page})
+            force_authenticate(request, user=self.admin_user)
+            response = view(request)
+            self.assertEqual(response.status_code, 200, response.data)
+            emails += [item["email"] for item in response.data["results"]]
+
+        expected = [user.email for user in sorted(created, key=lambda user: user.pk, reverse=True)]
+        self.assertEqual(emails, expected)

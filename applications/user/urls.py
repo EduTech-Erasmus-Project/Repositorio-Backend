@@ -19,7 +19,6 @@ user_count_view = views.UserCountView.as_view()
 update_picture_view = views.UpdateUserProfilePicture.as_view()
 get_preferences_view = views.GetStudentPreferences.as_view()
 change_password_view = views.ChangePasswordView.as_view()
-orcid_verify_view = views.VerifyOrcid.as_view()
 total_expert_teacher_view = views.TotalExpertTeacher.as_view()
 verify_email_view = views.VerifyEmail.as_view()
 set_verify_view = views.set_new_token_verify.as_view()
@@ -27,6 +26,8 @@ contact_email_view = views.sendEmailContact.as_view()
 report_view = views.ReportListAPIView.as_view()
 teacher_delete_view = views.AdminDisaprovedTeacherDelete.as_view()
 expert_delete_view = views.AdminDisaprovedCollaboratingExpertDelete.as_view()
+own_public_profile_view = views.OwnPublicProfileView.as_view()
+public_author_view = views.PublicAuthorView.as_view()
 
 
 urlpatterns = [
@@ -40,10 +41,11 @@ urlpatterns = [
     path('api/v1/user-count/', user_count_view),
     path('api/v1/user/photo/<int:pk>/', update_picture_view, name='upadte_picture'),
     path('api/v1/user/change_password/<int:pk>/', change_password_view, name='auth_change_password'),
+    path('api/v1/user/public-profile/', own_public_profile_view, name='own_public_profile'),
+    path('api/v1/authors/<uuid:user_key>/', public_author_view, name='public_author'),
 
     # Preferencias y datos públicos asociados al usuario.
     path('api/v1/user-preferences/email/<str:email>/', get_preferences_view, name='get_preferences'),
-    path('api/v1/orcid-verify/', orcid_verify_view, name='orcid_verify'),
     path('api/v1/total-expert-teacher-approved-and-disapproved/', total_expert_teacher_view),
 
     # Activación y reemisión de enlaces de verificación.
