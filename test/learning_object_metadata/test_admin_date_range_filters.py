@@ -203,3 +203,55 @@ class AdminLearningObjectDateFilterTests(TestCase):
             if "naive datetime" in str(warning.message).lower()
         ]
         self.assertEqual(naive_warnings, [])
+
+    def _get(self, params, public=1):
+        request = self.factory.get(
+            f"/api/v1/learning-objects-approved-and-disapproved/{public}/",
+            params,
+        )
+        force_authenticate(request, user=self.admin_user)
+        return ListLearningObjectPublicAndPrivate.as_view()(request, public=public)
+
+    def test_admin_filter_accepts_only_one_date(self):
+        """Con una sola fecha filtra desde o hasta ese día (antes se ignoraba)."""
+        march_17 = self._create_metadata(
+            title="OA 17", public=True, created_at=timezone.make_aware(datetime(2026, 3, 17, 23, 0, 0))
+        )
+        march_18 = self._create_metadata(
+            title="OA 18", public=True, created_at=timezone.make_aware(datetime(2026, 3, 18, 8, 0, 0))
+        )
+
+        since = self._get({"created_init": "2026-03-18"})
+        until = self._get({"created_end": "2026-03-17"})
+
+        self.assertEqual([item["id"] for item in since.data["results"]], [march_18.id])
+        self.assertEqual([item["id"] for item in until.data["results"]], [march_17.id])
+
+    def test_admin_filter_rejects_invalid_date_with_400(self):
+        """Una fecha mal escrita responde 400 en vez de un error 500."""
+        response = self._get({"created_init": "abc", "created_end": "2026-03-18"})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("created_init", response.data)
+
+    def test_admin_list_paginates_by_ten_and_honors_page_size(self):
+        """10 por página por defecto, `page_size` elegible y `pages` coherente."""
+        for day in range(1, 24):
+            self._create_metadata(
+                title=f"OA pendiente {day}",
+                public=False,
+                created_at=timezone.make_aware(datetime(2026, 3, day, 9, 0, 0)),
+            )
+
+        default_page = self._get({}, public=0)
+        last_page = self._get({"page": 3}, public=0)
+        custom_size = self._get({"page_size": 20, "page": 2}, public=0)
+        out_of_range = self._get({"page": 4}, public=0)
+
+        self.assertEqual(default_page.data["count"], 23)
+        self.assertEqual(default_page.data["pages"], 3)
+        self.assertEqual(len(default_page.data["results"]), 10)
+        self.assertEqual(len(last_page.data["results"]), 3)
+        self.assertEqual(custom_size.data["pages"], 2)
+        self.assertEqual(len(custom_size.data["results"]), 3)
+        self.assertEqual(out_of_range.status_code, 404)

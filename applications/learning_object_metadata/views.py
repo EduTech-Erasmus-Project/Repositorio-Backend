@@ -10,7 +10,8 @@ Este módulo mezcla tres responsabilidades históricas del proyecto:
 import django_filters
 from datetime import datetime
 from django_filters.rest_framework import DjangoFilterBackend
-from applications.interaction.models import Interaction
+from applications.interaction.counters import counter_total_subquery
+from applications.interaction.models import Interaction, ViewInteraction
 from applications.evaluation_collaborating_expert.serializers import QuestionQualificationSearchSerializer, \
     EvaluationCollaboratingExpertEvaluationSerializer, EvaluationCollaboratingExpertAllSerializer, SelfEvaluationQuestions
 from applications.evaluation_student.models import StudentEvaluation
@@ -18,6 +19,7 @@ from applications.evaluation_student.serializers import EvaluationStudentList_Ev
 from applications.evaluation_collaborating_expert.models import EvaluationCollaboratingExpert, EvaluationConcept, \
     EvaluationMetadata, EvaluationQuestionsQualification, MetadataAutomaticEvaluation, MetadataQualificationConcept, \
     MetadataSchemaQualification, MetadataSchemaQuestionQualification
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema, extend_schema_view, inline_serializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -25,6 +27,7 @@ from rest_framework import serializers, viewsets
 from rest_framework.views import APIView
 from django.db import transaction
 from django.db.models import Case, Count, IntegerField, Q, Value, When
+from rest_framework.exceptions import NotFound, ValidationError
 from django.http import Http404
 from rest_framework.generics import ListAPIView, RetrieveAPIView, RetrieveUpdateAPIView
 from rest_condition import Or
@@ -44,6 +47,7 @@ from applications.learning_object_metadata.serializers import (
     LearningObjectMetadataSerializer,
     AdminLearningObjectMetadataPublicUpdateSerializer,
     LearningObjectMetadataAllSerializer,
+    LearningObjectMetadataWithCountersSerializer,
     LearningObjectMetadataYears,
     ROANumberPagination,
     ROANumberPaginationObservation,
@@ -57,7 +61,7 @@ from applications.user.mixins import IsAdministratorUser, IsCollaboratingExpertU
 from .models import Commentary, LearningObjectMetadata
 from applications.learning_object_metadata.testMailMetadata import SendEmailCreateOA_satisfay, \
     SendEmailCreateOA_not_satisfy, SendEmailCreateOA_not_satisfy_User, SendEmailCreateOA_satisfy_User, \
-    SendEmailLearningObjectReviewFindings
+    SendEmailLearningObjectReviewFindings, SendEmailLearningObjectApproved
 from applications.user.models import User
 from rest_framework import generics
 from django.db.models import Func
@@ -113,6 +117,7 @@ LEARNING_OBJECT_ADMIN_FILTER_PARAMETERS = [
     OpenApiParameter('general_title__icontains', str, OpenApiParameter.QUERY, description='Busca OAs por coincidencia parcial del titulo, nombres o apellidos del creador.'),
     OpenApiParameter('created_init', str, OpenApiParameter.QUERY, description='Fecha inicial del rango de creacion en formato YYYY-MM-DD.'),
     OpenApiParameter('created_end', str, OpenApiParameter.QUERY, description='Fecha final del rango de creacion en formato YYYY-MM-DD.'),
+    OpenApiParameter('page_size', int, OpenApiParameter.QUERY, description='Resultados por pagina: 10 por defecto, maximo 50.'),
 ]
 LEARNING_OBJECT_MESSAGE_RESPONSE = inline_serializer(
     name='LearningObjectMetadataMessageResponse',
@@ -273,7 +278,8 @@ class OAFilter(filters.FilterSet):
         """Filtra por OAs evaluados o no evaluados por el experto autenticado.
 
         Si la petición no viene de un experto autenticado, no aplica este
-        subfiltro y conserva el queryset publico original.
+        subfiltro y conserva el queryset publico original. Los pendientes
+        excluyen los OAs del propio experto, que no puede evaluarlos.
         """
 
         is_eval = self.request.GET.get('is_evaluated')
@@ -288,6 +294,8 @@ class OAFilter(filters.FilterSet):
         elif is_eval == 'False':
             query = queryset.exclude(
                 learning_objects__collaborating_expert__collaboratingExpert__id=self.request.user.collaboratingExpert.id
+            ).exclude(
+                user_created_id=self.request.user.id
             ).order_by('-id')
             return query
         return queryset
@@ -719,6 +727,14 @@ class LearningObjectPublicAndPrivateFilter(filters.FilterSet):
         ).distinct()
 
 
+class SearchPagination(ROANumberPagination):
+    """Paginación del buscador público; el frontend elige 10/15/20/50 con `page_size`."""
+
+    page_size = 15
+    page_size_query_param = 'page_size'
+    max_page_size = 50
+
+
 @extend_schema_view(
     get=extend_schema(
         tags=LEARNING_OBJECT_SEARCH_TAG,
@@ -727,7 +743,9 @@ class LearningObjectPublicAndPrivateFilter(filters.FilterSet):
             'Lista OAs aprobados (`public=True`) y permite aplicar filtros de texto, catalogos, fecha, '
             'accesibilidad, popularidad, evaluacion y orden reciente. La respuesta usa la paginacion principal del ROA.'
         ),
-        parameters=LEARNING_OBJECT_SEARCH_PARAMETERS,
+        parameters=LEARNING_OBJECT_SEARCH_PARAMETERS + [
+            OpenApiParameter('page_size', int, OpenApiParameter.QUERY, description='Resultados por pagina: 15 por defecto, maximo 50.'),
+        ],
         responses={200: LearningObjectMetadataAllSerializer(many=True)},
     )
 )
@@ -736,7 +754,7 @@ class SerachAPIView(ListAPIView):
     permission_classes = [AllowAny]
     queryset = LearningObjectMetadata.objects.filter(public=True).order_by('-pk')
     serializer_class = LearningObjectMetadataAllSerializer
-    pagination_class = ROANumberPagination
+    pagination_class = SearchPagination
     filter_class = OAFilter
 
 
@@ -766,21 +784,23 @@ class SerachAPIViewExpert(ListAPIView):
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
             return LearningObjectMetadata.objects.none()
+        # Solo OAs públicos. Sin `is_evaluated` (o con otro valor) se listan
+        # todos los públicos; antes devolvía None y django-filter usaba el
+        # queryset completo del modelo, con privados incluidos.
+        public_objects = LearningObjectMetadata.objects.filter(public=True)
+        expert_id = self.request.user.collaboratingExpert.id
         is_eval = self.request.GET.get('is_evaluated')
         if is_eval == 'True':
-            query = LearningObjectMetadata.objects.filter(
-                Q(learning_objects__collaborating_expert__collaboratingExpert__id=self.request.user.collaboratingExpert.id)
-            ).exclude(
-                public=False
+            return public_objects.filter(
+                learning_objects__collaborating_expert__collaboratingExpert__id=expert_id
             ).order_by('-id')
-            return query
-        elif is_eval == 'False':
-            query = LearningObjectMetadata.objects.filter(
+        if is_eval == 'False':
+            return public_objects.exclude(
+                learning_objects__collaborating_expert__collaboratingExpert__id=expert_id
             ).exclude(
-                Q(public=False) and Q(
-                    learning_objects__collaborating_expert__collaboratingExpert__id=self.request.user.collaboratingExpert.id)
+                user_created_id=self.request.user.id
             ).order_by('-id')
-            return query
+        return public_objects.order_by('-id')
 
 
 class OAEvaluadedFilter(django_filters.FilterSet):
@@ -974,6 +994,16 @@ class LearningObjectMetadataViewSet(viewsets.ModelViewSet):
         return Response({"message": "success"}, status=HTTP_200_OK)
 
 
+class AdminLearningObjectPagination(ROANumberPagination):
+    """Paginación de los OA del administrador: 10 por defecto, como el resto de
+    listados administrativos; el frontend envía `page_size` para no depender
+    del valor por defecto."""
+
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 50
+
+
 @extend_schema_view(
     get=extend_schema(
         tags=LEARNING_OBJECT_ADMIN_TAG,
@@ -994,7 +1024,7 @@ class ListLearningObjectPublicAndPrivate(ListAPIView):
     """Lista OAs públicos o privados para revisión administrativa."""
     permission_classes = [IsAuthenticated, IsAdministratorUser]
     serializer_class = LearningObjectMetadataAllSerializer
-    pagination_class = ROANumberPagination
+    pagination_class = AdminLearningObjectPagination
     lookup_field = "public"
     filter_backends = [DjangoFilterBackend]
     filterset_class = LearningObjectPublicAndPrivateFilter
@@ -1002,16 +1032,28 @@ class ListLearningObjectPublicAndPrivate(ListAPIView):
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
             return LearningObjectMetadata.objects.none()
-        date_init = self.request.query_params.get("created_init")
-        date_end = self.request.query_params.get("created_end")
         public = self.kwargs['public']
-        if date_init is None or date_end is None:
-            return LearningObjectMetadata.objects.filter(public=public).order_by('-pk')
+        queryset = LearningObjectMetadata.objects.filter(public=public)
 
-        date_init = datetime.strptime(date_init, '%Y-%m-%d').date()
-        date_end = datetime.strptime(date_end, '%Y-%m-%d').date()
-        return LearningObjectMetadata.objects.filter(public=public, created__date__range=[date_init, date_end]).order_by(
-            '-pk')
+        # Cada fecha se aplica por separado (desde / hasta) y ambas incluyen el
+        # día completo. Antes solo se filtraba si llegaban las dos.
+        date_init = self._parse_date_param("created_init")
+        date_end = self._parse_date_param("created_end")
+        if date_init is not None:
+            queryset = queryset.filter(created__date__gte=date_init)
+        if date_end is not None:
+            queryset = queryset.filter(created__date__lte=date_end)
+        return queryset.order_by('-pk')
+
+    def _parse_date_param(self, name):
+        """Lee una fecha `YYYY-MM-DD`; una fecha inválida responde 400, no 500."""
+        value = self.request.query_params.get(name)
+        if not value:
+            return None
+        try:
+            return datetime.strptime(value, '%Y-%m-%d').date()
+        except ValueError:
+            raise ValidationError({name: "Formato de fecha inválido; use AAAA-MM-DD."})
 
 
 @extend_schema_view(
@@ -1044,6 +1086,15 @@ class UpdatePublicLearningObject(RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated, IsAdministratorUser]
     serializer_class = LearningObjectMetadataAllSerializer
     queryset = LearningObjectMetadata.objects.all()
+
+    def perform_update(self, serializer):
+        """Notifica al docente solo cuando el OA pasa de pendiente a publicado."""
+
+        was_public = bool(serializer.instance.public)
+        learning_object = serializer.save()
+
+        if not was_public and learning_object.public:
+            _notify_learning_object_approved(learning_object)
 
 
 @extend_schema_view(
@@ -1676,8 +1727,52 @@ mail_upload_OA_Not_Satisfy = SendEmailCreateOA_not_satisfy()
 mail_upload_OA_Not_Satisfy_User = SendEmailCreateOA_not_satisfy_User()
 mail_upload_OA_Satisfy_User = SendEmailCreateOA_satisfy_User()
 mail_learning_object_findings = SendEmailLearningObjectReviewFindings()
+mail_learning_object_approved = SendEmailLearningObjectApproved()
 LEARNING_OBJECT_REVIEW_EMAIL = 'edutech@ups.edu.ec'
 LEARNING_OBJECT_REVIEW_NAME = 'Edutech UPS'
+
+
+def _get_learning_object_creator_contact(learning_object_metadata):
+    """Obtiene correo y nombre del docente creador del OA."""
+
+    user = User.objects.get(pk=learning_object_metadata.user_created_id)
+    user_name = f"{user.first_name} {user.last_name}".strip()
+    return user.email, user_name
+
+
+def _notify_learning_object_upload_review(learning_object_metadata, is_satisfactory):
+    """Notifica al docente y a administracion segun el resultado inicial del OA."""
+
+    user_email, user_name = _get_learning_object_creator_contact(learning_object_metadata)
+    name_oa = learning_object_metadata.general_title
+
+    if is_satisfactory:
+        mail_upload_OA_Satisfy_User.sendMail_Satisfay_User(user_email, user_name, name_oa)
+        mail_upload_OA_Satisfy.sendMailCreateOA(
+            LEARNING_OBJECT_REVIEW_EMAIL,
+            LEARNING_OBJECT_REVIEW_NAME,
+            name_oa,
+        )
+        return
+
+    mail_upload_OA_Not_Satisfy_User.sendMail_Not_Satisfay_User(user_email, user_name, name_oa)
+    mail_upload_OA_Not_Satisfy.sendMail_Not_Satisfay_Admin(
+        LEARNING_OBJECT_REVIEW_EMAIL,
+        LEARNING_OBJECT_REVIEW_NAME,
+        name_oa,
+    )
+
+
+def _notify_learning_object_approved(learning_object_metadata):
+    """Notifica al docente cuando administracion publica el OA."""
+
+    user_email, user_name = _get_learning_object_creator_contact(learning_object_metadata)
+    mail_learning_object_approved.sendMailApproved(
+        user_email,
+        user_name,
+        learning_object_metadata.general_title,
+        learning_object_metadata.slug,
+    )
 
 
 def automaticEvaluation(id):
@@ -1706,9 +1801,9 @@ def automaticEvaluation(id):
 def automatic_evaluation_metadata_learning_object(objeto, META):
     """Evalúa metadata adaptada usando esquemas automáticos por concepto.
 
-    Si el puntaje final alcanza el umbral heredado, el OA se publica y se
-    notifica a administradores. En caso contrario se notifica rechazo al
-    docente y a administración.
+    Si el puntaje final alcanza el umbral heredado, el OA queda pendiente de
+    revision y se notifica al docente y a administracion. En caso contrario
+    tambien queda para revision con notificacion diferenciada.
     """
 
     dato = 0
@@ -1772,24 +1867,9 @@ def automatic_evaluation_metadata_learning_object(objeto, META):
         #Cambio de variable, no publicar directamente los OA, deben pasar por revisi?n
         META.public = False
         META.save()
-        mail_upload_OA_Satisfy_User.sendMail_Satisfay_User(
-            LEARNING_OBJECT_REVIEW_EMAIL,
-            LEARNING_OBJECT_REVIEW_NAME,
-            META.general_title,
-        )
+        _notify_learning_object_upload_review(META, is_satisfactory=True)
     else:
-        user_id = META.user_created_id
-        user_te = User.objects.get(pk=user_id)
-        user_name_lastname = user_te.first_name + " " + user_te.last_name
-        user_email_Te = user_te.email
-
-        mail_upload_OA_Not_Satisfy_User.sendMail_Not_Satisfay_User(user_email_Te, user_name_lastname,
-                                                                   META.general_title)
-        mail_upload_OA_Not_Satisfy.sendMail_Not_Satisfay_Admin(
-            LEARNING_OBJECT_REVIEW_EMAIL,
-            LEARNING_OBJECT_REVIEW_NAME,
-            META.general_title,
-        )
+        _notify_learning_object_upload_review(META, is_satisfactory=False)
 
     objeto.save()
 
@@ -1849,25 +1929,9 @@ def manual_evaluation_metada_learning_object(META):
         #Cambio de variable, no publicar directamente los OA, deben pasar por revisi?n
         META.public = False
         META.save()
-
-        mail_upload_OA_Satisfy.sendMailCreateOA(
-            LEARNING_OBJECT_REVIEW_EMAIL,
-            LEARNING_OBJECT_REVIEW_NAME,
-            META.general_title,
-        )
+        _notify_learning_object_upload_review(META, is_satisfactory=True)
     else:
-        user_id = META.user_created_id
-        user_te = User.objects.get(pk=user_id)
-        user_name_lastname = user_te.first_name + " " + user_te.last_name
-        user_email_Te = user_te.email
-
-        mail_upload_OA_Not_Satisfy_User.sendMail_Not_Satisfay_User(user_email_Te, user_name_lastname,META.general_title)
-
-        mail_upload_OA_Not_Satisfy.sendMail_Not_Satisfay_Admin(
-            LEARNING_OBJECT_REVIEW_EMAIL,
-            LEARNING_OBJECT_REVIEW_NAME,
-            META.general_title,
-        )
+        _notify_learning_object_upload_review(META, is_satisfactory=False)
 
 @extend_schema_view(
     get=extend_schema(
@@ -1884,3 +1948,63 @@ class learningObjectsTheMostRecent(ListAPIView):
     def get_queryset(self):
         learning_objects_most_recent = LearningObjectMetadata.objects.filter(public=True).order_by('-created')[:4]
         return learning_objects_most_recent
+
+
+class PublicAuthorPagination(ROANumberPagination):
+    """Paginación de los OA del perfil público; el frontend elige 5/10/20/50 con `page_size`."""
+
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 50
+
+
+@extend_schema_view(
+    get=extend_schema(
+        tags=LEARNING_OBJECT_SEARCH_TAG,
+        summary='Listar los OA publicos de un docente',
+        description=(
+            'Lista paginada de los OA con `public=True` del docente, con el mismo formato de las cards del '
+            'buscador mas `views` y `downloads` (totales de cada OA). Responde 404 en los mismos casos que '
+            'el perfil publico del docente.'
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='user_key',
+                type=OpenApiTypes.UUID,
+                location=OpenApiParameter.PATH,
+                description='Identificador publico (`user_key`) del docente.',
+            ),
+        ],
+        responses={
+            200: LearningObjectMetadataWithCountersSerializer(many=True),
+            404: OpenApiResponse(description='Perfil no disponible.'),
+        },
+    )
+)
+class PublicAuthorLearningObjectsView(ListAPIView):
+    """OA públicos de un docente para la tabla de su perfil público."""
+
+    permission_classes = [AllowAny]
+    serializer_class = LearningObjectMetadataWithCountersSerializer
+    pagination_class = PublicAuthorPagination
+
+    def get_queryset(self):
+        # Swagger genera el esquema sin `user_key` en la URL.
+        if getattr(self, 'swagger_fake_view', False):
+            return LearningObjectMetadata.objects.none()
+        author = User.objects.public_authors().filter(user_key=self.kwargs['user_key']).first()
+        # Mismo 404 que el perfil, para que ambos endpoints respondan igual.
+        if author is None:
+            raise NotFound()
+        return (
+            LearningObjectMetadata.objects
+            .filter(user_created=author, public=True)
+            .select_related(
+                'license', 'learning_object_file', 'education_levels', 'knowledge_area', 'user_created'
+            )
+            .annotate(
+                views=counter_total_subquery(ViewInteraction, 'view'),
+                downloads=counter_total_subquery(Interaction, 'downloaded'),
+            )
+            .order_by('-created')
+        )

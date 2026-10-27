@@ -338,6 +338,59 @@ class ExpertEvaluationFlowTests(TransactionTestCase):
             "Learning Object is already evaluated by this expert",
         )
 
+    def _make_teacher_also_expert(self):
+        """Da rol experto al docente autor del OA, como se hace en producción."""
+        self.teacher_user.collaboratingExpert = CollaboratingExpert.objects.create(
+            expert_level="Alto",
+            web="https://teacher-expert.local",
+            academic_profile="Docente y experto",
+            is_active=True,
+            is_account_active=True,
+        )
+        self.teacher_user.save()
+
+    def test_teacher_who_is_also_expert_cannot_evaluate_own_learning_object(self):
+        """Un docente con rol experto no puede calificar el OA que él subió."""
+        self._make_teacher_also_expert()
+        self._login_and_set_bearer("teacher-expert-eval@example.com", "StrongPass123")
+
+        response = self.client.post(
+            "/api/v1/learning-objects/register-evaluation-expert/",
+            self._build_expert_evaluation_payload(),
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 400, response.data)
+        self.assertEqual(
+            response.data["message"],
+            "An expert cannot evaluate their own learning object",
+        )
+        self.assertEqual(EvaluationCollaboratingExpert.objects.count(), 0)
+        self.assertEqual(EvaluationConceptQualification.objects.count(), 0)
+
+    def test_own_learning_objects_are_not_pending_for_teacher_who_is_also_expert(self):
+        """Los OAs propios no aparecen como pendientes; para otro experto sí."""
+        self._make_teacher_also_expert()
+        LearningObjectMetadata.objects.filter(pk=self.learning_object.pk).update(public=True)
+        pending_urls = (
+            "/api/v1/learning-objects/expert-collaborator/no-rated/",
+            "/api/v1/learning-objects/search/?is_evaluated=False",
+            "/api/v1/learning-objects/search/expert/?is_evaluated=False",
+        )
+
+        def pending_ids(url):
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200, response.data)
+            return [item["id"] for item in response.data["results"]]
+
+        self._login_and_set_bearer("teacher-expert-eval@example.com", "StrongPass123")
+        for url in pending_urls:
+            self.assertNotIn(self.learning_object.id, pending_ids(url), url)
+
+        self._login_and_set_bearer("expert-eval@example.com", "StrongPass123")
+        for url in pending_urls:
+            self.assertIn(self.learning_object.id, pending_ids(url), url)
+
     def test_non_expert_user_cannot_create_expert_evaluation(self):
         """Bloquea que un usuario sin rol experto registre evaluaciones expertas."""
         self._login_and_set_bearer("student-not-expert@example.com", "StrongPass123")

@@ -59,3 +59,62 @@ class ViewInteraction(TimeStampedModel):
 
     def __str__(self):
         return str(self.id)
+
+
+class ViewRecord(models.Model):
+    """Vista ya contada para una referencia, un OA y un día.
+
+    Sirve solo para deduplicar: la misma referencia suma una vista por OA por
+    día. Los registros de días anteriores se borran automáticamente.
+    """
+
+    reference = models.CharField(
+        max_length=64,
+        help_text="Valor aleatorio de la referencia firmada que emitió `interaction-ref`.",
+    )
+    learning_object = models.ForeignKey(
+        LearningObjectMetadata,
+        on_delete=models.CASCADE,
+        related_name='view_records',
+        help_text="Objeto de aprendizaje visto.",
+    )
+    date = models.DateField(
+        help_text="Día del servidor en que se contó la vista.",
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['reference', 'learning_object', 'date'],
+                name='unique_view_record_per_day',
+            ),
+        ]
+
+
+class DownloadRecord(models.Model):
+    """Descarga ya contada para una referencia, un OA y un día.
+
+    Misma regla que `ViewRecord`: una descarga por referencia, por OA y por día.
+    """
+
+    reference = models.CharField(
+        max_length=64,
+        help_text="Valor aleatorio de la referencia firmada que emitió `interaction-ref`.",
+    )
+    learning_object = models.ForeignKey(
+        LearningObjectMetadata,
+        on_delete=models.CASCADE,
+        related_name='download_records',
+        help_text="Objeto de aprendizaje descargado.",
+    )
+    date = models.DateField(
+        help_text="Día del servidor en que se contó la descarga.",
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['reference', 'learning_object', 'date'],
+                name='unique_download_record_per_day',
+            ),
+        ]

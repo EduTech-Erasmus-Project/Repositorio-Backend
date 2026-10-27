@@ -4,7 +4,10 @@ from .models import (
     Student,
     Teacher,
     CollaboratingExpert,
-    Administrator
+    Administrator,
+    PublicProfile,
+    UserLink,
+    AcademicDegree,
 )
 
 
@@ -20,7 +23,24 @@ class UserAdmin(admin.ModelAdmin):
         'first_name', 'last_name', 'email')
 
 
+class UserLinkInline(admin.TabularInline):
+    model = UserLink
+    extra = 0
+
+
+class AcademicDegreeInline(admin.TabularInline):
+    model = AcademicDegree
+    extra = 0
+
+
+class PublicProfileAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'headline', 'is_public')
+    search_fields = ('user__first_name', 'user__last_name', 'user__email')
+    inlines = (UserLinkInline, AcademicDegreeInline)
+
+
 admin.site.register(User, UserAdmin)
+admin.site.register(PublicProfile, PublicProfileAdmin)
 admin.site.register(Teacher)
 admin.site.register(CollaboratingExpert)
 

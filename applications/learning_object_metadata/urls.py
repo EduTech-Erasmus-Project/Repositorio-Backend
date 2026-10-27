@@ -26,6 +26,7 @@ urlpatterns = [
     path("api/v1/learning-objects/comments/<pk>/", views.CommentaryListAPIView.as_view()),
     path("api/v1/learning-objects/years/", views.ListLearningObjecYears.as_view()),
     path("api/v1/learning-objects-most-recent/", views.learningObjectsTheMostRecent.as_view()),
+    path("api/v1/authors/<uuid:user_key>/learning-objects/", views.PublicAuthorLearningObjectsView.as_view(), name="public_author_learning_objects",),
 
     # Revisión administrativa de aprobación y carga docente.
     path(

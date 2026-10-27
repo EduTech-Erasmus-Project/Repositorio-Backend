@@ -167,6 +167,17 @@ class LearningObjectMetadataAllSerializer(serializers.ModelSerializer):
             return False
 
 
+class LearningObjectMetadataWithCountersSerializer(LearningObjectMetadataAllSerializer):
+    """Card de OA con sus totales de vistas y descargas.
+
+    Los valores vienen anotados en el queryset (`views`, `downloads`); el
+    serializer no consulta los contadores por su cuenta.
+    """
+
+    views = serializers.IntegerField(read_only=True)
+    downloads = serializers.IntegerField(read_only=True)
+
+
 class LearningObjectMetadataYears(serializers.ModelSerializer):
     """Salida mínima usada para extraer fechas de creación del OA."""
 

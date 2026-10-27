@@ -120,9 +120,36 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    # Solo define tasas; cada vista activa su throttle de forma explícita.
+    'DEFAULT_THROTTLE_RATES': {
+        'interaction_ref': env('DRF_INTERACTION_REF_RATE', default='1000/hour'),
+    },
+    # Proxies de confianza delante de Django (cliente -> nginx -> Django = 1).
+    # El throttle toma la IP en esa posición desde la derecha del
+    # X-Forwarded-For, así lo que el cliente agregue a la izquierda no cuenta.
+    # Cada proxy debe agregar la IP (`$proxy_add_x_forwarded_for` en nginx).
+    # 0 = sin proxy, usa REMOTE_ADDR.
+    'NUM_PROXIES': env.int('DRF_NUM_PROXIES', default=1),
     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     # 'PAGE_SIZE': 150
 }
+
+# Cache compartido entre workers (throttle y candado de la limpieza diaria de
+# registros de vistas/descargas). La tabla se crea con `createcachetable`.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'roa_cache',
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,
+        },
+    }
+}
+
+# El frontend envía la referencia firmada al contar vistas y descargas; sin
+# ella no se suma. En True vuelve a sumar 1 sin deduplicar (solo para un
+# frontend antiguo que no la envía).
+INTERACTION_ALLOW_MISSING_REFERENCE = env.bool('INTERACTION_ALLOW_MISSING_REFERENCE', default=False)
 
 # Configuracion base de SimpleJWT para preparar la migracion hacia cookies
 # HttpOnly manteniendo compatibilidad temporal con `Authorization: Bearer`.
