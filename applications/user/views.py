@@ -1071,7 +1071,7 @@ def roleUser(user):
         summary='Consultar docente pendiente',
         description=(
             'Devuelve el detalle administrativo de un docente pendiente o desaprobado, con su perfil público '
-            'completo, su universidad y sede, y todos sus OA (públicos y no públicos) con los totales de '
+            'completo, su ubicacion (pais, provincia, ciudad y universidad), y todos sus OA (públicos y no públicos) con los totales de '
             '`views` y `downloads`, del más reciente al más antiguo y sin paginar.'
         ),
         parameters=[USER_ID_PARAMETER],
@@ -1121,8 +1121,6 @@ class AdminDisaprovedTeacher(viewsets.ViewSet):
         )
         queryset = User.objects.select_related(
             'public_profile',
-            'university',
-            'campus',
         ).prefetch_related(
             'public_profile__links',
             'public_profile__degrees',
@@ -2401,7 +2399,7 @@ class PublicAuthorView(RetrieveAPIView):
         author = (
             User.objects.public_authors()
             .filter(user_key=self.kwargs['user_key'])
-            .select_related('teacher', 'university', 'campus', 'city', 'country', 'public_profile')
+            .select_related('teacher', 'public_profile')
             .prefetch_related('teacher__professions', 'public_profile__links', 'public_profile__degrees')
             .first()
         )

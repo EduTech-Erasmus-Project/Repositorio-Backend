@@ -20,7 +20,6 @@ from PIL import Image
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from applications.address.models import City, Country, Province
 from applications.education_level.models import EducationLevel
 from applications.interaction.models import Interaction, ViewInteraction
 from applications.knowledge_area.models import KnowledgeArea
@@ -203,15 +202,21 @@ class PublicAuthorProfileTests(PublicAuthorAPITestBase):
         self.assertNotIn("subjects", response.data)
 
     def test_location_is_never_published(self):
-        country = Country.objects.create(name="Ecuador")
-        province = Province.objects.create(name="Azuay", country=country)
-        self.author.country = country
-        self.author.city = City.objects.create(name="Cuenca", province=province)
+        self.author.country_code = "EC"
+        self.author.country_name = "Ecuador"
+        self.author.province_code = "A"
+        self.author.province_name = "Azuay"
+        self.author.city_name = "Cuenca"
+        self.author.university_name = "Universidad Politecnica Salesiana"
         self.author.save()
         profile = PublicProfile.objects.create(user=self.author)
 
         response = self.client.get(self.profile_url(self.author))
         self.assertNotIn("location", response.data)
+        # Solo la universidad; ni pais, ni provincia, ni ciudad.
+        self.assertEqual(response.data["university_name"], "Universidad Politecnica Salesiana")
+        for field in ("country_code", "country_name", "province_code", "province_name", "city_name", "campus"):
+            self.assertNotIn(field, response.data)
 
         # Aunque un perfil antiguo la tenga marcada como pública.
         profile.field_visibility = {"location": "public"}

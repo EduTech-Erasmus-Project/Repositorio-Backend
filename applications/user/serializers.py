@@ -1332,13 +1332,6 @@ class OwnPublicProfileSerializer(serializers.ModelSerializer):
         return instance
 
 
-class NamedCatalogItemSerializer(serializers.Serializer):
-    """Salida mínima `{id, name}` para catálogos de ubicación."""
-
-    id = serializers.IntegerField(read_only=True)
-    name = serializers.CharField(read_only=True)
-
-
 class PublicKnowledgeAreaSerializer(serializers.Serializer):
     """Área de conocimiento con ambos idiomas para el frontend con i18n."""
 
@@ -1358,8 +1351,6 @@ class PublicAuthorSerializer(serializers.ModelSerializer):
     OPTIONAL_FIELDS = ('headline', 'faculty', 'bio', 'research_lines', 'subjects', 'research_group')
 
     image_url = serializers.SerializerMethodField()
-    university = NamedCatalogItemSerializer(read_only=True)
-    campus = NamedCatalogItemSerializer(read_only=True)
     professions = ProfessionListSerializer(source='teacher.professions', many=True, read_only=True)
     knowledge_areas = serializers.SerializerMethodField()
     member_since = serializers.IntegerField(source='created.year', read_only=True)
@@ -1372,8 +1363,8 @@ class PublicAuthorSerializer(serializers.ModelSerializer):
             'last_name',
             'email',
             'image_url',
-            'university',
-            'campus',
+            # Solo la universidad: la ciudad y el pais no se publican.
+            'university_name',
             'professions',
             'knowledge_areas',
             'member_since',
@@ -1469,8 +1460,6 @@ class AdminTeacherDetailSerializer(AdminDisaprovedTeacherCollaboratingExpertSeri
     """
 
     public_profile = serializers.SerializerMethodField()
-    university = NamedCatalogItemSerializer(read_only=True, allow_null=True)
-    campus = NamedCatalogItemSerializer(read_only=True, allow_null=True)
     learning_objects = AdminTeacherLearningObjectSerializer(
         source='admin_learning_objects',
         many=True,
@@ -1480,10 +1469,8 @@ class AdminTeacherDetailSerializer(AdminDisaprovedTeacherCollaboratingExpertSeri
     class Meta(AdminDisaprovedTeacherCollaboratingExpertSerializer.Meta):
         fields = AdminDisaprovedTeacherCollaboratingExpertSerializer.Meta.fields + (
             'public_profile',
-            'university',
-            'campus',
             'learning_objects',
-        )
+        ) + USER_LOCATION_FIELDS
 
     @extend_schema_field(OwnPublicProfileSerializer(allow_null=True))
     def get_public_profile(self, obj):

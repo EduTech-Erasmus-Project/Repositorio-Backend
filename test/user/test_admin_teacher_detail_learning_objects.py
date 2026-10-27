@@ -1,7 +1,7 @@
-"""Pruebas de universidad, sede y OA en el detalle administrativo del docente.
+"""Pruebas de ubicacion y OA en el detalle administrativo del docente.
 
 Cubre:
-- `university` y `campus` con `{id, name}`, o `null` si no están asignados
+- los seis campos de ubicacion como texto (sin `campus`), vacios si no hay
 - `learning_objects` con todos los OA del docente (públicos y no públicos),
   del más reciente al más antiguo, con los totales de vistas y descargas
 - la URL absoluta del avatar
@@ -23,7 +23,6 @@ from PIL import Image
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from applications.address.models import Campus, University
 from applications.education_level.models import EducationLevel
 from applications.interaction.models import Interaction, ViewInteraction
 from applications.knowledge_area.models import KnowledgeArea
@@ -91,13 +90,19 @@ class AdminTeacherDetailLearningObjectsTests(TestCase):
     def detail_url(self, prefix="teacher-to-approve"):
         return f"/api/v1/{prefix}/{self.teacher_user.id}/"
 
-    def assign_university_and_campus(self):
-        university = University.objects.create(name="Universidad Politécnica Salesiana")
-        campus = Campus.objects.create(name="El Vecino", address="Calle Vieja", university=university)
-        self.teacher_user.university = university
-        self.teacher_user.campus = campus
+    LOCATION = {
+        "country_code": "EC",
+        "country_name": "Ecuador",
+        "province_code": "A",
+        "province_name": "Azuay",
+        "city_name": "Cuenca",
+        "university_name": "Universidad Politécnica Salesiana",
+    }
+
+    def assign_location(self):
+        for field, value in self.LOCATION.items():
+            setattr(self.teacher_user, field, value)
         self.teacher_user.save()
-        return university, campus
 
     def _build_avatar_png(self):
         image_bytes = io.BytesIO()
@@ -136,21 +141,23 @@ class AdminTeacherDetailLearningObjectsTests(TestCase):
         user.save()
         return user
 
-    def test_university_and_campus_are_included(self):
-        university, campus = self.assign_university_and_campus()
+    def test_location_is_included(self):
+        self.assign_location()
 
         response = self.client.get(self.detail_url())
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["university"], {"id": university.id, "name": university.name})
-        self.assertEqual(response.data["campus"], {"id": campus.id, "name": campus.name})
+        for field, value in self.LOCATION.items():
+            self.assertEqual(response.data[field], value)
+        self.assertNotIn("university", response.data)
+        self.assertNotIn("campus", response.data)
 
-    def test_university_and_campus_are_null_when_missing(self):
+    def test_location_is_empty_when_missing(self):
         response = self.client.get(self.detail_url())
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIsNone(response.data["university"])
-        self.assertIsNone(response.data["campus"])
+        for field in self.LOCATION:
+            self.assertEqual(response.data[field], "")
 
     def test_learning_objects_include_public_and_private_with_counters(self):
         older = self.create_learning_object("OA Público", public=True)
@@ -193,17 +200,17 @@ class AdminTeacherDetailLearningObjectsTests(TestCase):
         self.assertEqual(response.data["learning_objects"], [])
 
     def test_disapproved_route_also_includes_new_fields(self):
-        self.assign_university_and_campus()
+        self.assign_location()
         self.create_learning_object("OA Ruta desaprobados")
 
         response = self.client.get(self.detail_url("teacher-to-disapproved"))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["university"]["name"], "Universidad Politécnica Salesiana")
+        self.assertEqual(response.data["university_name"], "Universidad Politécnica Salesiana")
         self.assertEqual(len(response.data["learning_objects"]), 1)
 
     def test_query_count_does_not_grow_with_learning_objects(self):
-        self.assign_university_and_campus()
+        self.assign_location()
         self.create_learning_object("OA Uno")
         with CaptureQueriesContext(connection) as one_learning_object:
             self.client.get(self.detail_url())
@@ -217,12 +224,12 @@ class AdminTeacherDetailLearningObjectsTests(TestCase):
         self.assertEqual(len(many_learning_objects), len(one_learning_object))
 
     def test_list_does_not_include_new_fields(self):
-        self.assign_university_and_campus()
+        self.assign_location()
         self.create_learning_object("OA Listado")
 
         response = self.client.get("/api/v1/teacher-to-approve/")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 1)
-        for field in ("university", "campus", "learning_objects"):
+        for field in ("university_name", "campus", "learning_objects"):
             self.assertNotIn(field, response.data["results"][0])
