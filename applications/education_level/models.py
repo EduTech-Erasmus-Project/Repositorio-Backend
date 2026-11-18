@@ -25,6 +25,26 @@ class EducationLevel(TimeStampedModel):
         unique=True,
         help_text="Nombre del nivel educativo en ingles para interfaces o respuestas bilingues.",
     )
+    isced_code = models.PositiveSmallIntegerField(
+        unique=True,
+        null=True,
+        blank=True,
+        help_text="Nivel CINE 2011 de la UNESCO (0 a 8). Define el orden del catálogo.",
+    )
+    typical_age_min = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        help_text="Edad típica de inicio del nivel; el formulario del OA la propone como edad mínima.",
+    )
+    typical_age_max = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        help_text="Edad típica de fin del nivel; vacío significa sin límite superior.",
+    )
+
+    class Meta:
+        # Orden CINE; los niveles sin código quedan al final.
+        ordering = [models.F('isced_code').asc(nulls_last=True), 'id']
 
     def __str__(self):
         return str(self.id) + ' ' + self.name_es

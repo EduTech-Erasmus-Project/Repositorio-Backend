@@ -229,7 +229,8 @@ class EducationLevelView(viewsets.ModelViewSet):
         if self.request.META.get('HTTP_ACCEPT_LANGUAGE') is None:
             return Response({"message": "Accept Language in header is required"}, status=HTTP_200_OK)
 
-        queryset = EducationLevel.objects.all().order_by('id')
+        # Orden del modelo: por nivel CINE.
+        queryset = EducationLevel.objects.all()
         serializer_en = EducationLevelEnSerializer(queryset, many=True)
         serializer_es = EducationLevelEsSerializer(queryset, many=True)
 

@@ -39,7 +39,7 @@ class EducationLevelRegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EducationLevel
-        fields = ['id', 'name_es', 'name_en']
+        fields = ['id', 'name_es', 'name_en', 'isced_code', 'typical_age_min', 'typical_age_max']
 
 
 class EducationLevelEsSerializer(serializers.ModelSerializer):
